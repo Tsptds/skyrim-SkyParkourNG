@@ -59,7 +59,7 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
     logger::info("'{} {}' is loading, game version '{}'...", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
     Init(skse);
 
-    GameEventHandler::getInstance().onLoad();
+    //GameEventHandler::getInstance().onLoad();
     logger::info("{} has finished loading.", Plugin::Name);
     return true;
 }

@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "skse-clibng-template",
-  "version-string": "0.0.1",
-  "description": "SKSE CommonLibSSE-NG Template",
-  "homepage": "https://github.com/epinter/skse-clibng-template",
+  "name": "skyparkour-ng-v2",
+  "version-string": "2.0.0",
+  "description": "Procedural Parkour Framework",
+  "homepage": "https://github.com/Tsptds/SkyParkourNGv2",
   "features": {
     "plugin": {
       "description": "SKSE plugin",
