@@ -11,12 +11,12 @@ using namespace Parkouring;
 
 void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
     ButtonStates::DXCODE = dxcode;
-    logger::info("-Custom Key Set: {}", dxcode);
+    logger::info("-Custom Key: '{}'", dxcode);
 }
 
 void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
     ModSettings::PresetParkourKey = presetKey;
-    logger::info("-Preset Key Set: {}", ModSettings::PresetParkourKey);
+    logger::info("-Preset Key: '{}'", ModSettings::PresetParkourKey);
 
     // Reset jump flag to prevent getting stuck if jump is disabled and mod setting is changed
     // When Button delay is 0, jump is disabled on ledge point detection
@@ -27,7 +27,7 @@ void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
 
 void RegisterParkourDelay(RE::StaticFunctionTag *, float delay) {
     ModSettings::parkourDelay = delay;
-    logger::info("-Delay Set {}", ModSettings::parkourDelay);
+    logger::info("-Delay '{}'", ModSettings::parkourDelay);
 
     // Reset jump flag to prevent getting stuck if jump is disabled and mod setting is changed
     // When Button delay is 0, jump is disabled on ledge point detection
@@ -40,8 +40,8 @@ void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBl
     ModSettings::Enable_Stamina_Consumption = enabled;
     ModSettings::Is_Stamina_Required = staminaBlocks;
     ModSettings::Stamina_Damage = damage;
-    logger::info("**Stamina System**\n-Enabled:{} -Required:{} -Value:{}", ModSettings::Enable_Stamina_Consumption,
-                 ModSettings::Is_Stamina_Required, ModSettings::Stamina_Damage);
+    logger::info("**Stamina**\n-On:'{}' -Must:'{}' -Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
+                 ModSettings::Stamina_Damage);
 }
 
 void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour) {
@@ -53,16 +53,13 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
     if (!indicatorRef_Blue || !indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
+        report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
     }
 
     GameReferences::indicatorRef_Blue = indicatorRef_Blue;
     GameReferences::indicatorRef_Red = indicatorRef_Red;
 
     GameReferences::currentIndicatorRef = indicatorRef_Blue;
-}
-
-void Register(RE::StaticFunctionTag *) {
-    AnimEventListener::Register();
 }
 
 bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
