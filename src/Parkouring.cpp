@@ -363,19 +363,24 @@ void Parkouring::AdjustPlayerPosition() {
 }
 
 void Parkouring::UpdateParkourPoint() {
-    if (!ModSettings::ModEnabled || RuntimeVariables::ParkourEndQueued) {
+    if (RuntimeVariables::ParkourEndQueued) {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();
         RuntimeVariables::selectedLedgeType = -1;
         return;
     }
 
-    if (!AnimEventListener::Register()) {
-        return;
+    // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
+    if (!ModSettings::ModEnabled || ModSettings::ShouldModSuspend) {
+        Parkouring::SetParkourOnOff(false);
+    } else {
+        // Too many things reset this, temporarily checking here.
+        if (!AnimEventListener::Register()) {
+            return;
+        }
     }
 
     const auto player = RE::PlayerCharacter::GetSingleton();
-    //logger::info("Ongoing {}", PluginReferences::ParkourOngoing);
 
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
@@ -396,13 +401,9 @@ void Parkouring::UpdateParkourPoint() {
 
     /* ===================================== */
 
-    // If player is not grounded or is in water, reset jump key and return early
-    if (!IsParkourActive() /*&& PluginReferences::ParkourOngoing == false*/) {
-        //ToggleJumpingInternal(true);  // Ensure jump key is re-enabled to prevent being stuck
-        //ToggleControlsForParkour(true);
+    if (!IsParkourActive()) {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();
-        //return;
     } else {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
@@ -490,17 +491,19 @@ void Parkouring::ParkourReadyRun() {
 
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
+        ButtonEventListener::Register();
+        AnimEventListener::Register();
+
+    } else {
         ButtonEventListener::Unregister();
         AnimEventListener::Unregister();
 
         ParkourUtility::ToggleControlsForParkour(true);
+
+        RuntimeVariables::selectedLedgeType = -1;
         RuntimeVariables::ParkourEndQueued = false;
 
-        GameReferences::currentIndicatorRef->Disable();
-
-    } else {
-        ButtonEventListener::Register();
-        AnimEventListener::Register();
+        if (GameReferences::currentIndicatorRef)
+            GameReferences::currentIndicatorRef->Disable();
     }
 }
-void Parkouring::ToggleModOnOff(bool turnOn) {}

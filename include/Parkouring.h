@@ -18,5 +18,4 @@ namespace Parkouring {
     void ParkourReadyRun();
 
     void SetParkourOnOff(bool turnOn);
-    void ToggleModOnOff(bool turnOn);
 }  // namespace Parkouring

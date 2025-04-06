@@ -6,6 +6,7 @@ namespace ModSettings {
     int PresetParkourKey = 0;  // enum ParkourKeyOptions
 
     bool ModEnabled = true;
+    bool ShouldModSuspend = false;
 
     float parkourDelay = 0.0f;  // Set initial delay
 

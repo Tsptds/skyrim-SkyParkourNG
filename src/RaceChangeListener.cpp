@@ -38,9 +38,12 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     // it *is* the player, if it has pre transformation data, then it is a beast race. Unregister button listener to stop parkour
     const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
-        Parkouring::SetParkourOnOff(false);
+        // Instead of direct suspend, I do it at updateparkourpoint so I can ensure parkourQueued is false, else will allow breaking the mod.
+        ModSettings::ShouldModSuspend = true;
+        /*Parkouring::SetParkourOnOff(false);*/
 
     } else {
+        ModSettings::ShouldModSuspend = false;
         Parkouring::SetParkourOnOff(true);
     }
     return RE::BSEventNotifyControl::kContinue;
