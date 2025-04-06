@@ -4,11 +4,22 @@
 #include "References.h"
 
 class AnimEventListener : public RE::BSTEventSink<RE::BSAnimationGraphEvent> {
-public:
-    static bool RegisterAnimationEventListener();
-   
-    virtual RE::BSEventNotifyControl ProcessEvent(const RE::BSAnimationGraphEvent* a_event,
-                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>*) override;
+    public:
+        static AnimEventListener* GetSingleton() {
+            static AnimEventListener singleton;
+            return &singleton;
+        }
+
+        static bool Register();
+        static bool Unregister();
+
+    private:
+        virtual RE::BSEventNotifyControl ProcessEvent(const RE::BSAnimationGraphEvent* a_event,
+                                                      RE::BSTEventSource<RE::BSAnimationGraphEvent>*) override;
+
+        AnimEventListener() = default;
+        ~AnimEventListener() = default;
+
 };
 
 // namespace {

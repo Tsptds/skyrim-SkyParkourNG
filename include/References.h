@@ -3,14 +3,14 @@
 namespace ModSettings {
     extern bool UsePresetParkourKey;
     extern int PresetParkourKey;
-    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom }; // k_Custom is unused for now
+    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
     extern bool ModEnabled;
     extern float parkourDelay;
     extern bool Enable_Stamina_Consumption;
     extern bool Is_Stamina_Required;
     extern float Stamina_Damage;
     extern bool Smart_Parkour_Enabled;
-}
+}  // namespace ModSettings
 
 namespace HardCodedVariables {
     extern const float climbMaxHeight;
@@ -42,7 +42,7 @@ namespace HardCodedVariables {
     extern const float vaultElevation;
     // 60
     extern const float grabElevation;
-}
+}  // namespace HardCodedVariables
 
 namespace ParkourType {
     // 7
@@ -63,7 +63,7 @@ namespace ParkourType {
     extern int const Failed;
     // -1
     extern const int NoLedge;
-}
+}  // namespace ParkourType
 
 namespace RuntimeMethods {
     extern void SwapLegs();
@@ -81,11 +81,11 @@ namespace RuntimeVariables {
     extern bool ParkourEndQueued;
 
     extern bool shouldUseRightStep;
-}
+}  // namespace RuntimeVariables
 
 namespace GameReferences {
 
     extern RE::TESObjectREFR* indicatorRef_Blue;
     extern RE::TESObjectREFR* indicatorRef_Red;
     extern RE::TESObjectREFR* currentIndicatorRef;
-}
+}  // namespace GameReferences

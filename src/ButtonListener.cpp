@@ -15,7 +15,7 @@ std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     // These have no button up events, input gets stuck on wheel up down
     //{8, 264},  // Wheel Up
     //{9, 265},  // Wheel Down
-        
+
     // Gamepad
     //{0x0001, 266},  // DPAD_UP
     //{0x0002, 267},  // DPAD_DOWN
@@ -34,7 +34,6 @@ std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
 };
 
 int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
-        
     auto it = xinputToCKMap.find(dxcode);
     if (it != xinputToCKMap.end()) {
         //logger::info("Alt. CK input found, mapping {}", it->second);
@@ -44,23 +43,21 @@ int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
 }
 
 void ButtonStates::RegisterActivation(RE::ButtonEvent* event) {
-        if (event->IsDown() || event->IsHeld()) {
-            if (ModSettings::parkourDelay <= event->heldDownSecs) {
-
-                Parkouring::UpdateParkourPoint();
-                if (Parkouring::TryActivateParkour()) {
-                    event->heldDownSecs = ModSettings::parkourDelay;
-                }
+    if (event->IsDown() || event->IsHeld()) {
+        if (ModSettings::parkourDelay <= event->heldDownSecs) {
+            Parkouring::UpdateParkourPoint();
+            if (Parkouring::TryActivateParkour()) {
+                event->heldDownSecs = ModSettings::parkourDelay;
             }
         }
     }
-
+}
 
 void ButtonEventListener::Register() {
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->AddEventSink(ButtonEventListener::GetSingleton());
-        logger::info("Registered Button Listener");
+        logger::info("Buttons - Listening");
     }
 }
 
@@ -68,13 +65,13 @@ void ButtonEventListener::Unregister() {
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->RemoveEventSink(ButtonEventListener::GetSingleton());
-        logger::info("Button Listener Removed");
+        logger::info("Buttons - Not Listening");
     }
 }
 
-RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const* a_event,
-                                              RE::BSTEventSource<RE::InputEvent*>*) {
-    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) {
+    if (!a_event)
+        return RE::BSEventNotifyControl::kContinue;
 
     // Update this here, temporary solution to updating parkour point on loop
     Parkouring::UpdateParkourPoint();
@@ -91,40 +88,33 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
             } else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
                 dxScanCode = ButtonStates::xinputToCKMap[dxScanCode];
             }
-            
+
             if (ModSettings::UsePresetParkourKey) {
                 // Retrieve the mapping for the jump action
                 auto inputMap = RE::ControlMap::GetSingleton();
 
                 auto jumpMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->jump, buttonEvent->GetDevice());
-                auto sprintMapping =
-                    inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, buttonEvent->GetDevice());
-                auto activateMapping =
-                    inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->activate, buttonEvent->GetDevice());
+                auto sprintMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, buttonEvent->GetDevice());
+                auto activateMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->activate, buttonEvent->GetDevice());
                 auto buttonId = buttonEvent->GetIDCode();
                 //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
-                if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
-                    buttonId == jumpMapping) {
+                if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump && buttonId == jumpMapping) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(buttonEvent);
 
-                }
-                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
-                           buttonId == sprintMapping) {
+                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint && buttonId == sprintMapping) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(buttonEvent);
 
-                }
-                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
-                           buttonId == activateMapping) {
+                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate && buttonId == activateMapping) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
@@ -132,8 +122,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                     ButtonStates::RegisterActivation(buttonEvent);
                 }
 
-            }
-            else {
+            } else {
                 if (dxScanCode == ButtonStates::DXCODE) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;

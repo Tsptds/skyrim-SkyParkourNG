@@ -1,6 +1,7 @@
 #include "ParkourUtility.h"
 #include "Parkouring.h"
 #include "ButtonListener.h"
+#include "RaceChangeListener.h"
 #include "AnimationListener.h"
 #include "References.h"
 #include "PCH.h"
@@ -60,8 +61,8 @@ void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef
     GameReferences::currentIndicatorRef = indicatorRef_Blue;
 }
 
-void RegisterAnimationEventListener(RE::StaticFunctionTag *) {
-    AnimEventListener::RegisterAnimationEventListener();
+void Register(RE::StaticFunctionTag *) {
+    AnimEventListener::Register();
 }
 
 bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
@@ -83,8 +84,9 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         //JumpHandlerEx::InstallHook();
+        RaceChangeListener::Register();
         ButtonEventListener::Register();
-        logger::info("***Mod Enabled***");
+        logger::info("Done");
 
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         // Parkour Point updates with button listener, remove it when player unloads to prevent crash
@@ -159,15 +161,15 @@ namespace plugin {
 
 using namespace plugin;
 
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
     initializeLogging();
 
-    logger::info("'{} {}' is loading, game version '{}'...", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
     Init(skse);
+    logger::info("'{} {}' is loading, game version '{}'...", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
 
     SKSE::GetPapyrusInterface()->Register(PapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
     //GameEventHandler::getInstance().onLoad();
-    logger::info("{} has finished loading.", Plugin::Name);
+    //logger::info("{} has finished loading.", Plugin::Name);
     return true;
 }
