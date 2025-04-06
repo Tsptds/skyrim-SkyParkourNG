@@ -8,7 +8,13 @@
     "plugin": {
       "description": "SKSE plugin",
       "dependencies": [
-        "commonlibsse-ng",
+        {
+          "name": "vcpkg-cmake-config",
+          "host": true
+        },
+        "directxmath",
+        "directxtk",
+        "rapidcsv",
         "spdlog",
         "boost-algorithm"
       ]
