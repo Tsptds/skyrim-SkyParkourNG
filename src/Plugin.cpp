@@ -155,7 +155,7 @@ namespace plugin {
         log->flush_on(spdlog::level::info);
 
         spdlog::set_default_logger(std::move(log));
-        spdlog::set_pattern(PLUGIN_LOGPATTERN_DEFAULT);
+        spdlog::set_pattern(PLUGIN_LOGPATTERN_RELEASE);
     }
 }  // namespace plugin
 
@@ -164,8 +164,8 @@ using namespace plugin;
 extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
     initializeLogging();
 
-    Init(skse);
-    logger::info("'{} {}' is loading, game version '{}'...", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
+    Init(skse, false);
+    logger::info("'{} {}' / Skyrim '{}'", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
 
     SKSE::GetPapyrusInterface()->Register(PapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
