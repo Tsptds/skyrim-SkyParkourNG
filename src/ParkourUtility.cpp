@@ -187,7 +187,7 @@ float ParkourUtility::CalculateParkourStamina() {
 
 bool ParkourUtility::PlayerHasEnoughStamina() {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    const auto currentStamina = player->GetActorValue(RE::ActorValue::kStamina);
+    const auto currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
     if (!ModSettings::Is_Stamina_Required || currentStamina > CalculateParkourStamina() /* && ModSettings::Is_Stamina_Required */) {
         return true;
@@ -197,7 +197,7 @@ bool ParkourUtility::PlayerHasEnoughStamina() {
 
 bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount) {
     if (actor) {
-        actor->RestoreActorValue(RE::ACTOR_VALUE_MODIFIERS::kDamage, RE::ActorValue::kStamina, -amount);
+        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIERS::kDamage, RE::ActorValue::kStamina, -amount);
         return true;
     }
     return false;
@@ -248,7 +248,7 @@ bool ParkourUtility::PlayerIsSwimming() {
     if (!player) {
         return false;
     }
-    return player->IsSwimming();
+    return player->AsActorState()->IsSwimming();
         
     // IDK why swim at surface works this way, but it does.
     //return player->boolBits.any(RE::Actor::BOOL_BITS::kSwimming) ||
@@ -263,8 +263,8 @@ bool ParkourUtility::PlayerWantsToDrawSheath()
 {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    return player->GetWeaponState() == RE::WEAPON_STATE::kWantToDraw ||
-            player->GetWeaponState() == RE::WEAPON_STATE::kWantToSheathe; 
+    return player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToDraw ||
+           player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToSheathe;
 }
 
 bool ParkourUtility::IsParkourActive() {
@@ -291,14 +291,14 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     // Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
-    const REX::EnumSet charGenFlag = player->byCharGenFlag;
+    const auto &gs = player->GetGameStatsData();  // RE::PlayerCharacter::GetGameStatsData
     /*logger::info(" chargen flag: {}", charGenFlag.underlying());*/
-    if (charGenFlag.underlying() != 0) {
+    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
         return false;
     }
 
     // Check if the player has transformed into a beast race
-    const auto playerPreTransformData = player->preTransformationData;
+    const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
         /* logger::info("player race {}", playerPreTransformData->storedRace->GetFormEditorID());*/
         return false;
@@ -485,7 +485,7 @@ int ParkourUtility::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, 
     } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 &&
                ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
 
-        if (!PlayerIsOnStairs() && player->GetWeaponState() == RE::WEAPON_STATE::kSheathed &&
+        if (!PlayerIsOnStairs() && player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kSheathed &&
             player->GetCharController()->fallTime > 0.4f) {
             return ParkourType::Grab;
         }
