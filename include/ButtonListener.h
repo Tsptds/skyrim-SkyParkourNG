@@ -26,7 +26,7 @@ public:
 
 private:
     virtual RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event,
-                                          RE::BSTEventSource<RE::InputEvent*>*);
+                                          RE::BSTEventSource<RE::InputEvent*>*) override;
 
     ButtonEventListener() = default;
     ~ButtonEventListener() = default;

@@ -6,7 +6,7 @@ namespace ModSettings {
     int PresetParkourKey = 0;  // enum ParkourKeyOptions
 
     bool ModEnabled = true;
-    bool ShouldModSuspend = false;
+    //bool ShouldModSuspend = false;
 
     float parkourDelay = 0.0f;  // Set initial delay
 
@@ -81,6 +81,8 @@ namespace RuntimeVariables {
     bool wasFirstPerson = false;
 
     bool ParkourEndQueued = false;
+    bool IsMenuOpen = false;
+    bool IsBeastForm = false;
 
     bool shouldUseRightStep = true;
 }  // namespace RuntimeVariables

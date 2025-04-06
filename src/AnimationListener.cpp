@@ -23,7 +23,6 @@ bool AnimEventListener::Register() {
     }
     return false;
 }
-
 bool AnimEventListener::Unregister() {
     if (auto player = RE::PlayerCharacter::GetSingleton()) {
         auto listener = AnimEventListener::GetSingleton();

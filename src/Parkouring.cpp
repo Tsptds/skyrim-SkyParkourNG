@@ -371,29 +371,20 @@ void Parkouring::UpdateParkourPoint() {
     }
 
     // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
-    if (!ModSettings::ModEnabled || ModSettings::ShouldModSuspend) {
+    if (!ModSettings::ModEnabled /*|| ModSettings::ShouldModSuspend*/) {
         Parkouring::SetParkourOnOff(false);
-    } else {
-        // Too many things reset this, temporarily checking here.
-        if (!AnimEventListener::Register()) {
-            return;
-        }
     }
+    //else {
+    //    // Too many things reset this, temporarily checking here.
+    //    if (!AnimEventListener::Register()) {
+    //        return;
+    //    }
+    //}
 
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
-
-    if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump && ModSettings::parkourDelay == 0) {
-        if (RuntimeVariables::selectedLedgeType == -1) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-            //logger::info("jump enabled");
-        } else if (RuntimeVariables::ParkourEndQueued == false) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, false);
-            //logger::info("jump disabled");
-        }
-    }
 
     /* ===================================== */
 
@@ -404,9 +395,21 @@ void Parkouring::UpdateParkourPoint() {
     if (!IsParkourActive()) {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();
+        return;
+
     } else {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
+    }
+
+    if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump && ModSettings::parkourDelay == 0) {
+        if (RuntimeVariables::selectedLedgeType == -1) {
+            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
+            //logger::info("jump enabled");
+        } else if (RuntimeVariables::ParkourEndQueued == false) {
+            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, false);
+            //logger::info("jump disabled");
+        }
     }
 }
 bool Parkouring::TryActivateParkour() {

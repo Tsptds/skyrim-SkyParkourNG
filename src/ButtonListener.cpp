@@ -41,7 +41,6 @@ int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
     }
     return dxcode;  // Return default value if key not found
 }
-
 void ButtonStates::RegisterActivation(RE::ButtonEvent* event) {
     if (event->IsDown() || event->IsHeld()) {
         if (ModSettings::parkourDelay <= event->heldDownSecs) {
@@ -60,7 +59,6 @@ void ButtonEventListener::Register() {
         logger::info("Buttons - Listening");
     }
 }
-
 void ButtonEventListener::Unregister() {
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {

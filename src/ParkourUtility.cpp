@@ -4,8 +4,14 @@ bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
     }
-
     auto player = RE::PlayerCharacter::GetSingleton();
+
+    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
+    const auto &gs = player->GetGameStatsData();
+    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
+        return false;
+    }
+
     if (IsActorUsingFurniture(player) /*|| !IsActorWeaponSheathed(player)*/) {
         return false;
     }
@@ -15,19 +21,18 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     // Check if the game is paused
-    auto ui = RE::UI::GetSingleton();
-    if (ui && ui->GameIsPaused()) {
+    //auto ui = RE::UI::GetSingleton();
+    /*if (ui && ui->GameIsPaused()) {
+        return false;
+    }*/
+
+    if (RuntimeVariables::IsMenuOpen) {
         return false;
     }
 
-    // This is handled inside RaceChangeListener Now
-
-    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
-    //const auto &gs = player->GetGameStatsData();  // RE::PlayerCharacter::GetGameStatsData
-    ///*logger::info(" chargen flag: {}", charGenFlag.underlying());*/
-    //if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
-    //    return false;
-    //}
+    if (RuntimeVariables::IsBeastForm) {
+        return false;
+    }
 
     // This is handled Via RaceChangeListener now
     //// Check if the player has transformed into a beast race
@@ -37,25 +42,26 @@ bool ParkourUtility::IsParkourActive() {
     //    return false;
     //}
 
-    // List of disqualifying menu names
-    const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
-                                              RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
-                                              RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
-                                              RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
-                                              RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
-                                              RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
-                                              RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
-                                              RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
-                                              RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
-                                              RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
-                                              RE::TweenMenu::MENU_NAME};
+    // This is handled inside MenuListener Now
 
-    // Check if any of the excluded menus are open
-    for (const std::string_view menuName: excludedMenus) {
-        if (ui->IsMenuOpen(menuName)) {
-            return false;
-        }
-    }
+    //// List of disqualifying menu names
+    //const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
+    //                                          RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
+    //                                          RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
+    //                                          RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
+    //                                          RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
+    //                                          RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
+    //                                          RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
+    //                                          RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
+    //                                          RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
+    //                                          RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
+    //                                          RE::TweenMenu::MENU_NAME};
+    //// Check if any of the excluded menus are open
+    //for (const std::string_view menuName: excludedMenus) {
+    //    if (ui->IsMenuOpen(menuName)) {
+    //        return false;
+    //    }
+    //}
 
     return true;
 }

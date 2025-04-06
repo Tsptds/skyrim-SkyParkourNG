@@ -46,14 +46,20 @@ void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBl
 
 void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour) {
     ModSettings::UsePresetParkourKey = _usePresetKey;
-    ModSettings::ModEnabled = _enableMod;
     ModSettings::Smart_Parkour_Enabled = _smartParkour;
+    
+    
+    ModSettings::ModEnabled = _enableMod;
+
+    if (ModSettings::ModEnabled) {
+        Parkouring::SetParkourOnOff(true);
+    }
 }
 
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
     if (!indicatorRef_Blue || !indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
-        report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
+        SKSE::stl::report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
     }
 
     GameReferences::indicatorRef_Blue = indicatorRef_Blue;
@@ -82,21 +88,28 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         //JumpHandlerEx::InstallHook();
         RaceChangeListener::Register();
-        ButtonEventListener::Register();
+        MenuListener::Register();
+        //ButtonEventListener::Register();
+
         logger::info("Done");
 
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
-        // Parkour Point updates with button listener, remove it when player unloads to prevent crash
-        ButtonEventListener::Unregister();
+        // Parkour Point updates with button listener, no reason to keep listening for events on loading screen
+        //ButtonEventListener::Unregister();
 
         RuntimeVariables::ParkourEndQueued = false;
 
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        ButtonEventListener::Register();
-        ParkourUtility::ToggleControlsForParkour(true);
+        //ButtonEventListener::Register();
+        //ParkourUtility::ToggleControlsForParkour(true);
+
+        // On game load if player is already beast form, set this true
+        if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
+            RuntimeVariables::IsBeastForm = true;
+        }
 
     } else if (message->type == SKSE::MessagingInterface::kNewGame) {
-        ButtonEventListener::Register();
+        //ButtonEventListener::Register();
 
         ParkourUtility::ToggleControlsForParkour(true);
         RuntimeVariables::ParkourEndQueued = false;

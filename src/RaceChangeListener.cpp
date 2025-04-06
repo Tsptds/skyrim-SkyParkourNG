@@ -11,7 +11,6 @@ void RaceChangeListener::Register() {
         logger::info("RaceChange - Listening");
     }
 }
-
 void RaceChangeListener::Unregister() {
     // Remove Event Sink
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
@@ -39,12 +38,18 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
         // Instead of direct suspend, I do it at updateparkourpoint so I can ensure parkourQueued is false, else will allow breaking the mod.
-        ModSettings::ShouldModSuspend = true;
-        /*Parkouring::SetParkourOnOff(false);*/
+        //ModSettings::ShouldModSuspend = true; /*// Parkouring::SetParkourOnOff(false);*/
+
+        RuntimeVariables::IsBeastForm = true;
+        ParkourUtility::ToggleControlsForParkour(true);
+        RuntimeVariables::ParkourEndQueued = false;
 
     } else {
-        ModSettings::ShouldModSuspend = false;
-        Parkouring::SetParkourOnOff(true);
+        //ModSettings::ShouldModSuspend = false;
+        //Parkouring::SetParkourOnOff(true);
+
+        AnimEventListener::Register();
+        RuntimeVariables::IsBeastForm = false;
     }
     return RE::BSEventNotifyControl::kContinue;
 }

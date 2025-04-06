@@ -5,7 +5,7 @@ namespace ModSettings {
     extern int PresetParkourKey;
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
     extern bool ModEnabled;
-    extern bool ShouldModSuspend;
+    //extern bool ShouldModSuspend;
     extern float parkourDelay;
     extern bool Enable_Stamina_Consumption;
     extern bool Is_Stamina_Required;
@@ -79,7 +79,10 @@ namespace RuntimeVariables {
     extern RE::NiPoint3 backwardAdjustment;
 
     extern bool wasFirstPerson;
+
     extern bool ParkourEndQueued;
+    extern bool IsMenuOpen;
+    extern bool IsBeastForm;
 
     extern bool shouldUseRightStep;
 }  // namespace RuntimeVariables

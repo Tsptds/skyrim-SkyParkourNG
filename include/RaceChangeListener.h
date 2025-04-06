@@ -14,7 +14,7 @@ struct RaceChangeListener : RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
 
     private:
         virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* ev,
-                                              RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*);
+                                              RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
 
         RaceChangeListener() = default;
         ~RaceChangeListener() = default;
