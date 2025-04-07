@@ -51,7 +51,7 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
     
     ModSettings::ModEnabled = _enableMod;
 
-    if (ModSettings::ModEnabled) {
+    if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm) {
         Parkouring::SetParkourOnOff(true);
     }
 }
@@ -96,8 +96,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         // Parkour Point updates with button listener, no reason to keep listening for events on loading screen
         //ButtonEventListener::Unregister();
-
-        RuntimeVariables::ParkourEndQueued = false;
+        //logger::info("preload");
+        RuntimeMethods::ResetRuntimeVariables();
 
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         //ButtonEventListener::Register();
@@ -112,7 +112,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         //ButtonEventListener::Register();
 
         ParkourUtility::ToggleControlsForParkour(true);
-        RuntimeVariables::ParkourEndQueued = false;
+        RuntimeMethods::ResetRuntimeVariables();
     }
 }
 

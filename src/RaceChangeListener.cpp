@@ -46,9 +46,9 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
 
     } else {
         //ModSettings::ShouldModSuspend = false;
-        //Parkouring::SetParkourOnOff(true);
+        Parkouring::SetParkourOnOff(true);
 
-        AnimEventListener::Register();
+        //AnimEventListener::Register();
         RuntimeVariables::IsBeastForm = false;
     }
     return RE::BSEventNotifyControl::kContinue;

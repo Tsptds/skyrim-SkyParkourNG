@@ -26,13 +26,13 @@ namespace Menus {
         return false;
     }
 
-    /*bool MainMenuShowing() {
+    bool MainMenuShowing() {
         auto ui = RE::UI::GetSingleton();
         if (ui->IsMenuOpen(RE::MainMenu::MENU_NAME)) {
             return true;
         }
         return false;
-    }*/
+    }
 }  // namespace Menus
 
 bool MenuListener::Register() {
@@ -59,19 +59,24 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         if (Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = true;
         }
-        /*if (Menus::MainMenuShowing() && ModSettings::ShouldModSuspend == false) {
-            ModSettings::ShouldModSuspend = true;
-        }*/
 
+        if (!RuntimeVariables::IsInMainMenu && Menus::MainMenuShowing()) {
+            Parkouring::SetParkourOnOff(false);
+            RuntimeMethods::ResetRuntimeVariables();
+
+            RuntimeVariables::IsInMainMenu = true;
+        }
     } else {
         //logger::info("Menu {} closed", ev->menuName.c_str());
 
-        // Treating this as save loaded event, fires on COC command and new game, when area along with player loads.
-        if (ev->menuName == RE::LoadingMenu::MENU_NAME) {
-            AnimEventListener::Register();
-        }
+        //// Treating this as save loaded event, fires on COC command and new game, when area along with player loads.
+        //if (ev->menuName == RE::LoadingMenu::MENU_NAME) {
+        //    if (!RuntimeVariables::IsBeastForm) {
+        //        AnimEventListener::Register();
+        //    }
+        //}
 
-        // If player changes char, it needs to re-register to the graph.
+        // Mainly for new game, if race menu closes, attempt to register listener
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
             AnimEventListener::Register();
         }
@@ -80,10 +85,9 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
             RuntimeVariables::IsMenuOpen = false;
         }
 
-        /*if (!Menus::MainMenuShowing() && ModSettings::ShouldModSuspend == true) {
-            ModSettings::ShouldModSuspend = false;
-            Parkouring::SetParkourOnOff(true);
-        }*/
+        if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
+            RuntimeVariables::IsInMainMenu = false;
+        }
     }
     return RE::BSEventNotifyControl::kContinue;
 }

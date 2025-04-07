@@ -68,7 +68,8 @@ namespace ParkourType {
 
 namespace RuntimeMethods {
     extern void SwapLegs();
-}
+    extern void ResetRuntimeVariables();
+}  // namespace RuntimeMethods
 
 namespace RuntimeVariables {
     extern RE::COL_LAYER lastHitObject;
@@ -82,6 +83,7 @@ namespace RuntimeVariables {
 
     extern bool ParkourEndQueued;
     extern bool IsMenuOpen;
+    extern bool IsInMainMenu;
     extern bool IsBeastForm;
 
     extern bool shouldUseRightStep;

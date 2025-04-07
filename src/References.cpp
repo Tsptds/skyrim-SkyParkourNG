@@ -61,11 +61,18 @@ namespace ParkourType {
     const int NoLedge = -1;
 }  // namespace ParkourType
 
+// Alternate step animations
 void RuntimeMethods::SwapLegs() {
     RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
     RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
 
     //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
+}
+// Things that are not handled by MCM and persistent throughout saves without being reset on game load
+void RuntimeMethods::ResetRuntimeVariables() {
+    RuntimeVariables::IsBeastForm = false;
+    RuntimeVariables::ParkourEndQueued = false;
+    RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
 
 namespace RuntimeVariables {
@@ -82,6 +89,7 @@ namespace RuntimeVariables {
 
     bool ParkourEndQueued = false;
     bool IsMenuOpen = false;
+    bool IsInMainMenu = true;
     bool IsBeastForm = false;
 
     bool shouldUseRightStep = true;

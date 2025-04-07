@@ -371,8 +371,9 @@ void Parkouring::UpdateParkourPoint() {
     }
 
     // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
-    if (!ModSettings::ModEnabled /*|| ModSettings::ShouldModSuspend*/) {
+    if (!ModSettings::ModEnabled || RuntimeVariables::IsBeastForm/*|| ModSettings::ShouldModSuspend*/) {
         Parkouring::SetParkourOnOff(false);
+        return;
     }
     //else {
     //    // Too many things reset this, temporarily checking here.
