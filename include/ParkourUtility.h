@@ -9,7 +9,8 @@ namespace ParkourUtility {
     float PlayerVsObjectAngle(const RE::NiPoint3 &objPoint);
     void LastObjectHitType(RE::COL_LAYER obj);
     float RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::hkVector4 &normalOut, RE::COL_LAYER layerMask);
-    bool IsActorUsingFurniture(RE::Actor *actor);
+    bool IsPlayerUsingFurniture();
+    bool IsPlayerInCharGen();
     float CalculateParkourStamina();
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);

@@ -395,7 +395,6 @@ void Parkouring::UpdateParkourPoint() {
     if (!IsParkourActive()) {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();
-        return;
 
     } else {
         if (GameReferences::currentIndicatorRef)

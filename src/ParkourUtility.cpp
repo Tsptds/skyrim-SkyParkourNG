@@ -4,15 +4,12 @@ bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
     }
-    auto player = RE::PlayerCharacter::GetSingleton();
 
-    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
-    const auto &gs = player->GetGameStatsData();
-    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
+    if (IsPlayerInCharGen()) {
         return false;
     }
 
-    if (IsActorUsingFurniture(player) /*|| !IsActorWeaponSheathed(player)*/) {
+    if (IsPlayerUsingFurniture() /*|| !IsActorWeaponSheathed(player)*/) {
         return false;
     }
 
@@ -35,6 +32,7 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     // This is handled Via RaceChangeListener now
+
     //// Check if the player has transformed into a beast race
     //const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     //if (playerPreTransformData) {
@@ -243,9 +241,20 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
     return maxDist;
 }
 
-bool ParkourUtility::IsActorUsingFurniture(RE::Actor *actor) {
-    auto ref = actor->GetOccupiedFurniture();
+bool ParkourUtility::IsPlayerUsingFurniture() {
+    auto player = RE::PlayerCharacter::GetSingleton();
+    auto ref = player->GetOccupiedFurniture();
     if (ref) {
+        return true;
+    }
+    return false;
+}
+
+bool ParkourUtility::IsPlayerInCharGen() {
+    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
+    auto player = RE::PlayerCharacter::GetSingleton();
+    const auto &gs = player->GetGameStatsData();
+    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
         return true;
     }
     return false;
