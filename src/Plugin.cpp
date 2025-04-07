@@ -51,6 +51,10 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
     
     ModSettings::ModEnabled = _enableMod;
 
+    if (!RuntimeVariables::ParkourEndQueued) {
+        RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
+    }
+
     if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm) {
         Parkouring::SetParkourOnOff(true);
     }
@@ -59,7 +63,7 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
     if (!indicatorRef_Blue || !indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
-        SKSE::stl::report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
+        //SKSE::stl::report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
     }
 
     GameReferences::indicatorRef_Blue = indicatorRef_Blue;
