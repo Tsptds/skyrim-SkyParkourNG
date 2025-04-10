@@ -39,8 +39,8 @@ namespace HardCodedVariables {
     extern const float stepHighElevation;
     // 50
     extern const float stepLowElevation;
-    // 40
-    extern const float vaultElevation;
+    // 60
+    extern const float vaultElevation;  // This is exception, vault needs to put player further below. Elevation is 20, plus 40 adjustment
     // 60
     extern const float grabElevation;
 }  // namespace HardCodedVariables
