@@ -205,6 +205,7 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
         normalOut = pickData.rayOutput.normal;
 
         const uint32_t layerIndex = pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F;
+        LastObjectHitType(static_cast<RE::COL_LAYER>(layerIndex));
 
         if (layerIndex == 0) {
             return -1.0f;  // Invalid layer hit
@@ -214,7 +215,7 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
         // if (logLayer) logger::info("\nLayer hit: {}", layerIndex);
 
         // Check for useful collision layers
-        switch (static_cast<RE::COL_LAYER>(layerIndex)) {
+        switch (RuntimeVariables::lastHitObject) {
             case RE::COL_LAYER::kStatic:
             case RE::COL_LAYER::kCollisionBox:
             case RE::COL_LAYER::kTerrain:
@@ -226,7 +227,6 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
             case RE::COL_LAYER::kAnimStatic:
             case RE::COL_LAYER::kDebrisLarge:
                 // Update last hit object type
-                LastObjectHitType(static_cast<RE::COL_LAYER>(layerIndex));
                 return maxDist * pickData.rayOutput.hitFraction;
 
             default:
