@@ -24,8 +24,10 @@ namespace HardCodedVariables {
     extern const float highestLedgeLimit;
     // 175
     extern const float highLedgeLimit;
-    // 110
+    // 133
     extern const float medLedgeLimit;
+    // 90
+    extern const float lowLedgeLimit;
     // 70
     extern const float highStepLimit;
 
@@ -33,8 +35,10 @@ namespace HardCodedVariables {
     extern const float highestLedgeElevation;
     // 200
     extern const float highLedgeElevation;
-    // 155
+    // 153
     extern const float medLedgeElevation;
+    // 110
+    extern const float lowLedgeElevation;
     // 70
     extern const float stepHighElevation;
     // 50
@@ -46,12 +50,14 @@ namespace HardCodedVariables {
 }  // namespace HardCodedVariables
 
 namespace ParkourType {
-    // 7
+    // 8
     extern const int Highest;
-    // 6
+    // 7
     extern const int High;
-    // 5
+    // 6
     extern const int Medium;
+    // 5
+    extern const int Low;
     // 4
     extern int const StepHigh;
     // 3

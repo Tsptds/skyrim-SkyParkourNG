@@ -96,10 +96,10 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             return ParkourType::High;  // High ledge
 
         } else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
-            if (ShouldReplaceMarkerWithFailed()) {
-                return ParkourType::Failed;
-            }
             return ParkourType::Medium;  // Medium ledge
+
+        } else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
+            return ParkourType::Low;  // Low ledge
 
         } else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
@@ -287,9 +287,10 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
 
     float zAdjust = 0;
     float z = 0;
-    //const int Highest = 7;
-    //const int High = 6;
-    //const int Medium = 5;
+    //const int Highest = 8;
+    //const int High = 7;
+    //const int Medium = 6;
+    //const int Low = 5;
     //const int StepHigh = 4;
     //const int StepLow = 3;
     //const int Vault = 2;
@@ -298,22 +299,27 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
     //const int NoLedge = -1;
 
     switch (ledge) {
-        case 7:  // Highest Ledge
+        case 8:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             break;
 
-        case 6:  // High ledge
+        case 7:  // High ledge
             z = HardCodedVariables::highLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             break;
 
-        case 5:  // Medium ledge
+        case 6:  // Medium ledge
             z = HardCodedVariables::medLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             break;
 
-        case 4:  // Step High (Former Low Ledge)
+        case 5:  // Low ledge
+            z = HardCodedVariables::lowLedgeElevation - 3;
+            zAdjust = -z * RuntimeVariables::PlayerScale;
+            break;
+
+        case 4:  // Step High
             z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
