@@ -44,7 +44,6 @@ int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
 void ButtonStates::RegisterActivation(RE::ButtonEvent* event) {
     if (event->IsDown() || event->IsHeld()) {
         if (ModSettings::parkourDelay <= event->heldDownSecs) {
-            Parkouring::UpdateParkourPoint();
             if (Parkouring::TryActivateParkour()) {
                 event->heldDownSecs = ModSettings::parkourDelay;
             }
