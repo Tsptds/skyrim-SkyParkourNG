@@ -12,11 +12,11 @@ namespace Parkouring {
                    float maxVaultHeight);
 
     int GetLedgePoint(float backwardOffset);
-    void AdjustPlayerPosition();
+    void AdjustPlayerPosition(int ledge);
 
     bool TryActivateParkour();
     void UpdateParkourPoint();
-    void ParkourReadyRun();
+    void ParkourReadyRun(int ledge);
 
     void SetParkourOnOff(bool turnOn);
 }  // namespace Parkouring

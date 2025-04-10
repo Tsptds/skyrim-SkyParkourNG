@@ -56,9 +56,10 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Backward ray to check for obstructions behind the vaultable surface
         RE::NiPoint3 backwardRayStart = fwdRayStart + checkDir * (fwdRayDist - 2) + RE::NiPoint3(0, 0, 5);
-        float backwardRayDist = RayCast(backwardRayStart, checkDir, 40.0f, normalOut, RE::COL_LAYER::kLOS);
+        const float maxObstructionDistance = 20.0f * RuntimeVariables::PlayerScale;
+        float backwardRayDist = RayCast(backwardRayStart, checkDir, maxObstructionDistance, normalOut, RE::COL_LAYER::kLOS);
 
-        if (backwardRayDist > 0 && backwardRayDist < 20.0f) {
+        if (backwardRayDist > 0 && backwardRayDist < maxObstructionDistance) {
             continue;  // Obstruction behind the vaultable surface
         }
 
@@ -110,7 +111,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             double verticalDistance = abs(ledgePlayerDiff);
 
             if (horizontalDistance < verticalDistance * ledgeHypotenuse) {
-                return ParkourType::StepHigh;  // Low ledge
+                return ParkourType::StepHigh;  // High Step
             }
 
         } else {
@@ -123,7 +124,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             double verticalDistance = abs(ledgePlayerDiff);
 
             if (!PlayerIsOnStairs() && horizontalDistance < verticalDistance * ledgeHypotenuse) {
-                return ParkourType::StepLow;  // Quick Step
+                return ParkourType::StepLow;  // Low Step
             }
         }
 
@@ -159,9 +160,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Backward ray to check for obstructions behind the vaultable surface
     RE::NiPoint3 backwardRayStart = fwdRayStart + checkDir * (fwdRayDist - 2) + RE::NiPoint3(0, 0, 5);
-    float backwardRayDist = RayCast(backwardRayStart, checkDir, 50.0f, normalOut, RE::COL_LAYER::kLOS);
+    const float maxObstructionDistance = 100.0f * RuntimeVariables::PlayerScale;
+    float backwardRayDist = RayCast(backwardRayStart, checkDir, maxObstructionDistance, normalOut, RE::COL_LAYER::kLOS);
 
-    if (backwardRayDist > 0 && backwardRayDist < 50.0f) {
+    if (backwardRayDist > 0 && backwardRayDist < maxObstructionDistance) {
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
@@ -277,7 +279,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::AdjustPlayerPosition() {
+void Parkouring::AdjustPlayerPosition(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     // Select appropriate ledge marker and adjustments
@@ -295,7 +297,7 @@ void Parkouring::AdjustPlayerPosition() {
     //const int Failed = 0;
     //const int NoLedge = -1;
 
-    switch (RuntimeVariables::selectedLedgeType) {
+    switch (ledge) {
         case 7:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
@@ -312,14 +314,14 @@ void Parkouring::AdjustPlayerPosition() {
             break;
 
         case 4:  // Step High (Former Low Ledge)
-            z = HardCodedVariables::stepHighElevation - 3;
+            z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
                 RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 3:  // Step Low
-            z = HardCodedVariables::stepLowElevation - 3;
+            z = HardCodedVariables::stepLowElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
                 RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
@@ -338,7 +340,9 @@ void Parkouring::AdjustPlayerPosition() {
             break;
 
         case 0:  // Failed (Low Stamina Animation)
+            return;
         default:
+            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledge);
             return;
     }
 
@@ -357,10 +361,11 @@ void Parkouring::AdjustPlayerPosition() {
         }
     }
 
-    player->SetPosition(
+    const auto newPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
-                     RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust},
-        true);
+                     RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
+
+    player->SetPosition(newPosition, true);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -418,7 +423,7 @@ bool Parkouring::TryActivateParkour() {
     using namespace GameReferences;
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
-
+    const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
     if (!IsParkourActive()) {
         return false;
     }
@@ -430,8 +435,7 @@ bool Parkouring::TryActivateParkour() {
     // const bool isSprinting = player->IsSprinting();
 
     if (Smart_Parkour_Enabled && isMoving) {
-        if (RuntimeVariables::selectedLedgeType == ParkourType::High || RuntimeVariables::selectedLedgeType == ParkourType::Highest ||
-            RuntimeVariables::selectedLedgeType == ParkourType::Failed) {
+        if (LedgeToProcess == ParkourType::High || LedgeToProcess == ParkourType::Highest || LedgeToProcess == ParkourType::Failed) {
             return false;
         }
     }
@@ -439,18 +443,22 @@ bool Parkouring::TryActivateParkour() {
     RuntimeVariables::ParkourEndQueued = true;
 
     ToggleControlsForParkour(false);
-    AdjustPlayerPosition();
+    AdjustPlayerPosition(LedgeToProcess);
 
-    SKSE::GetTaskInterface()->AddTask([]() { ParkourReadyRun(); });
+    // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
+    // But to check player swimming state, a frame must pass. So AdjustPlayerPosition is called, then parkour runs on next frame.
+    // Also, ToggleControlsForParkour switches POVs, and it can crash the game if the player camera state is not updated.
+    // MEANING THIS THING SHOULD RUN ON THE NEXT FRAME
+    SKSE::GetTaskInterface()->AddTask([LedgeToProcess]() { ParkourReadyRun(LedgeToProcess); });
 
     return true;
 }
-void Parkouring::ParkourReadyRun() {
+void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    bool isVault = CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType);
+    bool isVault = CheckIsVaultActionFromType(ledge);
 
-    if (RuntimeVariables::selectedLedgeType == ParkourType::Grab && !PlayerIsSwimming()) {
+    if (ledge == ParkourType::Grab && !PlayerIsSwimming()) {
         player->NotifyAnimationGraph("JumpStandingStart");
     }
 
