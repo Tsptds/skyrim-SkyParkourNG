@@ -338,22 +338,23 @@ void Parkouring::AdjustPlayerPosition() {
             break;
 
         case 0:  // Failed (Low Stamina Animation)
-            return;
-
         default:
             return;
     }
 
     // Check if the player will go underwater after position adjustment, and decrease ledge player diff.
-    float waterLevel;
-    RE::NiPoint3 playerPos = player->GetPosition();
-    player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
-    auto playerWaterDiff = playerPos.z - waterLevel;
-    auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
 
-    if (playerWaterDiff < adjustThreshold && !player->AsActorState()->IsSwimming() && player->IsInWater()) {
-        zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
-        //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
+    if (player->IsInWater() && !player->AsActorState()->IsSwimming()) {
+        float waterLevel;
+        RE::NiPoint3 playerPos = player->GetPosition();
+        player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
+        auto playerWaterDiff = playerPos.z - waterLevel;
+        auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
+
+        if (playerWaterDiff < adjustThreshold) {
+            zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
+            //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
+        }
     }
 
     player->SetPosition(
