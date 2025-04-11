@@ -300,9 +300,9 @@ bool ParkourUtility::ShouldReplaceMarkerWithFailed() {
 }
 
 // Return true if action is vaulting, and not a climbing, low grab is also considered vault
-bool ParkourUtility::CheckIsVaultActionFromType(int32_t selectedLedgeType) {
-    return selectedLedgeType == ParkourType::Vault || selectedLedgeType == ParkourType::Grab ||
-           selectedLedgeType == ParkourType::StepHigh || selectedLedgeType == ParkourType::StepLow;
+bool ParkourUtility::CheckIsVaultActionFromType(int32_t ledge) {
+    return ledge == ParkourType::Vault || ledge == ParkourType::Grab || ledge == ParkourType::StepHigh || ledge == ParkourType::StepLow ||
+           ledge == ParkourType::Low || ledge == ParkourType::Medium;
 }
 
 bool ParkourUtility::PlayerIsGroundedOrSliding() {

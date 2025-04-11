@@ -441,7 +441,7 @@ bool Parkouring::TryActivateParkour() {
     // const bool isSprinting = player->IsSprinting();
 
     if (Smart_Parkour_Enabled && isMoving) {
-        if (LedgeToProcess == ParkourType::High || LedgeToProcess == ParkourType::Highest || LedgeToProcess == ParkourType::Failed) {
+        if (CheckIsVaultActionFromType(LedgeToProcess) == false) {
             return false;
         }
     }
