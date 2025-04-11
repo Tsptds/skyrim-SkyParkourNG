@@ -1,3 +1,7 @@
+/dist/meshes/
+/dist/*.txt
+*dll
+
 /local.cmake
 /extern/
 /out/
