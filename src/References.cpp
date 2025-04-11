@@ -27,10 +27,10 @@ namespace HardCodedVariables {
 
     // These are the height ranges for parkour type selection, represent low limits.
     const float highestLedgeLimit = 220.0f;
-    const float highLedgeLimit = 160.0f;
-    const float medLedgeLimit = 135.0f;
-    const float lowLedgeLimit = 90.0f;
-    const float highStepLimit = 70.0f;
+    const float highLedgeLimit = 170.0f;
+    const float medLedgeLimit = 123.0f;
+    const float lowLedgeLimit = 80.0f;
+    const float highStepLimit = 40.0f;
 
     // These are the ending heights for each animation, they are dependent on animmotion data.
     const float highestLedgeElevation = 250.0f;

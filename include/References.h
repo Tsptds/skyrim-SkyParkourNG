@@ -22,13 +22,13 @@ namespace HardCodedVariables {
 
     // 220
     extern const float highestLedgeLimit;
-    // 175
+    // 170
     extern const float highLedgeLimit;
-    // 133
+    // 123
     extern const float medLedgeLimit;
-    // 90
+    // 80
     extern const float lowLedgeLimit;
-    // 70
+    // 40
     extern const float highStepLimit;
 
     // 250
