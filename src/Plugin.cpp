@@ -106,7 +106,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         //ButtonEventListener::Register();
         //ParkourUtility::ToggleControlsForParkour(true);
-
+        ParkourUtility::ToggleControlsForParkour(true);
+        RuntimeMethods::ResetRuntimeVariables();
         // On game load if player is already beast form, set this true
         if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
             RuntimeVariables::IsBeastForm = true;

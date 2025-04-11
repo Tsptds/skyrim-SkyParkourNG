@@ -75,6 +75,7 @@ void RuntimeMethods::SwapLegs() {
 void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::IsBeastForm = false;
     RuntimeVariables::ParkourEndQueued = false;
+    RuntimeVariables::wasFirstPerson = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
 
