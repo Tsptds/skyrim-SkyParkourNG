@@ -253,11 +253,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     }
 
     // Choose indicator depending on stamina
-    currentIndicatorRef = indicatorRef_Blue;
     if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
         currentIndicatorRef = indicatorRef_Red;
         indicatorRef_Blue->Disable();
     } else {
+        currentIndicatorRef = indicatorRef_Blue;
         indicatorRef_Red->Disable();
     }
 
@@ -383,7 +383,7 @@ void Parkouring::UpdateParkourPoint() {
     }
 
     // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
-    if (!ModSettings::ModEnabled || RuntimeVariables::IsBeastForm /*|| ModSettings::ShouldModSuspend*/) {
+    if (!ModSettings::ModEnabled || RuntimeVariables::IsBeastForm) {
         Parkouring::SetParkourOnOff(false);
         return;
     }

@@ -6,7 +6,6 @@ namespace ModSettings {
     int PresetParkourKey = 0;  // enum ParkourKeyOptions
 
     bool ModEnabled = true;
-    //bool ShouldModSuspend = false;
 
     float parkourDelay = 0.0f;  // Set initial delay
 
@@ -49,9 +48,9 @@ namespace HardCodedVariables {
 namespace ParkourType {
     const int Highest = 8;
     const int High = 7;
+
     const int Medium = 6;
     const int Low = 5;
-
     const int StepHigh = 4;
     const int StepLow = 3;
 
