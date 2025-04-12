@@ -99,6 +99,10 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             return ParkourType::Medium;  // Medium ledge
 
         } else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
+            if (PlayerIsSwimming()) {
+                return ParkourType::Grab;  // Grab ledge out of water, don't jump out like a frog
+            }
+
             return ParkourType::Low;  // Low ledge
 
         } else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
@@ -502,6 +506,7 @@ void Parkouring::ParkourReadyRun(int ledge) {
             }
         }
     } else {
+        // Unless there's a guaranteed method to detect parkour activation, this has to stay.
         ToggleControlsForParkour(true);
         RuntimeVariables::ParkourEndQueued = false;
         return;
