@@ -1,4 +1,4 @@
-# ***Template Project for SKSE - CommonLibSSE-NG***
+# ***SkyParkour v2 NG Procedural Parkour Framework for Skyrim- CommonLibSSE-NG***
 
 ## ***Runtime requirements***
 
@@ -21,8 +21,7 @@ To use CommonLibSSE-NG as a git-submodule instead of overlay-ports, clone it to 
 In `Developer Command Prompt for VS 2022` or `Developer PowerShell for VS 2022`, run:
 
 ~~~
-git clone https://github.com/epinter/skse-clibng-template.git
-cd skse-clibng-template
+git clone
 ~~~
 
 then
