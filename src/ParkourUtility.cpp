@@ -64,6 +64,27 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
+//    // THIS DOES NOT WORK
+//void CustomToggleControls(RE::ControlMap::UEFlag a_flags, bool a_enable) {
+//    auto oldState = RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls;
+//
+//    if (a_enable) {
+//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.set(a_flags);
+//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
+//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.set(a_flags);
+//        }
+//    } else {
+//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.reset(a_flags);
+//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
+//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.reset(a_flags);
+//        }
+//        RE::PlayerCharacter::GetSingleton()->AsActorState()->actorState1.sneaking = true;
+//    }
+//
+//    RE::UserEventEnabled event{RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls, oldState};
+//    RE::ControlMap::GetSingleton()->SendEvent(std::addressof(event));
+//}
+
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto playerCamera = RE::PlayerCamera::GetSingleton();
@@ -71,53 +92,66 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
         return false;
 
     auto controlMap = RE::ControlMap::GetSingleton();
+
+    // Toggle common controls
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kFighting, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kInvalid, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);
-    //controlMap->ToggleControls(RE::ControlMap::UEFlag::kMenu, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
 
-    /*if (!enable && player->actorState1.sneaking) {
-        controlMap->enabledControls.reset(RE::ControlMap::UEFlag::kSneaking);
-    }*/
+    // TDM swim pitch workaround. Player goes into object if presses the sneak key.
+    // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
+    if (Compatibility::TrueDirectionalMovement == true) {
+        if (enable || player->AsActorState()->IsSwimming()) {
+            controlMap->ToggleControls(RE::ControlMap::UEFlag::kSneaking, enable);
+        }
+    } else {
+        // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
+        controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
+    }
 
-    if (!enable && playerCamera && playerCamera->IsInThirdPerson()) {
-        // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
-        // after parkour ends
-        RE::ThirdPersonState *thirdPersonState = nullptr;
-        thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-        thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-        thirdPersonState->stateNotActive = false;
-
-    } else if (!enable && playerCamera && playerCamera->IsInFirstPerson()) {
-        RuntimeVariables::wasFirstPerson = true;
-        playerCamera->ForceThirdPerson();
-
-        RE::ThirdPersonState *thirdPersonState = nullptr;
-        thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-        thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
-        thirdPersonState->stateNotActive = false;
-
-    } else if (enable && RuntimeVariables::wasFirstPerson) {
+    if (enable) {
         // Match the third person camera angle to first person, so it feels better like vanilla
-        RE::ThirdPersonState *thirdPersonState = nullptr;
-        thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+        if (RuntimeVariables::wasFirstPerson) {
+            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+            player->data.angle.z = thirdPersonState->currentYaw;
 
-        player->data.angle.z = thirdPersonState->currentYaw;
+            RuntimeVariables::wasFirstPerson = false;
+            playerCamera->ForceFirstPerson();
+        }
 
-        RuntimeVariables::wasFirstPerson = false;
-        playerCamera->ForceFirstPerson();
-    }
+        // Player is sneaking as flag but not in behavior graph, match it.
+        if (player->AsActorState()->actorState1.sneaking) {
+            player->NotifyAnimationGraph("SneakStart");
+        }
 
-    if (enable && player->AsActorState()->actorState1.sneaking) {
-        player->NotifyAnimationGraph("SneakStart");
-        //controlMap->enabledControls.set(RE::ControlMap::UEFlag::kSneaking);
-    }
-    if (enable && player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
-        player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw;
+        // Player has weapons not sheathed, draw them to fix behavior state.
+        if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
+            player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw;
+        }
+
+    } else {
+        // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
+
+        if (playerCamera->IsInThirdPerson()) {
+            // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
+            // after parkour ends.
+            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
+            thirdPersonState->stateNotActive = false;
+
+        } else if (playerCamera->IsInFirstPerson()) {
+            // Save first person state and switch to third person
+
+            RuntimeVariables::wasFirstPerson = true;
+            playerCamera->ForceThirdPerson();
+
+            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
+            thirdPersonState->stateNotActive = false;
+        }
     }
 
     return true;

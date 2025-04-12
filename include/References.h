@@ -12,6 +12,17 @@ namespace ModSettings {
     extern bool Smart_Parkour_Enabled;
 }  // namespace ModSettings
 
+namespace RuntimeMethods {
+    extern void SetupModCompatibility();
+    extern void SwapLegs();
+    extern void ResetRuntimeVariables();
+}  // namespace RuntimeMethods
+
+namespace Compatibility {
+    extern bool TrueDirectionalMovement;
+    extern bool ImprovedCamera;
+}
+
 namespace HardCodedVariables {
     extern const float climbMaxHeight;
     extern const float climbMinHeight;
@@ -70,11 +81,6 @@ namespace ParkourType {
     // -1
     extern const int NoLedge;
 }  // namespace ParkourType
-
-namespace RuntimeMethods {
-    extern void SwapLegs();
-    extern void ResetRuntimeVariables();
-}  // namespace RuntimeMethods
 
 namespace RuntimeVariables {
     extern RE::COL_LAYER lastHitObject;

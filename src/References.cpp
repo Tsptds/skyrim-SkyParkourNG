@@ -16,6 +16,44 @@ namespace ModSettings {
     bool Smart_Parkour_Enabled = true;  // Don't use high/failed ledge when moving, don't use vault when standing still
 }  // namespace ModSettings
 
+/*=========================================================================*/
+// Alternate step animations
+void RuntimeMethods::SwapLegs() {
+    RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
+    RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
+
+    //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
+}
+
+// Things that are not handled by MCM and persistent throughout saves without being reset on game load
+void RuntimeMethods::ResetRuntimeVariables() {
+    RuntimeVariables::IsBeastForm = false;
+    RuntimeVariables::ParkourEndQueued = false;
+    RuntimeVariables::wasFirstPerson = false;
+    RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
+}
+
+void RuntimeMethods::SetupModCompatibility() {
+    auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
+    if (TDM) {
+        Compatibility::TrueDirectionalMovement = true;
+        logger::info("TDM Patches Installed:\n*360 Parkour & Sneak Swim Pitch*");
+    }
+
+    // Motion data does not work for first person right now, this is not going to work. Anim plays without motion.
+    /*auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
+    if (improvedCamera) {
+        Compatibility::ImprovedCamera = true;
+        logger::info("Improved Camera Patch installed.");
+    }*/
+}
+/*=========================================================================*/
+
+namespace Compatibility {
+    bool TrueDirectionalMovement = false;
+    bool ImprovedCamera = false;
+}  // namespace Compatibility
+
 namespace HardCodedVariables {
     // Lower - upper limits for ledge - vault detection.
     const float climbMaxHeight = 250.0f;
@@ -62,21 +100,6 @@ namespace ParkourType {
 
     const int NoLedge = -1;
 }  // namespace ParkourType
-
-// Alternate step animations
-void RuntimeMethods::SwapLegs() {
-    RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
-    RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
-
-    //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
-}
-// Things that are not handled by MCM and persistent throughout saves without being reset on game load
-void RuntimeMethods::ResetRuntimeVariables() {
-    RuntimeVariables::IsBeastForm = false;
-    RuntimeVariables::ParkourEndQueued = false;
-    RuntimeVariables::wasFirstPerson = false;
-    RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
-}
 
 namespace RuntimeVariables {
     RE::COL_LAYER lastHitObject;

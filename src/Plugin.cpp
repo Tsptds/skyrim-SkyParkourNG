@@ -95,6 +95,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         MenuListener::Register();
         //ButtonEventListener::Register();
 
+        RuntimeMethods::SetupModCompatibility();
         logger::info("Done");
 
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
