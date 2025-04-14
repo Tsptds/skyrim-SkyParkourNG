@@ -70,7 +70,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     if (!foundLedge) {
         return ParkourType::NoLedge;
     }
-
+     
     // Ensure there is sufficient headroom for the player to stand
     float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
     RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
@@ -133,8 +133,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
     } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
-        if (!PlayerIsOnStairs() && player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kSheathed &&
-            player->GetCharController()->fallTime > 0.4f) {
+        if (!PlayerIsOnStairs() && player->GetCharController()->fallTime > 0.4f) {
             return ParkourType::Grab;
         }
     }
@@ -410,6 +409,7 @@ void Parkouring::UpdateParkourPoint() {
             GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
     }
 }
+
 bool Parkouring::TryActivateParkour() {
     using namespace GameReferences;
     using namespace ModSettings;
@@ -462,8 +462,11 @@ void Parkouring::ParkourReadyRun(int ledge) {
         player->NotifyAnimationGraph("SwimStop");
     }
 
+    // Send Event, then check if succeeded
     player->NotifyAnimationGraph("IdleLeverPushStart");
-
+    SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault); });
+}
+void Parkouring::DoPostParkourControl(RE::PlayerCharacter *player, bool isVault, bool secondAttempt) {
     // Reliably detect if the player is actually playing the animation (LOST COUNTLESS SLEEPLESS NIGHTS TO THIS,
     // WORTH IT WOOOOO)
     bool success = player->IsAnimationDriven();
@@ -486,10 +489,14 @@ void Parkouring::ParkourReadyRun(int ledge) {
             }
         }
     } else {
+        if (!secondAttempt) {
+            SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault, true); });
+            return;
+        }
+
         // Unless there's a guaranteed method to detect parkour activation, this has to stay.
         ToggleControlsForParkour(true);
         RuntimeVariables::ParkourEndQueued = false;
-        return;
     }
 }
 
