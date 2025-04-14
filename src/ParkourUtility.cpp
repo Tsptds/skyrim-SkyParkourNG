@@ -95,20 +95,12 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
     // Toggle common controls
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kFighting, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
 
-    // TDM swim pitch workaround. Player goes into object if presses the sneak key.
-    // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
-    if (Compatibility::TrueDirectionalMovement == true) {
-        if (enable || player->AsActorState()->IsSwimming()) {
-            controlMap->ToggleControls(RE::ControlMap::UEFlag::kSneaking, enable);
-        }
-    } else {
-        // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
+    // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
+    if (Compatibility::TrueDirectionalMovement == false) {
         controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
     }
 

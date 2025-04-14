@@ -71,9 +71,10 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
         return RE::BSEventNotifyControl::kContinue;
 
     // Update this here, temporary solution to updating parkour point on loop
-    Parkouring::UpdateParkourPoint();
+    SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); });
 
     for (auto event = *a_event; event; event = event->next) {
+
         if (const auto buttonEvent = event->AsButtonEvent()) {
             auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
             // logger::info("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
@@ -87,31 +88,29 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
             }
 
             if (ModSettings::UsePresetParkourKey) {
-                // Retrieve the mapping for the jump action
-                auto inputMap = RE::ControlMap::GetSingleton();
-
-                auto jumpMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->jump, buttonEvent->GetDevice());
-                auto sprintMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->sprint, buttonEvent->GetDevice());
-                auto activateMapping = inputMap->GetMappedKey(RE::UserEvents::GetSingleton()->activate, buttonEvent->GetDevice());
-                auto buttonId = buttonEvent->GetIDCode();
+                auto userEventName = event->QUserEvent();
+                //event->AsCharEvent()->
                 //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
-                if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump && buttonId == jumpMapping) {
+                if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
+                    userEventName == RE::UserEvents::GetSingleton()->jump) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(buttonEvent);
 
-                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint && buttonId == sprintMapping) {
+                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
+                           userEventName == RE::UserEvents::GetSingleton()->sprint) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(buttonEvent);
 
-                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate && buttonId == activateMapping) {
+                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
+                           userEventName == RE::UserEvents::GetSingleton()->activate) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }

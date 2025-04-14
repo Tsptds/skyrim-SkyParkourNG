@@ -133,8 +133,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
     } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
-        if (!PlayerIsOnStairs() && player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kSheathed &&
-            player->GetCharController()->fallTime > 0.4f) {
+        if (!PlayerIsOnStairs() && player->GetCharController()->fallTime > 0.4f) {
             return ParkourType::Grab;
         }
     }
@@ -257,11 +256,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     }
 
     // Choose indicator depending on stamina
+    currentIndicatorRef = indicatorRef_Blue; // Default to blue
     if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
         currentIndicatorRef = indicatorRef_Red;
         indicatorRef_Blue->Disable();
     } else {
-        currentIndicatorRef = indicatorRef_Blue;
         indicatorRef_Red->Disable();
     }
 
@@ -398,16 +397,8 @@ void Parkouring::UpdateParkourPoint() {
     //    }
     //}
 
-    const auto player = RE::PlayerCharacter::GetSingleton();
-
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
-
-    /* ===================================== */
-
-    player->SetGraphVariableInt("SkyParkourLedge", RuntimeVariables::selectedLedgeType);
-
-    /* ===================================== */
 
     if (!IsParkourActive()) {
         if (GameReferences::currentIndicatorRef)
@@ -417,27 +408,15 @@ void Parkouring::UpdateParkourPoint() {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
     }
-
-    if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
-        ModSettings::parkourDelay == 0) {
-        if (RuntimeVariables::selectedLedgeType == -1) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-            //logger::info("jump enabled");
-        } else if (RuntimeVariables::ParkourEndQueued == false) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, false);
-            //logger::info("jump disabled");
-        }
-    }
 }
+
 bool Parkouring::TryActivateParkour() {
     using namespace GameReferences;
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
-    if (!IsParkourActive()) {
-        return false;
-    }
-    if (RuntimeVariables::ParkourEndQueued) {
+    if (!IsParkourActive() || RuntimeVariables::ParkourEndQueued) {
+        player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
     }
 
@@ -446,12 +425,13 @@ bool Parkouring::TryActivateParkour() {
 
     if (Smart_Parkour_Enabled && isMoving) {
         if (CheckIsVaultActionFromType(LedgeToProcess) == false) {
+            player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
         }
     }
 
     RuntimeVariables::ParkourEndQueued = true;
-
+    player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
     AdjustPlayerPosition(LedgeToProcess);
 
@@ -482,8 +462,11 @@ void Parkouring::ParkourReadyRun(int ledge) {
         player->NotifyAnimationGraph("SwimStop");
     }
 
+    // Send Event, then check if succeeded
     player->NotifyAnimationGraph("IdleLeverPushStart");
-
+    SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault); });
+}
+void Parkouring::DoPostParkourControl(RE::PlayerCharacter *player, bool isVault, bool secondAttempt) {
     // Reliably detect if the player is actually playing the animation (LOST COUNTLESS SLEEPLESS NIGHTS TO THIS,
     // WORTH IT WOOOOO)
     bool success = player->IsAnimationDriven();
@@ -506,10 +489,14 @@ void Parkouring::ParkourReadyRun(int ledge) {
             }
         }
     } else {
+        if (!secondAttempt) {
+            SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault, true); });
+            return;
+        }
+
         // Unless there's a guaranteed method to detect parkour activation, this has to stay.
         ToggleControlsForParkour(true);
         RuntimeVariables::ParkourEndQueued = false;
-        return;
     }
 }
 

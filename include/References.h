@@ -21,7 +21,7 @@ namespace RuntimeMethods {
 namespace Compatibility {
     extern bool TrueDirectionalMovement;
     extern bool ImprovedCamera;
-}
+}  // namespace Compatibility
 
 namespace HardCodedVariables {
     extern const float climbMaxHeight;
