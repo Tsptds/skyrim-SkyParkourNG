@@ -37,7 +37,7 @@ void RuntimeMethods::SetupModCompatibility() {
     auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
     if (TDM) {
         Compatibility::TrueDirectionalMovement = true;
-        logger::info("TDM Patches Installed:\n*360 Parkour & Sneak Swim Pitch*");
+        logger::info("TDM is Installed, 360 Parkour Enabled");
     }
 
     // Motion data does not work for first person right now, this is not going to work. Anim plays without motion.
