@@ -17,11 +17,13 @@ namespace JumpHook {
 
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Hook(RE::InputEvent* a_event) {
-        if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
-            ModSettings::parkourDelay == 0) {
-            if (RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
-                //logger::info("Prevented Jump");
-                return false;
+        if (ModSettings::ModEnabled) {
+            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
+                ModSettings::parkourDelay == 0) {
+                if (RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
+                    //logger::info("Prevented Jump");
+                    return false;
+                }
             }
         }
 
