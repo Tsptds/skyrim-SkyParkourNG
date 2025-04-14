@@ -398,16 +398,8 @@ void Parkouring::UpdateParkourPoint() {
     //    }
     //}
 
-    const auto player = RE::PlayerCharacter::GetSingleton();
-
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
-
-    /* ===================================== */
-
-    player->SetGraphVariableInt("SkyParkourLedge", RuntimeVariables::selectedLedgeType);
-
-    /* ===================================== */
 
     if (!IsParkourActive()) {
         if (GameReferences::currentIndicatorRef)
@@ -417,27 +409,14 @@ void Parkouring::UpdateParkourPoint() {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
     }
-
-    if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
-        ModSettings::parkourDelay == 0) {
-        if (RuntimeVariables::selectedLedgeType == -1) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-            //logger::info("jump enabled");
-        } else if (RuntimeVariables::ParkourEndQueued == false) {
-            RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, false);
-            //logger::info("jump disabled");
-        }
-    }
 }
 bool Parkouring::TryActivateParkour() {
     using namespace GameReferences;
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
-    if (!IsParkourActive()) {
-        return false;
-    }
-    if (RuntimeVariables::ParkourEndQueued) {
+    if (!IsParkourActive() || RuntimeVariables::ParkourEndQueued) {
+        player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
     }
 
@@ -446,12 +425,13 @@ bool Parkouring::TryActivateParkour() {
 
     if (Smart_Parkour_Enabled && isMoving) {
         if (CheckIsVaultActionFromType(LedgeToProcess) == false) {
+            player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
         }
     }
 
     RuntimeVariables::ParkourEndQueued = true;
-
+    player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
     AdjustPlayerPosition(LedgeToProcess);
 

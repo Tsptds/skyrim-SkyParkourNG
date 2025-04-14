@@ -6,6 +6,8 @@
 #include "References.h"
 #include "PCH.h"
 
+#include "InputHandler.h"
+
 using namespace ParkourUtility;
 using namespace Parkouring;
 
@@ -17,23 +19,11 @@ void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
 void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
     ModSettings::PresetParkourKey = presetKey;
     logger::info("-Preset Key: '{}'", ModSettings::PresetParkourKey);
-
-    // Reset jump flag to prevent getting stuck if jump is disabled and mod setting is changed
-    // When Button delay is 0, jump is disabled on ledge point detection
-    if (!RuntimeVariables::ParkourEndQueued) {
-        RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-    }
 }
 
 void RegisterParkourDelay(RE::StaticFunctionTag *, float delay) {
     ModSettings::parkourDelay = delay;
     logger::info("-Delay '{}'", ModSettings::parkourDelay);
-
-    // Reset jump flag to prevent getting stuck if jump is disabled and mod setting is changed
-    // When Button delay is 0, jump is disabled on ledge point detection
-    if (!RuntimeVariables::ParkourEndQueued) {
-        RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-    }
 }
 
 void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBlocks, float damage) {
@@ -47,17 +37,11 @@ void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBl
 void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour) {
     ModSettings::UsePresetParkourKey = _usePresetKey;
     ModSettings::Smart_Parkour_Enabled = _smartParkour;
-    
-    
+
     ModSettings::ModEnabled = _enableMod;
 
-    if (!RuntimeVariables::ParkourEndQueued) {
-        RE::ControlMap::GetSingleton()->ToggleControls(RE::ControlMap::UEFlag::kJumping, true);
-    }
-
-    if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm) {
-        Parkouring::SetParkourOnOff(true);
-    }
+    //     if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm){Parkouring::SetParkourOnOff(true);}
+    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm);
 }
 
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
@@ -94,6 +78,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RaceChangeListener::Register();
         MenuListener::Register();
         //ButtonEventListener::Register();
+
+        JumpHook::InputHandlerEx<RE::JumpHandler>::InstallHook(REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]), 0x1);
 
         RuntimeMethods::SetupModCompatibility();
         logger::info("Done");
