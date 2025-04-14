@@ -74,7 +74,6 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
 
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-        //JumpHandlerEx::InstallHook();
         RaceChangeListener::Register();
         MenuListener::Register();
         //ButtonEventListener::Register();
@@ -113,7 +112,6 @@ using namespace SKSE::log;
 using namespace SKSE::stl;
 
 #include "Plugin.h"
-#include "GameEventHandler.h"
 
 namespace plugin {
     std::optional<std::filesystem::path> getLogDirectory() {
