@@ -78,7 +78,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         MenuListener::Register();
         //ButtonEventListener::Register();
 
-        JumpHook::InputHandlerEx<RE::JumpHandler>::InstallHook(REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]), 0x1);
+        Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
+        Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
 
         RuntimeMethods::SetupModCompatibility();
         logger::info("Done");

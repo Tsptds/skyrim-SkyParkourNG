@@ -70,7 +70,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     if (!foundLedge) {
         return ParkourType::NoLedge;
     }
-     
+
     // Ensure there is sufficient headroom for the player to stand
     float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
     RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
@@ -256,11 +256,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     }
 
     // Choose indicator depending on stamina
+    currentIndicatorRef = indicatorRef_Blue; // Default to blue
     if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
         currentIndicatorRef = indicatorRef_Red;
         indicatorRef_Blue->Disable();
     } else {
-        currentIndicatorRef = indicatorRef_Blue;
         indicatorRef_Red->Disable();
     }
 
