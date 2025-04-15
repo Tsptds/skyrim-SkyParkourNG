@@ -98,6 +98,7 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
 
     // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
     if (Compatibility::TrueDirectionalMovement == false) {
