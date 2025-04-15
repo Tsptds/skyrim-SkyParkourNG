@@ -106,6 +106,8 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     }
 
     if (enable) {
+        player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+
         // Match the third person camera angle to first person, so it feels better like vanilla
         if (RuntimeVariables::wasFirstPerson) {
             auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
