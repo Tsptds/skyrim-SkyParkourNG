@@ -503,11 +503,11 @@ void Parkouring::DoPostParkourControl(RE::PlayerCharacter *player, bool isVault,
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         ButtonEventListener::Register();
-        AnimEventListener::Register();
+        //AnimEventListener::Register();
 
     } else {
         ButtonEventListener::Unregister();
-        AnimEventListener::Unregister();
+        //AnimEventListener::Unregister();
 
         ParkourUtility::ToggleControlsForParkour(true);
 

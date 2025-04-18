@@ -41,11 +41,11 @@ void RuntimeMethods::SetupModCompatibility() {
     }
 
     // Motion data does not work for first person right now, this is not going to work. Anim plays without motion.
-    /*auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
+    auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
     if (improvedCamera) {
         Compatibility::ImprovedCamera = true;
         logger::info("Improved Camera Patch installed.");
-    }*/
+    }
 }
 /*=========================================================================*/
 

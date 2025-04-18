@@ -1,4 +1,4 @@
-#include "ParkourUtility.h"
+﻿#include "ParkourUtility.h"
 
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
@@ -136,22 +136,55 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     } else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
-        if (playerCamera->IsInThirdPerson()) {
-            // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
-            // after parkour ends.
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-            thirdPersonState->stateNotActive = false;
+        if (Compatibility::ImprovedCamera) {
+            if (playerCamera->IsInFirstPerson()) {
+                RuntimeVariables::wasFirstPerson = true;
+                playerCamera->ForceThirdPerson();
 
-        } else if (playerCamera->IsInFirstPerson()) {
-            // Save first person state and switch to third person
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = -0.7f;  // Seems like the sweet spot
+                thirdPersonState->stateNotActive = false;
 
-            RuntimeVariables::wasFirstPerson = true;
-            playerCamera->ForceThirdPerson();
+                //thirdPersonState->translation = player->GetPositionZ() * RuntimeVariables::PlayerScale + RE::NiPoint3{0, 0, 0};
+                //RE::NiAVObject *headNode = player->Get3D(true)->GetObjectByName("NPC Head [Head]");
+                //if (headNode) {
+                //    RE::NiPoint3 headPos = headNode->world.translate;
+                //    RE::NiMatrix3 headRot = headNode->world.rotate;
 
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
-            thirdPersonState->stateNotActive = false;
+                //    // Apply this transform to the first person camera
+                //    playerCamera->world.translate = headPos;
+                //    camera->world.rotate = headRot;
+                //}
+
+                //auto headNode = player->Get3D(true)->GetObjectByName("NPC Head [Head]");
+                //if (headNode) {
+                //    auto headPos = headNode->worldBound.center;
+                //    playerCamera->pos = headPos;
+                //    // optionally copy rot = headNode->worldTransform.rot
+                //}
+            } else if (playerCamera->IsInThirdPerson()) {
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
+                thirdPersonState->stateNotActive = false;
+            }
+        } else {
+            if (playerCamera->IsInThirdPerson()) {
+                // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
+                // after parkour ends.
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
+                thirdPersonState->stateNotActive = false;
+
+            } else if (playerCamera->IsInFirstPerson()) {
+                // Save first person state and switch to third person
+
+                RuntimeVariables::wasFirstPerson = true;
+                playerCamera->ForceThirdPerson();
+
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
+                thirdPersonState->stateNotActive = false;
+            }
         }
     }
 

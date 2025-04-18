@@ -2,11 +2,11 @@
 #include "Parkouring.h"
 #include "ButtonListener.h"
 #include "RaceChangeListener.h"
-#include "AnimationListener.h"
 #include "References.h"
 #include "PCH.h"
 
 #include "InputHandler.h"
+#include "AnimEventHandler.h"
 
 using namespace ParkourUtility;
 using namespace Parkouring;
@@ -79,7 +79,10 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         //ButtonEventListener::Register();
 
         Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
+        //Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
         Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
+        Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
+        Hooks::AnimationGraphHooks::Handler::InstallGraphNotifyHook();
 
         RuntimeMethods::SetupModCompatibility();
         logger::info("Done");

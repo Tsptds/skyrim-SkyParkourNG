@@ -78,7 +78,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         // Mainly for new game, if race menu closes, attempt to register listener
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            AnimEventListener::Register();
+            //AnimEventListener::Register();
 
             ParkourUtility::ToggleControlsForParkour(true);
             RuntimeMethods::ResetRuntimeVariables();

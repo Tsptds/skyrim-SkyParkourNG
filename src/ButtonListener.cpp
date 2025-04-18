@@ -1,4 +1,5 @@
-#include "ButtonListener.h"
+﻿#include "ButtonListener.h"
+#include "InputHandler.h"
 
 int32_t ButtonStates::DXCODE = 0;
 
@@ -41,14 +42,24 @@ int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
     }
     return dxcode;  // Return default value if key not found
 }
-void ButtonStates::RegisterActivation(RE::ButtonEvent* event) {
-    if (event->IsDown() || event->IsHeld()) {
-        if (ModSettings::parkourDelay <= event->heldDownSecs) {
-            if (Parkouring::TryActivateParkour()) {
-                event->heldDownSecs = ModSettings::parkourDelay;
-            }
+void ButtonStates::RegisterActivation(RE::InputEvent* event) {
+    const auto buttonEvent = event->AsButtonEvent();
+
+    // Delay Threshold Passed
+    if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
+        if (ModSettings::parkourDelay <= buttonEvent->heldDownSecs) {
+            Parkouring::TryActivateParkour();
         }
     }
+
+    /*else if (ModSettings::parkourDelay != 0 && buttonEvent->IsUp()) {
+        auto* pc = RE::PlayerControls::GetSingleton();
+        if (pc && pc->jumpHandler) {
+            auto* controlsData = &pc->data;
+            Hooks::InputHandlerEx<RE::JumpHandler>::_ProcessButtonJump(pc->jumpHandler, buttonEvent, controlsData);
+            logger::info("Manual Jump Sent");
+        }
+    }*/
 }
 
 void ButtonEventListener::Register() {
@@ -74,7 +85,6 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
     SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); });
 
     for (auto event = *a_event; event; event = event->next) {
-
         if (const auto buttonEvent = event->AsButtonEvent()) {
             auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
             // logger::info("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
@@ -99,7 +109,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
 
                 } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
                            userEventName == RE::UserEvents::GetSingleton()->sprint) {
@@ -107,7 +117,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
 
                 } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
                            userEventName == RE::UserEvents::GetSingleton()->activate) {
@@ -115,7 +125,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
                 }
 
             } else {
@@ -124,7 +134,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
                 }
             }
         }
