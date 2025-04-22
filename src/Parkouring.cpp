@@ -56,7 +56,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Backward ray to check for obstructions behind the vaultable surface
         RE::NiPoint3 backwardRayStart = fwdRayStart + checkDir * (fwdRayDist - 2) + RE::NiPoint3(0, 0, 5);
-        const float maxObstructionDistance = 20.0f * RuntimeVariables::PlayerScale;
+        const float maxObstructionDistance = 10.0f * RuntimeVariables::PlayerScale;
         float backwardRayDist = RayCast(backwardRayStart, checkDir, maxObstructionDistance, normalOut, RE::COL_LAYER::kLOS);
 
         if (backwardRayDist > 0 && backwardRayDist < maxObstructionDistance) {
@@ -81,7 +81,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     float ledgePlayerDiff = ledgePoint.z - playerPos.z;
-
+    // TODO: Move corrections into tryactivateparkour func to reduce overhead
     if (PlayerIsGroundedOrSliding() || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
@@ -251,30 +251,30 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     float waterLevel;
     player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
 
-    if (ledgePoint.z < waterLevel - 15) {
+    if (ledgePoint.z < waterLevel - 5) {
         return ParkourType::NoLedge;
     }
 
     // Choose indicator depending on stamina
-    currentIndicatorRef = indicatorRef_Blue; // Default to blue
+    GameReferences::currentIndicatorRef = indicatorRef_Blue;  // Default to blue
     if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
-        currentIndicatorRef = indicatorRef_Red;
+        GameReferences::currentIndicatorRef = indicatorRef_Red;
         indicatorRef_Blue->Disable();
     } else {
         indicatorRef_Red->Disable();
     }
 
     // Move indicator to the correct position
-    if (currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
-        currentIndicatorRef->MoveTo(player->AsReference());
+    if (GameReferences::currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
+        GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
     }
 
     // RE::NiPoint3 cameraDirFlat = GetCameraDirFlat();
 
     RE::NiPoint3 backwardAdjustment = playerDirFlat * backwardOffset * RuntimeVariables::PlayerScale;
-    currentIndicatorRef->data.location = ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
-    currentIndicatorRef->Update3DPosition(true);
-    currentIndicatorRef->data.angle = RE::NiPoint3(0, 0, atan2(playerDirFlat.x, playerDirFlat.y));
+    GameReferences::currentIndicatorRef->data.location = ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
+    GameReferences::currentIndicatorRef->Update3DPosition(true);
+    GameReferences::currentIndicatorRef->data.angle = RE::NiPoint3(0, 0, atan2(playerDirFlat.x, playerDirFlat.y));
 
     RuntimeVariables::backwardAdjustment = backwardAdjustment;
     RuntimeVariables::ledgePoint = ledgePoint;
@@ -326,14 +326,14 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
             z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 3:  // Step Low
             z = HardCodedVariables::stepLowElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 2:  // Vault
@@ -448,18 +448,9 @@ void Parkouring::ParkourReadyRun(int ledge) {
 
     bool isVault = CheckIsVaultActionFromType(ledge);
 
+    // Directional jumping state fails if it triggers too early, set it to standing jump
     if (ledge == ParkourType::Grab && !PlayerIsSwimming()) {
         player->NotifyAnimationGraph("JumpStandingStart");
-    }
-
-    //if (PlayerIsGrounded()) {
-    //player->NotifyAnimationGraph("JumpLandEnd");
-    //} else {
-    //player->NotifyAnimationGraph("JumpStandingStart");
-    //}
-
-    if (player->AsActorState()->IsSwimming()) {
-        player->NotifyAnimationGraph("SwimStop");
     }
 
     // Send Event, then check if succeeded

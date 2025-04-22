@@ -79,73 +79,9 @@ namespace Hooks {
                 auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
                 constexpr std::size_t idx = 0x1;
                 _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
-                logger::info("AnimEvent Hook Installed");
+                logger::info(">> AnimEvent Hook Installed");
             }
     };
-    //struct AnimEventSink {
-    //        // The signature of the vfunc we’re patching:
-    //        using Fn = RE::BSEventNotifyControl(__fastcall*)(RE::BSAnimationGraphManager*, const RE::BSAnimationGraphEvent*,
-    //                                                         RE::BSTEventSource<RE::BSAnimationGraphEvent>*);
-
-    //        static inline REL::Relocation<Fn> _ProcessEvent;
-
-    //        // Our detour—fires on every SendAnimationEvent()/actor.Notify():
-    //        static RE::BSEventNotifyControl __fastcall Hooked_ProcessEvent(RE::BSAnimationGraphManager* mgr,
-    //                                                                       const RE::BSAnimationGraphEvent* ev,
-    //                                                                       RE::BSTEventSource<RE::BSAnimationGraphEvent>* src) {
-    //            if (ev && ev->holder) {
-    //                if (auto pc = ev->holder; pc == RE::PlayerCharacter::GetSingleton()) {
-    //                    logger::info(">> AnimEvent ({}): payload=\"{}\"", ev->tag.c_str(), ev->payload.c_str());
-    //                }
-    //            }
-    //            return _ProcessEvent(mgr, ev, src);
-    //        }
-
-    //        static void Install() {
-    //            // Grab the BSAnimationGraphManager vtable
-    //            auto vtbl = REL::Relocation<std::uintptr_t>(
-    //                RE::VTABLE_BSAnimationGraphManager[0]  // VTABLE at 0x17C78E8 :contentReference[oaicite:0]{index=0}
-    //            );
-    //            // Slot 0 = dtor, slot 1 = ProcessEvent (the BSTEventSink override) :contentReference[oaicite:1]{index=1}
-    //            constexpr std::size_t idx = 1;
-    //            _ProcessEvent = vtbl.write_vfunc(idx, &Hooked_ProcessEvent);
-    //            logger::info("BSAnimationGraphManager::ProcessEvent hook installed");
-    //        }
-    //};
-
-    //template <class T>
-    //class AnimationEventHook : public T {
-    //    public:
-    //        static AnimationEventHook* GetSingleton() {
-    //            static AnimationEventHook singleton;
-    //            return &singleton;
-    //        }
-    //        AnimationEventHook() = default;
-    //        ~AnimationEventHook() = default;
-
-    //        using NotifyAnimationGraph_t = decltype(&T::NotifyAnimationGraph);
-    //        static inline REL::Relocation<NotifyAnimationGraph_t> _NotifyAnimationGraphPlayer;     // 01
-    //        static inline REL::Relocation<NotifyAnimationGraph_t> _NotifyAnimationGraphCharacter;  // 01
-
-    //        bool NotifyAnimationGraph_Hooked(const RE::BSFixedString& a_eventName);
-
-    //        static void InstallNotifyHook();
-    //};
-    //template <class T>
-    //inline bool AnimationEventHook<T>::NotifyAnimationGraph_Hooked(const RE::BSFixedString& a_eventName) {
-    //    logger::info(">> {}", a_eventName);
-    //    return _NotifyAnimationGraphCharacter(this, a_eventName);
-    //}
-
-    //template <class T>
-    //inline void AnimationEventHook<T>::InstallNotifyHook() {
-    //    auto vtblPlayer = REL::Relocation<std::uintptr_t>(RE::VTABLE_PlayerCharacter[3]);
-    //    auto vtblCharacter = REL::Relocation<std::uintptr_t>(RE::VTABLE_Character[3]);
-    //    std::uint64_t a_offset = 0x1;
-    //    _NotifyAnimationGraphPlayer = vtblPlayer.write_vfunc(a_offset, &AnimationEventHook<T>::NotifyAnimationGraph);
-    //    _NotifyAnimationGraphCharacter = vtblCharacter.write_vfunc(a_offset, &AnimationEventHook<T>::NotifyAnimationGraph);
-    //    logger::info("AnimEvent Hook Installed");
-    //}
 }  // namespace Hooks
 namespace Hooks {
     class NotifyGraphHandler {
@@ -197,13 +133,18 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourEndQueued) {
-        if (a_eventName == "swimStart" || a_eventName == "swimStop") {
-            logger::info(">> Cancelled: {}", a_eventName.c_str());
-
-            return false;
+        // Cancel every notify, except sent by skyparkour
+        if (a_eventName == "IdleLeverPushStart" || a_eventName == "JumpStandingStart") {
+            // Notify occurs on function call, return value is to evaluate something I guess.
+            bool result = _origPlayerCharacter(a_this, a_eventName);
+            // TODO: if lever push returns false, register another on next frame to try again
+            logger::info(">> Sent {} - {}", a_eventName, result);
+            return result;
         }
+        //logger::info(">> Cancelled: {}", a_eventName.c_str());
+        return false;
     }
-    // Notify occurs on function call, return value is to evaluate something I guess.
+
     return _origPlayerCharacter(a_this, a_eventName);
 
     //logger::info(">> {}", a_eventName);
