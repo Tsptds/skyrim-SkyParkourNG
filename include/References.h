@@ -16,11 +16,12 @@ namespace RuntimeMethods {
     extern void SetupModCompatibility();
     extern void SwapLegs();
     extern void ResetRuntimeVariables();
+    extern void CheckRequirements();
 }  // namespace RuntimeMethods
 
 namespace Compatibility {
     extern bool TrueDirectionalMovement;
-    extern bool ImprovedCamera;
+    //extern bool ImprovedCamera;
 }  // namespace Compatibility
 
 namespace HardCodedVariables {

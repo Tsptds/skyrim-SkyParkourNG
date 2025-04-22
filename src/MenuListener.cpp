@@ -65,6 +65,8 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
             RuntimeMethods::ResetRuntimeVariables();
 
             RuntimeVariables::IsInMainMenu = true;
+
+            //logger::info(">> In Menu");
         }
     } else {
         //logger::info("Menu {} closed", ev->menuName.c_str());
@@ -86,10 +88,14 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         if (!Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = false;
+
+            //logger::info(">> Closed Menu");
         }
 
         if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
             RuntimeVariables::IsInMainMenu = false;
+
+            //logger::info(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;

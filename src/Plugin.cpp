@@ -13,24 +13,24 @@ using namespace Parkouring;
 
 void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
     ButtonStates::DXCODE = dxcode;
-    logger::info("-Custom Key: '{}'", dxcode);
+    logger::info(">Custom Key: '{}'", dxcode);
 }
 
 void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
     ModSettings::PresetParkourKey = presetKey;
-    logger::info("-Preset Key: '{}'", ModSettings::PresetParkourKey);
+    logger::info(">Preset Key: '{}'", ModSettings::PresetParkourKey);
 }
 
 void RegisterParkourDelay(RE::StaticFunctionTag *, float delay) {
     ModSettings::parkourDelay = delay;
-    logger::info("-Delay '{}'", ModSettings::parkourDelay);
+    logger::info(">Delay '{}'", ModSettings::parkourDelay);
 }
 
 void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBlocks, float damage) {
     ModSettings::Enable_Stamina_Consumption = enabled;
     ModSettings::Is_Stamina_Required = staminaBlocks;
     ModSettings::Stamina_Damage = damage;
-    logger::info("**Stamina**\n-On:'{}' -Must:'{}' -Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
+    logger::info("|Stamina|\n> On:'{}' >Must:'{}' >Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
                  ModSettings::Stamina_Damage);
 }
 
@@ -47,7 +47,6 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
     if (!indicatorRef_Blue || !indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
-        //SKSE::stl::report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
     }
 
     GameReferences::indicatorRef_Blue = indicatorRef_Blue;
@@ -73,16 +72,30 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
 }
 
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
-    if (message->type == SKSE::MessagingInterface::kDataLoaded) {
+    if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
+        RuntimeMethods::CheckRequirements();
+    }
+
+    else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
+        // Check for ESP
+        auto dh = RE::TESDataHandler::GetSingleton();
+        auto esp = dh->GetSingleton()->LookupLoadedModByName("SkyParkourV2-ProceduralParkourFramework.esp");
+        if (!esp) {
+            RE::DebugMessageBox(
+                "SkyParkour Warning\n\n"
+                "SkyParkour ESP is not enabled in your load order.\n"
+                "MCM menu & mod will NOT load.");
+            return;
+        }
+
         RaceChangeListener::Register();
         MenuListener::Register();
         //ButtonEventListener::Register();
 
         Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
-        //Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
         Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
         Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
-        Hooks::AnimationGraphHooks::Handler::InstallGraphNotifyHook();
+        Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 
         RuntimeMethods::SetupModCompatibility();
         logger::info("Done");

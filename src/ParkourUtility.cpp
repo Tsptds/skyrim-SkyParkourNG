@@ -1,19 +1,40 @@
 ﻿#include "ParkourUtility.h"
 
+//class NodeOverride {
+//    public:
+//        NodeOverride(RE::NiNode *node, float scale)
+//            : node(node) {
+//            old_scale = node->local.scale;
+//            node->local.scale = scale;
+//        }
+//        ~NodeOverride() {
+//            node->local.scale = old_scale;
+//        }
+//
+//    private:
+//        RE::NiNode *node;
+//        float old_scale;
+//};
+//static std::vector<std::unique_ptr<NodeOverride>> headOverride;
+//static std::vector<std::unique_ptr<NodeOverride>> bodyOverride;
+
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
     }
 
     if (IsPlayerInCharGen()) {
+        //logger::info("PLAYER IN CHARGEN");
         return false;
     }
 
     if (IsPlayerUsingFurniture() /*|| !IsActorWeaponSheathed(player)*/) {
+        //logger::info("USING FURNITURE");
         return false;
     }
 
     if (PlayerWantsToDrawSheath()) {
+        //logger::info("WILL DRAW/SHEATHE");
         return false;
     }
 
@@ -85,6 +106,29 @@ bool ParkourUtility::IsParkourActive() {
 //    RE::ControlMap::GetSingleton()->SendEvent(std::addressof(event));
 //}
 
+//void ToggleHeadNode(RE::PlayerCharacter *player, bool show) {
+//    // Get3D gets false, we need the THIRD PERSON NODE
+//    //auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *bodyNode = player->Get3D(0)->GetObjectByName("NPC Spine [Spn0]")->AsNode();
+//
+//    //auto cam = RE::PlayerCamera::GetSingleton();
+//
+//    if (show) {
+//        headOverride.clear();
+//        bodyOverride.clear();
+//    } else {
+//        // To hide the head, shrink it. Lol.
+//        headOverride.push_back(std::make_unique<NodeOverride>(headNode, 0.001f));
+//        bodyOverride.push_back(std::make_unique<NodeOverride>(bodyNode, 0.001f));
+//    }
+//    RE::NiUpdateData upd{0.0f, RE::NiUpdateData::Flag::kDirty};
+//
+//    // Push it through the node
+//    headNode->UpdateControllers(upd);
+//    headNode->UpdateDownwardPass(upd, /* arg2 = */ 0);
+//}
+
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto playerCamera = RE::PlayerCamera::GetSingleton();
@@ -116,11 +160,23 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
         // Match the third person camera angle to first person, so it feels better like vanilla
         if (RuntimeVariables::wasFirstPerson) {
+            //if (Compatibility::ImprovedCamera) {
+            //    ToggleHeadNode(player, true);
+
+            //    playerCamera->ForceFirstPerson();
+
+            //    /*if (!controlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kLooking)) {
+            //        controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, true);
+            //    }*/
+
+            //    RuntimeVariables::wasFirstPerson = false;
+
+            //} else {
             auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
             player->data.angle.z = thirdPersonState->currentYaw;
-
-            RuntimeVariables::wasFirstPerson = false;
             playerCamera->ForceFirstPerson();
+            RuntimeVariables::wasFirstPerson = false;
+            //}
         }
 
         // Player is sneaking as flag but not in behavior graph, match it.
@@ -130,44 +186,16 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
         // Player has weapons not sheathed, draw them to fix behavior state.
         if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
+            // TODO: Try to skip draw animation
             player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw;
         }
-
     } else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
-        if (Compatibility::ImprovedCamera) {
-            if (playerCamera->IsInFirstPerson()) {
-                RuntimeVariables::wasFirstPerson = true;
-                playerCamera->ForceThirdPerson();
-
-                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = -0.7f;  // Seems like the sweet spot
-                thirdPersonState->stateNotActive = false;
-
-                //thirdPersonState->translation = player->GetPositionZ() * RuntimeVariables::PlayerScale + RE::NiPoint3{0, 0, 0};
-                //RE::NiAVObject *headNode = player->Get3D(true)->GetObjectByName("NPC Head [Head]");
-                //if (headNode) {
-                //    RE::NiPoint3 headPos = headNode->world.translate;
-                //    RE::NiMatrix3 headRot = headNode->world.rotate;
-
-                //    // Apply this transform to the first person camera
-                //    playerCamera->world.translate = headPos;
-                //    camera->world.rotate = headRot;
-                //}
-
-                //auto headNode = player->Get3D(true)->GetObjectByName("NPC Head [Head]");
-                //if (headNode) {
-                //    auto headPos = headNode->worldBound.center;
-                //    playerCamera->pos = headPos;
-                //    // optionally copy rot = headNode->worldTransform.rot
-                //}
-            } else if (playerCamera->IsInThirdPerson()) {
-                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-                thirdPersonState->stateNotActive = false;
-            }
-        } else {
+        /*if (Compatibility::ImprovedCamera) {
+            
+        } else*/
+        {
             if (playerCamera->IsInThirdPerson()) {
                 // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
                 // after parkour ends.

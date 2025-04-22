@@ -27,7 +27,7 @@ namespace Hooks {
             bool CanProcess_Sneak(RE::InputEvent* a_event);
 
             static void InstallJumpHook();
-            static void InstallProcessJumpHook();
+            //static void InstallProcessJumpHook();
             static void InstallSneakHook();
     };
 
@@ -44,7 +44,7 @@ namespace Hooks {
                 return false;
             }
 
-           /* auto buttonEvent = a_event->AsButtonEvent();
+            /* auto buttonEvent = a_event->AsButtonEvent();
             if (buttonEvent && buttonEvent->QUserEvent() == RE::UserEvents::GetSingleton()->jump) {
                 if (!RuntimeVariables::ParkourEndQueued) {
                     logger::info("Block");
@@ -79,22 +79,22 @@ namespace Hooks {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
         std::uint64_t a_offset = 0x1;
         _CanProcessJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Jump);
-        logger::info("Jump Hook Installed");
+        logger::info(">> Jump Hook Installed");
     }
 
-    template <class T>
+    /*template <class T>
     inline void InputHandlerEx<T>::InstallProcessJumpHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
         std::uint64_t a_offset = 0x4;
         _ProcessButtonJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::ProcessButton_Jump);
-        logger::info("Jump Process Hook Installed");
-    }
+        logger::info(">> Jump Process Hook Installed");
+    }*/
 
     template <class T>
     inline void InputHandlerEx<T>::InstallSneakHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_SneakHandler[0]);
         std::uint64_t a_offset = 0x1;
         _CanProcessSneak = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Sneak);
-        logger::info("Sneak Hook Installed");
+        logger::info(">> Sneak Hook Installed");
     }
 }  // namespace Hooks

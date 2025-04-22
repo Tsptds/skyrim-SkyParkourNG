@@ -146,68 +146,65 @@ namespace Hooks {
     //    _NotifyAnimationGraphCharacter = vtblCharacter.write_vfunc(a_offset, &AnimationEventHook<T>::NotifyAnimationGraph);
     //    logger::info("AnimEvent Hook Installed");
     //}
+}  // namespace Hooks
+namespace Hooks {
+    class NotifyGraphHandler {
+        public:
+            static void InstallGraphNotifyHook();
 
-    namespace AnimationGraphHooks {
-        class Handler {
-            public:
-                static void InstallGraphNotifyHook();
+        private:
+            // Our hook callbacks
+            static bool OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
+            static bool OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
+            static bool OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
 
-            private:
-                // Our hook callbacks
-                static bool OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
-                static bool OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
-                static bool OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
+            // Originals
+            static inline REL::Relocation<decltype(OnTESObjectREFR)> _origTESObjectREFR;
+            static inline REL::Relocation<decltype(OnCharacter)> _origCharacter;
+            static inline REL::Relocation<decltype(OnPlayerCharacter)> _origPlayerCharacter;
+    };
+}  // namespace Hooks
 
-                // Originals
-                static inline REL::Relocation<decltype(OnTESObjectREFR)> _origTESObjectREFR;
-                static inline REL::Relocation<decltype(OnCharacter)> _origCharacter;
-                static inline REL::Relocation<decltype(OnPlayerCharacter)> _origPlayerCharacter;
-        };
-    }  // namespace AnimationGraphHooks
-    // AnimationGraphHooks.cpp
+void Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
+    // TESObjectREFR
+    //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
+    //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
 
-    void AnimationGraphHooks::Handler::InstallGraphNotifyHook() {
-        // TESObjectREFR
-        //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
-        //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
+    // Character
+    //REL::Relocation<uintptr_t> vtblChar{RE::VTABLE_Character[3]};
+    //_origCharacter = vtblChar.write_vfunc(0x1, OnCharacter);
 
-        // Character
-        //REL::Relocation<uintptr_t> vtblChar{RE::VTABLE_Character[3]};
-        //_origCharacter = vtblChar.write_vfunc(0x1, OnCharacter);
+    // PlayerCharacter
+    REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_PlayerCharacter[3]};
+    _origPlayerCharacter = vtblPlayer.write_vfunc(0x1, OnPlayerCharacter);
 
-        // PlayerCharacter
-        REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_PlayerCharacter[3]};
-        _origPlayerCharacter = vtblPlayer.write_vfunc(0x1, OnPlayerCharacter);
+    logger::info(">> Notify Graph Hook Installed");
+}
 
-        logger::info("Graph Notify Hook Installed");
-    }
+bool Hooks::NotifyGraphHandler::OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    // pre‑hook logic...
+    bool result = _origTESObjectREFR(a_this, a_eventName);
+    // post‑hook logic...
+    logger::info(">> Object Anim Event: {}", a_eventName.c_str());
+    return result;
+}
 
-    bool AnimationGraphHooks::Handler::OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-        // pre‑hook logic...
-        bool result = _origTESObjectREFR(a_this, a_eventName);
-        // post‑hook logic...
-        logger::info("OBJECT REF");
-        return result;
-    }
+bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    bool result = _origCharacter(a_this, a_eventName);
+    logger::info(">> Char Anim Event: {}", a_eventName.c_str());
+    return result;
+}
 
-    bool AnimationGraphHooks::Handler::OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-        bool result = _origCharacter(a_this, a_eventName);
-        logger::info("CHAR REF");
-        return result;
-    }
+bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (RuntimeVariables::ParkourEndQueued) {
+        if (a_eventName == "swimStart" || a_eventName == "swimStop") {
+            logger::info(">> Cancelled: {}", a_eventName.c_str());
 
-    bool AnimationGraphHooks::Handler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-        bool result = _origPlayerCharacter(a_this, a_eventName);
-        if (RuntimeVariables::ParkourEndQueued) {
-            /*if (a_eventName == "Unequip") {
-                return false;
-            }*/
             return false;
         }
-
-        //logger::info(">> {}", a_eventName);
-        //return false;
-        return result;
     }
+    // Notify occurs on function call, return value is to evaluate something I guess.
+    return _origPlayerCharacter(a_this, a_eventName);
 
-}  // namespace Hooks
+    //logger::info(">> {}", a_eventName);
+}

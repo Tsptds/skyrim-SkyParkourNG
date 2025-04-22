@@ -32,7 +32,39 @@ void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::wasFirstPerson = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
+void RuntimeMethods::CheckRequirements() {
+    struct Requirements {
+            const char *BDI = "BehaviorDataInjector.dll";
+            const char *AMR = "AnimationMotionRevolution.dll";
+            const char *OAR = "OpenAnimationReplacer.dll";
+            const char *OAR_Math = "OpenAnimationReplacer-Math.dll";
 
+            static Requirements *Get() {
+                static Requirements req;
+                return &req;
+            }
+    };
+
+    auto BDI = GetModuleHandleA(Requirements::Get()->BDI);
+    auto AMR = GetModuleHandleA(Requirements::Get()->AMR);
+    auto OAR = GetModuleHandleA(Requirements::Get()->OAR);
+    auto OAR_Math = GetModuleHandleA(Requirements::Get()->OAR_Math);
+
+    if (!BDI || !AMR || !OAR || !OAR_Math) {
+        std::string msg = "\nSkyParkourV2: Loading aborted, requirements not found:\n\n";
+
+        if (!BDI)
+            msg += Requirements::Get()->BDI + std::string("\n");
+        if (!AMR)
+            msg += Requirements::Get()->AMR + std::string("\n");
+        if (!OAR)
+            msg += Requirements::Get()->OAR + std::string("\n");
+        if (!OAR_Math)
+            msg += Requirements::Get()->OAR_Math + std::string("\n");
+
+        SKSE::stl::report_and_fail(msg);
+    }
+}
 void RuntimeMethods::SetupModCompatibility() {
     auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
     if (TDM) {
@@ -41,17 +73,18 @@ void RuntimeMethods::SetupModCompatibility() {
     }
 
     // Motion data does not work for first person right now, this is not going to work. Anim plays without motion.
-    auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
+    // TODO: Enable this once Improved Camera releases the new patch
+    /*auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
     if (improvedCamera) {
         Compatibility::ImprovedCamera = true;
         logger::info("Improved Camera Patch installed.");
-    }
+    }*/
 }
 /*=========================================================================*/
 
 namespace Compatibility {
     bool TrueDirectionalMovement = false;
-    bool ImprovedCamera = false;
+    //bool ImprovedCamera = false;
 }  // namespace Compatibility
 
 namespace HardCodedVariables {

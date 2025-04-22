@@ -44,6 +44,8 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         ParkourUtility::ToggleControlsForParkour(true);
         RuntimeVariables::ParkourEndQueued = false;
 
+        //logger::info(">> Entering Beast Form");
+
     } else {
         //ModSettings::ShouldModSuspend = false;
         if (ModSettings::ModEnabled) {
@@ -52,6 +54,8 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
 
         //AnimEventListener::Register();
         RuntimeVariables::IsBeastForm = false;
+
+        //logger::info(">> Exiting Beast Form");
     }
     return RE::BSEventNotifyControl::kContinue;
 }
