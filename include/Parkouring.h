@@ -16,7 +16,7 @@ namespace Parkouring {
     bool TryActivateParkour();
     void UpdateParkourPoint();
     void ParkourReadyRun(int ledge);
-    void DoPostParkourControl(RE::PlayerCharacter *player, bool isVault, bool secondAttempt = false);
+    void PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault);
 
     void SetParkourOnOff(bool turnOn);
 }  // namespace Parkouring

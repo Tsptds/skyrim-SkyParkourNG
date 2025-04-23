@@ -134,11 +134,24 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourEndQueued) {
         // Cancel every notify, except sent by skyparkour
-        if (a_eventName == "IdleLeverPushStart" || a_eventName == "JumpStandingStart") {
-            // Notify occurs on function call, return value is to evaluate something I guess.
+        if (a_eventName == "IdleLeverPushStart" || a_eventName == "JumpStandingStart" || a_eventName == "moveStop" ||
+            a_eventName == "turnStop" || a_eventName == "JumpLandEnd") {
+            // Notify occurs on function call, return value is to evaluate fail / success.
             bool result = _origPlayerCharacter(a_this, a_eventName);
-            // TODO: if lever push returns false, register another on next frame to try again
+
             logger::info(">> Sent {} - {}", a_eventName, result);
+
+            if (a_eventName == "IdleLeverPushStart") {
+                if (result) {
+                    Parkouring::AdjustPlayerPosition(RuntimeVariables::selectedLedgeType);
+                    Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
+                                                         ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
+                } else {
+                    // Notify failed, unlock controls again
+                    ParkourUtility::ToggleControlsForParkour(true);
+                    RuntimeVariables::ParkourEndQueued = false;
+                }
+            }
             return result;
         }
         //logger::info(">> Cancelled: {}", a_eventName.c_str());

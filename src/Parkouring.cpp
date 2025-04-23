@@ -357,18 +357,18 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
 
     // Check if the player will go underwater after position adjustment, and decrease ledge player diff.
 
-    if (player->IsInWater() && !player->AsActorState()->IsSwimming()) {
-        float waterLevel;
-        RE::NiPoint3 playerPos = player->GetPosition();
-        player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
-        auto playerWaterDiff = playerPos.z - waterLevel;
-        auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
+    //if (player->IsInWater() && !player->AsActorState()->IsSwimming()) {
+    //    float waterLevel;
+    //    RE::NiPoint3 playerPos = player->GetPosition();
+    //    player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
+    //    auto playerWaterDiff = playerPos.z - waterLevel;
+    //    auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
 
-        if (playerWaterDiff < adjustThreshold) {
-            zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
-            //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
-        }
-    }
+    //    if (playerWaterDiff < adjustThreshold) {
+    //        zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
+    //        //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
+    //    }
+    //}
 
     const auto newPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
@@ -433,7 +433,6 @@ bool Parkouring::TryActivateParkour() {
     RuntimeVariables::ParkourEndQueued = true;
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
-    AdjustPlayerPosition(LedgeToProcess);
 
     // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
     // But to check player swimming state, a frame must pass. So AdjustPlayerPosition is called, then parkour runs on next frame.
@@ -446,48 +445,31 @@ bool Parkouring::TryActivateParkour() {
 void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    bool isVault = CheckIsVaultActionFromType(ledge);
-
     // Directional jumping state fails if it triggers too early, set it to standing jump
     if (ledge == ParkourType::Grab && !PlayerIsSwimming()) {
         player->NotifyAnimationGraph("JumpStandingStart");
     }
 
+    // Lock ledge to active one throughout the action;
+    RuntimeVariables::selectedLedgeType = ledge;
     // Send Event, then check if succeeded
     player->NotifyAnimationGraph("IdleLeverPushStart");
-    SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault); });
 }
-void Parkouring::DoPostParkourControl(RE::PlayerCharacter *player, bool isVault, bool secondAttempt) {
-    // Reliably detect if the player is actually playing the animation (LOST COUNTLESS SLEEPLESS NIGHTS TO THIS,
-    // WORTH IT WOOOOO)
-    bool success = player->IsAnimationDriven();
-    // logger::info("Animation Driven: {}", success);
+void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
+    if (ModSettings::Enable_Stamina_Consumption) {
+        float cost = ParkourUtility::CalculateParkourStamina();
 
-    if (success) {
-        if (ModSettings::Enable_Stamina_Consumption) {
-            float cost = ParkourUtility::CalculateParkourStamina();
+        if (isVault) {
+            // logger::info("cost{}", cost / 2);
+            DamageActorStamina(player, cost / 2);
 
-            if (isVault) {
-                // logger::info("cost{}", cost / 2);
-                DamageActorStamina(player, cost / 2);
-
-            } else if (PlayerHasEnoughStamina()) {
-                // logger::info("cost{}", cost);
-                DamageActorStamina(player, cost);
-            } else {
-                RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
-                player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
-            }
+        } else if (PlayerHasEnoughStamina()) {
+            // logger::info("cost{}", cost);
+            DamageActorStamina(player, cost);
+        } else {
+            RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
+            player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
         }
-    } else {
-        if (!secondAttempt) {
-            SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault, true); });
-            return;
-        }
-
-        // Unless there's a guaranteed method to detect parkour activation, this has to stay.
-        ToggleControlsForParkour(true);
-        RuntimeVariables::ParkourEndQueued = false;
     }
 }
 
