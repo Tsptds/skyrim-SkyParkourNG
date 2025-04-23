@@ -133,7 +133,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
     } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
-        if (!PlayerIsOnStairs() && player->GetCharController()->fallTime > 0.4f) {
+        if (!PlayerIsOnStairs()) {
             return ParkourType::Grab;
         }
     }
@@ -251,7 +251,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     float waterLevel;
     player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
 
-    if (ledgePoint.z < waterLevel - 5) {
+    if (ledgePoint.z < waterLevel - 10) {
         return ParkourType::NoLedge;
     }
 
@@ -421,13 +421,35 @@ bool Parkouring::TryActivateParkour() {
     }
 
     const bool isMoving = player->IsMoving();
+    const bool isVaultAction = CheckIsVaultActionFromType(LedgeToProcess);
+    const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
+    const auto fallTime = player->GetCharController()->fallTime;
+    const bool avoidOnGroundParkour = fallTime > 0.0f;
+    const bool avoidMidairGrab = fallTime < 0.17f;
+    logger::info(">> Fall time: {}", fallTime);
+
+    if (LedgeToProcess != ParkourType::Grab) {
+        if (avoidOnGroundParkour) {
+            return false;
+        }
+    } else {
+        if (avoidMidairGrab && !isSwimming) {
+            return false;
+        }
+    }
+
     if (Smart_Parkour_Enabled && isMoving) {
-        if (CheckIsVaultActionFromType(LedgeToProcess) == false) {
+        if (!isVaultAction) {
             player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
         }
+    }
+
+    // Pitch changes cause incorrect angles
+    if (Compatibility::TrueDirectionalMovement && isMoving && isSwimming) {
+        return false;
     }
 
     RuntimeVariables::ParkourEndQueued = true;
@@ -452,7 +474,7 @@ void Parkouring::ParkourReadyRun(int ledge) {
 
     // Lock ledge to active one throughout the action;
     RuntimeVariables::selectedLedgeType = ledge;
-    // Send Event, then check if succeeded
+    // Send Event, then check if succeeded in Graph notify hook
     player->NotifyAnimationGraph("IdleLeverPushStart");
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {

@@ -180,18 +180,18 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
         }
 
         // Do these 1 frame later, animEvent hook triggers before event is sent to listeners, wait states to be updated
-        SKSE::GetTaskInterface()->AddTask([player] {
-            // Player is sneaking as flag but not in behavior graph, match it.
-            if (player->AsActorState()->actorState1.sneaking) {
-                player->NotifyAnimationGraph("SneakStart");
-            }
+        // Player is sneaking as flag but not in behavior graph, match it.
+        if (player->AsActorState()->actorState1.sneaking) {
+            SKSE::GetTaskInterface()->AddTask([player] { player->NotifyAnimationGraph("SneakStart"); });
+        }
 
-            // Player has weapons not sheathed, draw them to fix behavior state.
-            if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
-                // TODO: Try to skip draw animation
-                player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw;
-            }
-        });
+        // Player has weapons not sheathed, draw them to fix behavior state.
+        if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
+            // TODO: Try to skip draw animation
+            SKSE::GetTaskInterface()->AddTask(
+                [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
+        }
+
     } else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 

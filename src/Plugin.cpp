@@ -85,6 +85,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
                 "SkyParkour Warning\n\n"
                 "SkyParkour ESP is not enabled in your load order.\n"
                 "MCM menu & mod will NOT load.");
+
+            logger::error("ESP NOT FOUND, MOD DISABLED");
             return;
         }
 
@@ -109,7 +111,6 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         //ButtonEventListener::Register();
         //ParkourUtility::ToggleControlsForParkour(true);
-        ParkourUtility::ToggleControlsForParkour(true);
         RuntimeMethods::ResetRuntimeVariables();
         // On game load if player is already beast form, set this true
         if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
@@ -119,7 +120,6 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     } else if (message->type == SKSE::MessagingInterface::kNewGame) {
         //ButtonEventListener::Register();
 
-        ParkourUtility::ToggleControlsForParkour(true);
         RuntimeMethods::ResetRuntimeVariables();
     }
 }
