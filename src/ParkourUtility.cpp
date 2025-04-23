@@ -149,6 +149,9 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     if (Compatibility::TrueDirectionalMovement == true) {
         if (enable || player->AsActorState()->IsSwimming()) {
             controlMap->ToggleControls(RE::ControlMap::UEFlag::kSneaking, enable);
+
+            // Pitch changes cause incorrect angles
+            player->GetCharController()->pitchAngle = 0;
         }
     } else {
         // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.

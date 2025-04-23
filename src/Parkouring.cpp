@@ -447,11 +447,6 @@ bool Parkouring::TryActivateParkour() {
         }
     }
 
-    // Pitch changes cause incorrect angles
-    if (Compatibility::TrueDirectionalMovement && isMoving && isSwimming) {
-        return false;
-    }
-
     RuntimeVariables::ParkourEndQueued = true;
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
