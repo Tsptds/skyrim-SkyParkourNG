@@ -71,6 +71,18 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
     return true;
 }
 
+void Install_Hooks_And_Listeners() {
+    RaceChangeListener::Register();
+    MenuListener::Register();
+    //ButtonEventListener::Register();  // Do it inside Menu Listener, when main menu closes
+
+    Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
+    Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
+    Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
+    Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
+    Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
+}
+
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::CheckRequirements();
@@ -90,27 +102,15 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
             return;
         }
 
-        RaceChangeListener::Register();
-        MenuListener::Register();
-        //ButtonEventListener::Register();
-
-        Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
-        Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
-        Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
-        Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
+        Install_Hooks_And_Listeners();
 
         RuntimeMethods::SetupModCompatibility();
-        logger::info("Done");
+        logger::info(">> SkyParkour Loaded <<");
 
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
-        // Parkour Point updates with button listener, no reason to keep listening for events on loading screen
-        //ButtonEventListener::Unregister();
-        //logger::info("preload");
         RuntimeMethods::ResetRuntimeVariables();
 
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        //ButtonEventListener::Register();
-        //ParkourUtility::ToggleControlsForParkour(true);
         RuntimeMethods::ResetRuntimeVariables();
         // On game load if player is already beast form, set this true
         if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
@@ -118,8 +118,6 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         }
 
     } else if (message->type == SKSE::MessagingInterface::kNewGame) {
-        //ButtonEventListener::Register();
-
         RuntimeMethods::ResetRuntimeVariables();
     }
 }
@@ -186,7 +184,5 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
 
     SKSE::GetPapyrusInterface()->Register(PapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
-    //GameEventHandler::getInstance().onLoad();
-    //logger::info("{} has finished loading.", Plugin::Name);
     return true;
 }

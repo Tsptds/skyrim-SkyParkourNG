@@ -51,15 +51,6 @@ void ButtonStates::RegisterActivation(RE::InputEvent* event) {
             Parkouring::TryActivateParkour();
         }
     }
-
-    /*else if (ModSettings::parkourDelay != 0 && buttonEvent->IsUp()) {
-        auto* pc = RE::PlayerControls::GetSingleton();
-        if (pc && pc->jumpHandler) {
-            auto* controlsData = &pc->data;
-            Hooks::InputHandlerEx<RE::JumpHandler>::_ProcessButtonJump(pc->jumpHandler, buttonEvent, controlsData);
-            logger::info("Manual Jump Sent");
-        }
-    }*/
 }
 
 void ButtonEventListener::Register() {
@@ -81,8 +72,8 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
     if (!a_event)
         return RE::BSEventNotifyControl::kContinue;
 
-    // Update this here, temporary solution to updating parkour point on loop
-    SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); });
+    // Update this here,
+    std::jthread([]() { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); }).detach();
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {

@@ -428,7 +428,7 @@ bool Parkouring::TryActivateParkour() {
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
     const bool avoidMidairGrab = fallTime < 0.17f;
-    logger::info(">> Fall time: {}", fallTime);
+    //logger::info(">> Fall time: {}", fallTime);
 
     if (LedgeToProcess != ParkourType::Grab) {
         if (avoidOnGroundParkour) {
@@ -493,16 +493,11 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         ButtonEventListener::Register();
-        //AnimEventListener::Register();
 
     } else {
         ButtonEventListener::Unregister();
-        //AnimEventListener::Unregister();
-
         ParkourUtility::ToggleControlsForParkour(true);
-
-        RuntimeVariables::selectedLedgeType = -1;
-        RuntimeVariables::ParkourEndQueued = false;
+        RuntimeMethods::ResetRuntimeVariables();
 
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();

@@ -18,6 +18,29 @@
 //static std::vector<std::unique_ptr<NodeOverride>> headOverride;
 //static std::vector<std::unique_ptr<NodeOverride>> bodyOverride;
 
+//void ToggleHeadNode(RE::PlayerCharacter *player, bool show) {
+//    // Get3D gets false, we need the THIRD PERSON NODE
+//    //auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *bodyNode = player->Get3D(0)->GetObjectByName("NPC Spine [Spn0]")->AsNode();
+//
+//    //auto cam = RE::PlayerCamera::GetSingleton();
+//
+//    if (show) {
+//        headOverride.clear();
+//        bodyOverride.clear();
+//    } else {
+//        // To hide the head, shrink it. Lol.
+//        headOverride.push_back(std::make_unique<NodeOverride>(headNode, 0.001f));
+//        bodyOverride.push_back(std::make_unique<NodeOverride>(bodyNode, 0.001f));
+//    }
+//    RE::NiUpdateData upd{0.0f, RE::NiUpdateData::Flag::kDirty};
+//
+//    // Push it through the node
+//    headNode->UpdateControllers(upd);
+//    headNode->UpdateDownwardPass(upd, /* arg2 = */ 0);
+//}
+
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
@@ -52,82 +75,8 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    // This is handled Via RaceChangeListener now
-
-    //// Check if the player has transformed into a beast race
-    //const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
-    //if (playerPreTransformData) {
-    //    /* logger::info("player race {}", playerPreTransformData->storedRace->GetFormEditorID());*/
-    //    return false;
-    //}
-
-    // This is handled inside MenuListener Now
-
-    //// List of disqualifying menu names
-    //const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
-    //                                          RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
-    //                                          RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
-    //                                          RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
-    //                                          RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
-    //                                          RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
-    //                                          RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
-    //                                          RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
-    //                                          RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
-    //                                          RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
-    //                                          RE::TweenMenu::MENU_NAME};
-    //// Check if any of the excluded menus are open
-    //for (const std::string_view menuName: excludedMenus) {
-    //    if (ui->IsMenuOpen(menuName)) {
-    //        return false;
-    //    }
-    //}
-
     return true;
 }
-
-//    // THIS DOES NOT WORK
-//void CustomToggleControls(RE::ControlMap::UEFlag a_flags, bool a_enable) {
-//    auto oldState = RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls;
-//
-//    if (a_enable) {
-//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.set(a_flags);
-//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
-//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.set(a_flags);
-//        }
-//    } else {
-//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.reset(a_flags);
-//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
-//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.reset(a_flags);
-//        }
-//        RE::PlayerCharacter::GetSingleton()->AsActorState()->actorState1.sneaking = true;
-//    }
-//
-//    RE::UserEventEnabled event{RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls, oldState};
-//    RE::ControlMap::GetSingleton()->SendEvent(std::addressof(event));
-//}
-
-//void ToggleHeadNode(RE::PlayerCharacter *player, bool show) {
-//    // Get3D gets false, we need the THIRD PERSON NODE
-//    //auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
-//    auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
-//    auto *bodyNode = player->Get3D(0)->GetObjectByName("NPC Spine [Spn0]")->AsNode();
-//
-//    //auto cam = RE::PlayerCamera::GetSingleton();
-//
-//    if (show) {
-//        headOverride.clear();
-//        bodyOverride.clear();
-//    } else {
-//        // To hide the head, shrink it. Lol.
-//        headOverride.push_back(std::make_unique<NodeOverride>(headNode, 0.001f));
-//        bodyOverride.push_back(std::make_unique<NodeOverride>(bodyNode, 0.001f));
-//    }
-//    RE::NiUpdateData upd{0.0f, RE::NiUpdateData::Flag::kDirty};
-//
-//    // Push it through the node
-//    headNode->UpdateControllers(upd);
-//    headNode->UpdateDownwardPass(upd, /* arg2 = */ 0);
-//}
 
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
