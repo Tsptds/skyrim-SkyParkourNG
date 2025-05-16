@@ -355,21 +355,6 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
             return;
     }
 
-    // Check if the player will go underwater after position adjustment, and decrease ledge player diff.
-
-    //if (player->IsInWater() && !player->AsActorState()->IsSwimming()) {
-    //    float waterLevel;
-    //    RE::NiPoint3 playerPos = player->GetPosition();
-    //    player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
-    //    auto playerWaterDiff = playerPos.z - waterLevel;
-    //    auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
-
-    //    if (playerWaterDiff < adjustThreshold) {
-    //        zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
-    //        //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
-    //    }
-    //}
-
     const auto newPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
@@ -384,18 +369,6 @@ void Parkouring::UpdateParkourPoint() {
         RuntimeVariables::selectedLedgeType = -1;
         return;
     }
-
-    // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
-    if (!ModSettings::ModEnabled || RuntimeVariables::IsBeastForm) {
-        Parkouring::SetParkourOnOff(false);
-        return;
-    }
-    //else {
-    //    // Too many things reset this, temporarily checking here.
-    //    if (!AnimEventListener::Register()) {
-    //        return;
-    //    }
-    //}
 
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();

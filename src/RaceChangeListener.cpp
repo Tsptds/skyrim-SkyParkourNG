@@ -35,8 +35,10 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
         RuntimeVariables::IsBeastForm = true;
-        ParkourUtility::ToggleControlsForParkour(true);
-        RuntimeVariables::ParkourEndQueued = false;
+        //ParkourUtility::ToggleControlsForParkour(true);
+        //RuntimeVariables::ParkourEndQueued = false;
+        Parkouring::SetParkourOnOff(false);
+        RuntimeMethods::ResetRuntimeVariables();
 
         //logger::info(">> Entering Beast Form");
 
