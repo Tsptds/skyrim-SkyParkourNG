@@ -425,6 +425,15 @@ bool Parkouring::TryActivateParkour() {
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
+    const auto cam = RE::PlayerCamera::GetSingleton();
+    // TDM camera pitch angle bug
+    if (Compatibility::TrueDirectionalMovement) {
+        if (isSwimming && cam->IsInThirdPerson() && player->GetCharController()->pitchAngle > abs(0.5)) {
+            //logger::info("{}", player->GetCharController()->pitchAngle);
+            return false;
+        }
+    }
+
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
     const bool avoidMidairGrab = fallTime < 0.17f;
