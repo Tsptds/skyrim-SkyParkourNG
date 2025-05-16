@@ -40,8 +40,8 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
 
     ModSettings::ModEnabled = _enableMod;
 
-    //     if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm){Parkouring::SetParkourOnOff(true);}
-    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm);
+    // Turn on if setting is on and is not beast form. Same logic on race change listener.
+    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !ParkourUtility::IsBeastForm());
 }
 
 void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
@@ -112,10 +112,6 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
 
     } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
-        // On game load if player is already beast form, set this true
-        if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
-            RuntimeVariables::IsBeastForm = true;
-        }
 
     } else if (message->type == SKSE::MessagingInterface::kNewGame) {
         RuntimeMethods::ResetRuntimeVariables();

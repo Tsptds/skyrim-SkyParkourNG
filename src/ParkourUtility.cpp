@@ -47,7 +47,15 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     if (IsPlayerInCharGen()) {
-        //logger::info("PLAYER IN CHARGEN");
+        //logger::info("PLAYER HANDS BOUND");
+        return false;
+    }
+
+    if (bIsSynced()) {
+        return false;
+    }
+
+    if (IsBeastForm()) {
         return false;
     }
 
@@ -68,10 +76,6 @@ bool ParkourUtility::IsParkourActive() {
     }*/
 
     if (RuntimeVariables::IsMenuOpen) {
-        return false;
-    }
-
-    if (RuntimeVariables::IsBeastForm) {
         return false;
     }
 
@@ -305,10 +309,20 @@ bool ParkourUtility::IsPlayerInCharGen() {
     //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
     auto player = RE::PlayerCharacter::GetSingleton();
     const auto &gs = player->GetGameStatsData();
-    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
+    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
+        //logger::info(">> Chargen: {}", gs.byCharGenFlag.underlying());
         return true;
     }
     return false;
+}
+
+bool ParkourUtility::IsBeastForm() {
+    return RE::MenuControls::GetSingleton()->InBeastForm();
+}
+
+bool ParkourUtility::bIsSynced() {
+    bool out;
+    return RE::PlayerCharacter::GetSingleton()->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
 float ParkourUtility::CalculateParkourStamina() {

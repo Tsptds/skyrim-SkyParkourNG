@@ -1,4 +1,5 @@
 #include "RaceChangeListener.h"
+#include "ParkourUtility.h"
 
 void RaceChangeListener::Register() {
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
@@ -32,13 +33,11 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         return RE::BSEventNotifyControl::kContinue;
 
     // it *is* the player, if it has pre transformation data, then it is a beast race. Unregister button listener to stop parkour
-    const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
-    if (playerPreTransformData) {
-        RuntimeVariables::IsBeastForm = true;
-        //ParkourUtility::ToggleControlsForParkour(true);
-        //RuntimeVariables::ParkourEndQueued = false;
+    //const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
+    //if (playerPreTransformData) {
+
+    if (ParkourUtility::IsBeastForm()) {
         Parkouring::SetParkourOnOff(false);
-        RuntimeMethods::ResetRuntimeVariables();
 
         //logger::info(">> Entering Beast Form");
 
@@ -46,8 +45,6 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         if (ModSettings::ModEnabled) {
             Parkouring::SetParkourOnOff(true);
         }
-
-        RuntimeVariables::IsBeastForm = false;
 
         //logger::info(">> Exiting Beast Form");
     }

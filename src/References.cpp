@@ -27,7 +27,6 @@ void RuntimeMethods::SwapLegs() {
 
 // Things that are not handled by MCM and persistent throughout saves without being reset on game load
 void RuntimeMethods::ResetRuntimeVariables() {
-    RuntimeVariables::IsBeastForm = false;
     RuntimeVariables::ParkourEndQueued = false;
     RuntimeVariables::wasFirstPerson = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
@@ -149,7 +148,6 @@ namespace RuntimeVariables {
     bool ParkourEndQueued = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
-    bool IsBeastForm = false;
 
     bool shouldUseRightStep = true;
 }  // namespace RuntimeVariables

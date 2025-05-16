@@ -96,7 +96,6 @@ namespace RuntimeVariables {
     extern bool ParkourEndQueued;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
-    extern bool IsBeastForm;
 
     extern bool shouldUseRightStep;
 }  // namespace RuntimeVariables

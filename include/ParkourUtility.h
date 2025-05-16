@@ -11,6 +11,8 @@ namespace ParkourUtility {
     float RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::hkVector4 &normalOut, RE::COL_LAYER layerMask);
     bool IsPlayerUsingFurniture();
     bool IsPlayerInCharGen();
+    bool IsBeastForm();
+    bool bIsSynced();
     float CalculateParkourStamina();
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);
