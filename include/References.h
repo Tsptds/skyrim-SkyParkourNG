@@ -105,4 +105,5 @@ namespace GameReferences {
     extern RE::TESObjectREFR* indicatorRef_Blue;
     extern RE::TESObjectREFR* indicatorRef_Red;
     extern RE::TESObjectREFR* currentIndicatorRef;
+    extern std::string ESP_NAME;
 }  // namespace GameReferences

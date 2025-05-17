@@ -30,7 +30,7 @@ void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBl
     ModSettings::Enable_Stamina_Consumption = enabled;
     ModSettings::Is_Stamina_Required = staminaBlocks;
     ModSettings::Stamina_Damage = damage;
-    logger::info("|Stamina|\n> On:'{}' >Must:'{}' >Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
+    logger::info("|Stamina|> On:'{}' >Must:'{}' >Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
                  ModSettings::Stamina_Damage);
 }
 
@@ -44,17 +44,6 @@ void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _
     Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !ParkourUtility::IsBeastForm());
 }
 
-void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
-    if (!indicatorRef_Blue || !indicatorRef_Red) {
-        logger::error("!Indicator Refs Are Null!");
-    }
-
-    GameReferences::indicatorRef_Blue = indicatorRef_Blue;
-    GameReferences::indicatorRef_Red = indicatorRef_Red;
-
-    GameReferences::currentIndicatorRef = indicatorRef_Blue;
-}
-
 bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
     vm->RegisterFunction("RegisterParkourSettings", "SkyParkourPapyrus", RegisterParkourSettings);
 
@@ -65,8 +54,6 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
     vm->RegisterFunction("RegisterParkourDelay", "SkyParkourPapyrus", RegisterParkourDelay);
 
     vm->RegisterFunction("RegisterStaminaDamage", "SkyParkourPapyrus", RegisterStaminaDamage);
-
-    vm->RegisterFunction("RegisterReferences", "SkyParkourPapyrus", RegisterReferences);
 
     return true;
 }
@@ -83,6 +70,26 @@ void Install_Hooks_And_Listeners() {
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 }
 
+bool CheckESPLoaded() {
+    auto dh = RE::TESDataHandler::GetSingleton();
+    return dh && dh->GetSingleton()->LookupLoadedLightModByName(GameReferences::ESP_NAME);
+}
+
+bool RegisterIndicators() {
+    GameReferences::indicatorRef_Blue =
+        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, GameReferences::ESP_NAME);
+    GameReferences::indicatorRef_Red =
+        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, GameReferences::ESP_NAME);
+
+    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
+        logger::error("!Indicator Refs Are Null!");
+        return false;
+    }
+
+    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
+    return true;
+}
+
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::CheckRequirements();
@@ -90,21 +97,18 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
 
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Check for ESP
-        auto dh = RE::TESDataHandler::GetSingleton();
-        auto esp = dh->GetSingleton()->LookupLoadedModByName("SkyParkourV2-ProceduralParkourFramework.esp");
-        if (!esp) {
+        if (!CheckESPLoaded()) {
             RE::DebugMessageBox(
                 "SkyParkour Warning\n\n"
-                "SkyParkour ESP is not enabled in your load order.\n"
-                "MCM menu & mod will NOT load.");
+                "SkyParkourV2.esp is not enabled in your load order. Mod will not work properly.");
 
-            logger::error("ESP NOT FOUND, MOD DISABLED");
-            return;
+            logger::error("ESP NOT FOUND");
         }
 
+        RegisterIndicators();
         Install_Hooks_And_Listeners();
-
         RuntimeMethods::SetupModCompatibility();
+
         logger::info(">> SkyParkour Loaded <<");
 
     } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {

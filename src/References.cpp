@@ -50,7 +50,7 @@ void RuntimeMethods::CheckRequirements() {
     auto OAR_Math = GetModuleHandleA(Requirements::Get()->OAR_Math);
 
     if (!BDI || !AMR || !OAR || !OAR_Math) {
-        std::string msg = "\nSkyParkourV2: Loading aborted, requirements not found:\n\n";
+        std::string msg = "\nSkyParkourV2: Loading aborted, required mods not found:\n\n";
 
         if (!BDI)
             msg += Requirements::Get()->BDI + std::string("\n");
@@ -157,4 +157,6 @@ namespace GameReferences {
     RE::TESObjectREFR *indicatorRef_Red;
 
     RE::TESObjectREFR *currentIndicatorRef;
+
+    std::string ESP_NAME = "SkyParkourV2.esp";
 }  // namespace GameReferences
