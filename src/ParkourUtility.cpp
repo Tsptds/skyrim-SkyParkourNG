@@ -306,7 +306,7 @@ bool ParkourUtility::IsPlayerUsingFurniture() {
 }
 
 bool ParkourUtility::IsPlayerInCharGen() {
-    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
+    // Check if player has chargen flag hands bound
     auto player = RE::PlayerCharacter::GetSingleton();
     const auto &gs = player->GetGameStatsData();
     if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
@@ -330,9 +330,7 @@ float ParkourUtility::CalculateParkourStamina() {
     float equip = player->GetEquippedWeight();
     //float carry = player->GetTotalCarryWeight();
 
-    float finalCalc = ModSettings::Stamina_Damage + (equip * 0.2f);
-
-    return finalCalc;
+    return ModSettings::Stamina_Damage + (equip * 0.2f);
 }
 
 bool ParkourUtility::PlayerHasEnoughStamina() {
