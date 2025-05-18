@@ -88,24 +88,24 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Failed;
             }
             return ParkourType::Highest;  // Highest ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
                 return ParkourType::Failed;
             }
             return ParkourType::High;  // High ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
             return ParkourType::Medium;  // Medium ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't jump out like a frog
             }
 
             return ParkourType::Low;  // Low ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
@@ -117,8 +117,8 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             if (horizontalDistance < verticalDistance * ledgeHypotenuse) {
                 return ParkourType::StepHigh;  // High Step
             }
-
-        } else {
+        }
+        else {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
@@ -131,8 +131,8 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::StepLow;  // Low Step
             }
         }
-
-    } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
+    }
+    else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
         if (!PlayerIsOnStairs()) {
             return ParkourType::Grab;
         }
@@ -191,14 +191,16 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check hit height for vaultable surfaces
         if (hitHeight > maxVaultHeight) {
             return ParkourType::NoLedge;  // Too high to vault
-        } else if (hitHeight > minVaultHeight && hitHeight < maxVaultHeight) {
+        }
+        else if (hitHeight > minVaultHeight && hitHeight < maxVaultHeight) {
             if (hitHeight >= foundVaultHeight) {
                 foundVaultHeight = hitHeight;
                 foundLanding = false;
             }
             ledgePoint = downRayStart + downRayDir * downRayDist;
             foundVaulter = true;
-        } else if (foundVaulter && hitHeight < minVaultHeight) {
+        }
+        else if (foundVaulter && hitHeight < minVaultHeight) {
             foundLandingHeight = std::min(hitHeight, foundLandingHeight);
             foundLanding = true;
         }
@@ -230,7 +232,8 @@ bool Parkouring::PlaceAndShowIndicator() {
         CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
         GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
         GameReferences::indicatorRef_Blue->Disable();
-    } else {
+    }
+    else {
         GameReferences::indicatorRef_Red->Disable();
     }
 
@@ -434,7 +437,8 @@ bool Parkouring::TryActivateParkour() {
         if (avoidOnGroundParkour) {
             return false;
         }
-    } else {
+    }
+    else {
         if (avoidMidairGrab && !isSwimming) {
             return false;
         }
@@ -479,11 +483,12 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
         if (isVault) {
             // logger::info("cost{}", cost / 2);
             DamageActorStamina(player, cost / 2);
-
-        } else if (PlayerHasEnoughStamina()) {
+        }
+        else if (PlayerHasEnoughStamina()) {
             // logger::info("cost{}", cost);
             DamageActorStamina(player, cost);
-        } else {
+        }
+        else {
             RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
             player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
         }
@@ -493,8 +498,8 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         ButtonEventListener::Register();
-
-    } else {
+    }
+    else {
         ButtonEventListener::Unregister();
         ParkourUtility::ToggleControlsForParkour(true);
         RuntimeMethods::ResetRuntimeVariables();

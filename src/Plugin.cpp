@@ -111,14 +111,14 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RuntimeMethods::SetupModCompatibility();
 
         logger::info(">> SkyParkour Loaded <<");
-
-    } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
+    }
+    else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
-
-    } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
+    }
+    else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
-
-    } else if (message->type == SKSE::MessagingInterface::kNewGame) {
+    }
+    else if (message->type == SKSE::MessagingInterface::kNewGame) {
         RuntimeMethods::ResetRuntimeVariables();
     }
 }
@@ -141,14 +141,18 @@ namespace plugin {
         if (exists("steam_api64.dll"sv)) {
             if (exists("openvr_api.dll") || exists("Data/SkyrimVR.esm")) {
                 directory.append("Skyrim VR"sv);
-            } else {
+            }
+            else {
                 directory.append("Skyrim Special Edition"sv);
             }
-        } else if (exists("Galaxy64.dll"sv)) {
+        }
+        else if (exists("Galaxy64.dll"sv)) {
             directory.append("Skyrim Special Edition GOG"sv);
-        } else if (exists("eossdk-win64-shipping.dll"sv)) {
+        }
+        else if (exists("eossdk-win64-shipping.dll"sv)) {
             directory.append("Skyrim Special Edition EPIC"sv);
-        } else {
+        }
+        else {
             return current_path().append("skselogs");
         }
         return directory.append("SKSE"sv).make_preferred();
@@ -164,7 +168,8 @@ namespace plugin {
         std::shared_ptr<spdlog::logger> log;
         if (IsDebuggerPresent()) {
             log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::msvc_sink_mt>());
-        } else {
+        }
+        else {
             log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
         }
         log->set_level(spdlog::level::info);

@@ -2,15 +2,17 @@
 // From BingusEx's SkyClimb Fork
 
 namespace ScaleUtility {
-    [[nodiscard]] RE::NiAVObject* FindBoneNode(const RE::Actor* a_actorptr, const std::string_view a_nodeName,
-                                               const bool a_isFirstPerson) {
-        if (!a_actorptr->Is3DLoaded()) return nullptr;
+    [[nodiscard]] RE::NiAVObject* FindBoneNode(const RE::Actor* a_actorptr, const std::string_view a_nodeName, const bool a_isFirstPerson) {
+        if (!a_actorptr->Is3DLoaded())
+            return nullptr;
 
         const auto model = a_actorptr->Get3D(a_isFirstPerson);
 
-        if (!model) return nullptr;
+        if (!model)
+            return nullptr;
 
-        if (const auto node_lookup = model->GetObjectByName(a_nodeName)) return node_lookup;
+        if (const auto node_lookup = model->GetObjectByName(a_nodeName))
+            return node_lookup;
 
         // Game lookup failed we try and find it manually
         std::deque<RE::NiAVObject*> queue;
@@ -22,7 +24,7 @@ namespace ScaleUtility {
             try {
                 if (currentnode) {
                     if (const auto ninode = currentnode->AsNode()) {
-                        for (const auto& child : ninode->GetChildren()) {
+                        for (const auto& child: ninode->GetChildren()) {
                             // Bredth first search
                             queue.push_back(child.get());
                             // Depth first search
@@ -52,7 +54,8 @@ namespace ScaleUtility {
     }
 
     [[nodiscard]] float GetModelScale(const RE::Actor* a_actor) {
-        if (!a_actor) return 1.0f;
+        if (!a_actor)
+            return 1.0f;
 
         if (!a_actor->Is3DLoaded()) {
             return 1.0;
@@ -70,7 +73,8 @@ namespace ScaleUtility {
     }
 
     [[nodiscard]] float GetNodeScale(const RE::Actor* a_actor, const std::string_view a_boneName) {
-        if (!a_actor) return 1.0f;
+        if (!a_actor)
+            return 1.0f;
 
         if (const auto Node = FindBoneNode(a_actor, a_boneName, false)) {
             return Node->local.scale;
@@ -83,16 +87,18 @@ namespace ScaleUtility {
 
     [[nodiscard]] float GetScale() {
         const auto player = RE::PlayerCharacter::GetSingleton();
-        if (!player) return false;
+        if (!player)
+            return false;
 
         float TargetScale = 1.0f;
-        TargetScale *= GetModelScale(player);        // Model scale, Scaling done by game
-        TargetScale *= GetNodeScale(player, "NPC");  // NPC bone, Racemenu uses this.
-        TargetScale *=
-            GetNodeScale(player, "NPC Root [Root]");  // Child bone of "NPC" some other mods scale this bone instead
+        TargetScale *= GetModelScale(player);                    // Model scale, Scaling done by game
+        TargetScale *= GetNodeScale(player, "NPC");              // NPC bone, Racemenu uses this.
+        TargetScale *= GetNodeScale(player, "NPC Root [Root]");  // Child bone of "NPC" some other mods scale this bone instead
 
-        if (TargetScale < 0.15f) TargetScale = 0.15f;
-        if (TargetScale > 250.f) TargetScale = 250.f;
+        if (TargetScale < 0.15f)
+            TargetScale = 0.15f;
+        if (TargetScale > 250.f)
+            TargetScale = 250.f;
         return TargetScale;
     }
-}
+}  // namespace ScaleUtility

@@ -68,7 +68,8 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
             //logger::info(">> In Menu");
         }
-    } else {
+    }
+    else {
         //logger::info("Menu {} closed", ev->menuName.c_str());
 
         //// Treating this as save loaded event, fires on COC command and new game, when area along with player loads.

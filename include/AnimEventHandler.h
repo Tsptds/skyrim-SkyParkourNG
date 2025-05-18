@@ -146,7 +146,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
                     Parkouring::AdjustPlayerPosition(RuntimeVariables::selectedLedgeType);
                     Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
                                                          ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
-                } else {
+                }
+                else {
                     // Notify failed, unlock controls again
                     ParkourUtility::ToggleControlsForParkour(true);
                     RuntimeVariables::ParkourEndQueued = false;

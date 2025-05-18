@@ -57,7 +57,8 @@ namespace Hooks {
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::parkourDelay != 0.0f) {
                     if (btn->IsDown()) {
                         return;
-                    } else if (btn->IsUp()) {
+                    }
+                    else if (btn->IsUp()) {
                         float held = btn->HeldDuration();
                         auto dev = btn->GetDevice();
                         auto id = btn->GetIDCode();

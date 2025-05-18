@@ -7,7 +7,7 @@ void RaceChangeListener::Register() {
     if (g_raceChangeSink) {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->AddEventSink(g_raceChangeSink);
 
-        logger::info("RaceChange - Listening");
+        logger::info(">> RaceChange - Listening");
     }
 }
 void RaceChangeListener::Unregister() {
@@ -40,8 +40,8 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         Parkouring::SetParkourOnOff(false);
 
         //logger::info(">> Entering Beast Form");
-
-    } else {
+    }
+    else {
         if (ModSettings::ModEnabled) {
             Parkouring::SetParkourOnOff(true);
         }

@@ -106,7 +106,8 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
             // Pitch changes cause incorrect angles
             player->GetCharController()->pitchAngle = 0;
         }
-    } else {
+    }
+    else {
         // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
         controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
     }
@@ -147,8 +148,8 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
             SKSE::GetTaskInterface()->AddTask(
                 [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
         }
-
-    } else {
+    }
+    else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
         /*if (Compatibility::ImprovedCamera) {
@@ -161,8 +162,8 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
                 auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
                 thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
                 thirdPersonState->stateNotActive = false;
-
-            } else if (playerCamera->IsInFirstPerson()) {
+            }
+            else if (playerCamera->IsInFirstPerson()) {
                 // Save first person state and switch to third person
 
                 RuntimeVariables::wasFirstPerson = true;
