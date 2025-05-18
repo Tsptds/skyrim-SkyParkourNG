@@ -251,7 +251,7 @@ bool Parkouring::PlaceAndShowIndicator() {
     GameReferences::currentIndicatorRef->data.angle =
         RE::NiPoint3(0, 0, atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
 
-    if (!IsParkourActive()) {
+    if (!RuntimeVariables::IsParkourActive) {
         if (GameReferences::currentIndicatorRef)
             SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Disable(); });
     }
@@ -397,6 +397,8 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
+    RuntimeVariables::IsParkourActive = IsParkourActive();
+
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
 
@@ -409,6 +411,7 @@ bool Parkouring::TryActivateParkour() {
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
+    // Check Is Parkour Active again, make sure condition is still valid during activation
     if (!IsParkourActive() || RuntimeVariables::ParkourEndQueued) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
