@@ -243,7 +243,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
         selectedLedgeType = LedgeCheck(ledgePoint, playerDirFlat, HardCodedVariables::climbMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::climbMaxHeight * RuntimeVariables::PlayerScale);
     }
-    if (selectedLedgeType == ParkourType::NoLedge || PlayerVsObjectAngle(ledgePoint) > 80) {
+    if (selectedLedgeType == ParkourType::NoLedge) {
         return ParkourType::NoLedge;
     }
 

@@ -190,37 +190,6 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     return playerDirFlat;
 }
 
-float ParkourUtility::PlayerVsObjectAngle(const RE::NiPoint3 &objPoint) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    if (!player) {
-        return 0.0f;  // Return a safe default if the player singleton is null
-    }
-
-    // Get the vector from the player's head to the object
-    RE::NiPoint3 playerToObject = objPoint - player->GetPosition();
-    playerToObject.z -= 120.0f;  // Adjust for head level
-
-    // Normalize the vector
-    const float distance = playerToObject.Length();
-    if (distance == 0.0f) {
-        return 0.0f;  // Avoid division by zero
-    }
-    playerToObject /= distance;
-
-    // Get the player's forward direction in the XY plane
-    const float playerYaw = player->data.angle.z;
-    RE::NiPoint3 playerForwardDir{std::sin(playerYaw), std::cos(playerYaw), 0.0f};
-
-    // Dot product between player's forward direction and the object direction
-    const float dot = playerToObject.x * playerForwardDir.x + playerToObject.y * playerForwardDir.y;
-
-    // Clamp the dot product to avoid domain errors in acos
-    const float clampedDot = std::clamp(dot, -1.0f, 1.0f);
-
-    // Calculate the angle in degrees
-    return std::acos(clampedDot) * 57.2958f;  // radToDeg constant
-}
-
 void ParkourUtility::LastObjectHitType(RE::COL_LAYER obj) {
     RuntimeVariables::lastHitObject = obj;
 }
