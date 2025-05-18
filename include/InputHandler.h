@@ -51,7 +51,7 @@ namespace Hooks {
 
     template <class T>
     void InputHandlerEx<T>::ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data) {
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::ModEnabled && !ParkourUtility::IsOnMount()) {
             if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump) {
                 auto btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::parkourDelay != 0.0f) {

@@ -11,6 +11,7 @@ namespace ParkourUtility {
     bool IsPlayerUsingFurniture();
     bool IsPlayerInCharGen();
     bool IsBeastForm();
+    bool IsOnMount();
     bool bIsSynced();
     float CalculateParkourStamina();
     bool PlayerHasEnoughStamina();

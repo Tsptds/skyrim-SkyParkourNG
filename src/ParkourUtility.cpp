@@ -55,6 +55,10 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
+    if (IsOnMount()) {
+        return false;
+    }
+
     if (IsBeastForm()) {
         return false;
     }
@@ -288,6 +292,10 @@ bool ParkourUtility::IsPlayerInCharGen() {
 
 bool ParkourUtility::IsBeastForm() {
     return RE::MenuControls::GetSingleton()->InBeastForm();
+}
+
+bool ParkourUtility::IsOnMount() {
+    return RE::PlayerCharacter::GetSingleton()->IsOnMount();
 }
 
 bool ParkourUtility::bIsSynced() {
