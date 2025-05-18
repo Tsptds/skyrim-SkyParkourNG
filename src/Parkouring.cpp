@@ -215,13 +215,54 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     return ParkourType::NoLedge;  // Vault failed
 }
 
+bool Parkouring::PlaceAndShowIndicator() {
+    if (ModSettings::UseIndicators == false) {
+        return false;
+    }
+
+    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
+        return false;
+    }
+
+    // Choose indicator depending on stamina
+    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;  // Default to blue
+    if (ModSettings::Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false &&
+        CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
+        GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
+        GameReferences::indicatorRef_Blue->Disable();
+    } else {
+        GameReferences::indicatorRef_Red->Disable();
+    }
+
+    // Move indicator to the correct position
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    if (GameReferences::currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
+        GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
+    }
+
+    GameReferences::currentIndicatorRef->data.location =
+        RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
+
+    GameReferences::currentIndicatorRef->Update3DPosition(true);
+
+    GameReferences::currentIndicatorRef->data.angle =
+        RE::NiPoint3(0, 0, atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
+
+    if (!IsParkourActive()) {
+        if (GameReferences::currentIndicatorRef)
+            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Disable(); });
+    }
+    else {
+        if (GameReferences::currentIndicatorRef)
+            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Enable(false); });  // Don't reset inventory
+    }
+
+    return true;
+}
+
 int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     using namespace GameReferences;
     using namespace ModSettings;
-
-    if (!indicatorRef_Blue || !indicatorRef_Red) {
-        return ParkourType::NoLedge;
-    }
 
     const auto player = RE::PlayerCharacter::GetSingleton();
     //const auto playerPos = player->GetPosition();
@@ -255,26 +296,9 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
         return ParkourType::NoLedge;
     }
 
-    // Choose indicator depending on stamina
-    GameReferences::currentIndicatorRef = indicatorRef_Blue;  // Default to blue
-    if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
-        GameReferences::currentIndicatorRef = indicatorRef_Red;
-        indicatorRef_Blue->Disable();
-    } else {
-        indicatorRef_Red->Disable();
-    }
-
-    // Move indicator to the correct position
-    if (GameReferences::currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
-        GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
-    }
-
     // RE::NiPoint3 cameraDirFlat = GetCameraDirFlat();
 
     RE::NiPoint3 backwardAdjustment = playerDirFlat * backwardOffset * RuntimeVariables::PlayerScale;
-    GameReferences::currentIndicatorRef->data.location = ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
-    GameReferences::currentIndicatorRef->Update3DPosition(true);
-    GameReferences::currentIndicatorRef->data.angle = RE::NiPoint3(0, 0, atan2(playerDirFlat.x, playerDirFlat.y));
 
     RuntimeVariables::backwardAdjustment = backwardAdjustment;
     RuntimeVariables::ledgePoint = ledgePoint;
@@ -373,14 +397,8 @@ void Parkouring::UpdateParkourPoint() {
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
 
-    if (!IsParkourActive()) {
-        if (GameReferences::currentIndicatorRef)
-            GameReferences::currentIndicatorRef->Disable();
-
-    } else {
-        if (GameReferences::currentIndicatorRef)
-            GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
-    }
+    // Indicator stuff
+    PlaceAndShowIndicator();
 }
 
 bool Parkouring::TryActivateParkour() {

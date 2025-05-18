@@ -34,9 +34,10 @@ void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBl
                  ModSettings::Stamina_Damage);
 }
 
-void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour) {
+void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour, bool _useIndicators) {
     ModSettings::UsePresetParkourKey = _usePresetKey;
     ModSettings::Smart_Parkour_Enabled = _smartParkour;
+    ModSettings::UseIndicators = _useIndicators;
 
     ModSettings::ModEnabled = _enableMod;
 
