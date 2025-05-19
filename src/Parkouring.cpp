@@ -309,7 +309,74 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::AdjustPlayerPosition(int ledge) {
+void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f) {
+    auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+    if (!vm) {
+        return;
+    }
+
+    // 1) Get the TESObjectREFR pointer you want to move:
+    RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();  // example: move the player
+
+    // 2) Wrap movingRef in a Papyrus handle
+    auto policy = vm->GetObjectHandlePolicy();
+    RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+    if (handle == policy->EmptyHandle()) {
+        return;
+    }
+
+    // 3) Lookup the Papyrus-bound "ObjectReference" instance
+    RE::BSFixedString scriptName = "ObjectReference";
+    RE::BSFixedString functionName = "TranslateTo";
+
+    RE::BSTSmartPointer<RE::BSScript::Object> object;
+    if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+        return;
+    }
+
+    float px = position.x;
+    float py = position.y;
+    float pz = position.z;
+    float rx = obj->data.angle.x;
+    float ry = obj->data.angle.y;
+    float rz = obj->data.angle.z;
+    float maxRotSpeed = 0.0f;
+
+    // 5) Build the IFunctionArguments with those locals:
+    auto args = RE::MakeFunctionArguments(std::move(px),  // afX
+                                          std::move(py),  // afY
+                                          std::move(pz),  // afZ
+                                          std::move(rx),  // afRX
+                                          std::move(ry),  // afRY
+                                          std::move(rz),  // afRZ
+                                          std::move(speed), std::move(maxRotSpeed));
+
+    // 5) Call the Papyrus method
+    RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+    vm->DispatchMethodCall1(object,        // the Papyrus ObjectReference instance
+                            functionName,  // "TranslateTo"
+                            args,          // packed arguments
+                            result);
+
+    std::jthread([vm, handle]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(500));
+        SKSE::GetTaskInterface()->AddTask([vm, handle]() {
+            auto args = RE::MakeFunctionArguments();
+
+            RE::BSTSmartPointer<RE::BSScript::Object> object;
+            if (!vm->FindBoundObject(handle, "StopTranslation", object)) {
+                return;
+            }
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+            vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
+                                    "StopTranslation",
+                                    args,  // packed arguments
+                                    result);
+        });
+    }).detach();
+}
+
+void Parkouring::AdjustPlayerPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     // Select appropriate ledge marker and adjustments
@@ -328,7 +395,7 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
     //const int Failed = 0;
     //const int NoLedge = -1;
 
-    switch (ledge) {
+    switch (ledgeType) {
         case 8:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
@@ -378,7 +445,7 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
         case 0:  // Failed (Low Stamina Animation)
             return;
         default:
-            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledge);
+            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledgeType);
             return;
     }
 
@@ -386,7 +453,7 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
-    player->SetPosition(newPosition, true);
+    Parkouring::InterpolateRefToPosition(player, newPosition);
 }
 
 void Parkouring::UpdateParkourPoint() {
