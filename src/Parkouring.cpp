@@ -56,7 +56,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Backward ray to check for obstructions behind the vaultable surface
         RE::NiPoint3 backwardRayStart = fwdRayStart + checkDir * (fwdRayDist - 2) + RE::NiPoint3(0, 0, 5);
-        const float maxObstructionDistance = 20.0f * RuntimeVariables::PlayerScale;
+        const float maxObstructionDistance = 10.0f * RuntimeVariables::PlayerScale;
         float backwardRayDist = RayCast(backwardRayStart, checkDir, maxObstructionDistance, normalOut, RE::COL_LAYER::kLOS);
 
         if (backwardRayDist > 0 && backwardRayDist < maxObstructionDistance) {
@@ -81,31 +81,31 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     float ledgePlayerDiff = ledgePoint.z - playerPos.z;
-
+    // TODO: Move corrections into tryactivateparkour func to reduce overhead
     if (PlayerIsGroundedOrSliding() || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
                 return ParkourType::Failed;
             }
             return ParkourType::Highest;  // Highest ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
                 return ParkourType::Failed;
             }
             return ParkourType::High;  // High ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
             return ParkourType::Medium;  // Medium ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't jump out like a frog
             }
 
             return ParkourType::Low;  // Low ledge
-
-        } else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
+        }
+        else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
@@ -117,8 +117,8 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             if (horizontalDistance < verticalDistance * ledgeHypotenuse) {
                 return ParkourType::StepHigh;  // High Step
             }
-
-        } else {
+        }
+        else {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
@@ -131,9 +131,9 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::StepLow;  // Low Step
             }
         }
-
-    } else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
-        if (!PlayerIsOnStairs() && player->GetCharController()->fallTime > 0.4f) {
+    }
+    else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
+        if (!PlayerIsOnStairs()) {
             return ParkourType::Grab;
         }
     }
@@ -191,14 +191,16 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check hit height for vaultable surfaces
         if (hitHeight > maxVaultHeight) {
             return ParkourType::NoLedge;  // Too high to vault
-        } else if (hitHeight > minVaultHeight && hitHeight < maxVaultHeight) {
+        }
+        else if (hitHeight > minVaultHeight && hitHeight < maxVaultHeight) {
             if (hitHeight >= foundVaultHeight) {
                 foundVaultHeight = hitHeight;
                 foundLanding = false;
             }
             ledgePoint = downRayStart + downRayDir * downRayDist;
             foundVaulter = true;
-        } else if (foundVaulter && hitHeight < minVaultHeight) {
+        }
+        else if (foundVaulter && hitHeight < minVaultHeight) {
             foundLandingHeight = std::min(hitHeight, foundLandingHeight);
             foundLanding = true;
         }
@@ -215,13 +217,55 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     return ParkourType::NoLedge;  // Vault failed
 }
 
+bool Parkouring::PlaceAndShowIndicator() {
+    if (ModSettings::UseIndicators == false) {
+        return false;
+    }
+
+    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
+        return false;
+    }
+
+    // Choose indicator depending on stamina
+    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;  // Default to blue
+    if (ModSettings::Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false &&
+        CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
+        GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
+        GameReferences::indicatorRef_Blue->Disable();
+    }
+    else {
+        GameReferences::indicatorRef_Red->Disable();
+    }
+
+    // Move indicator to the correct position
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    if (GameReferences::currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
+        GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
+    }
+
+    GameReferences::currentIndicatorRef->data.location =
+        RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
+
+    GameReferences::currentIndicatorRef->Update3DPosition(true);
+
+    GameReferences::currentIndicatorRef->data.angle =
+        RE::NiPoint3(0, 0, atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
+
+    if (!RuntimeVariables::IsParkourActive) {
+        if (GameReferences::currentIndicatorRef)
+            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Disable(); });
+    }
+    else {
+        if (GameReferences::currentIndicatorRef)
+            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Enable(false); });  // Don't reset inventory
+    }
+
+    return true;
+}
+
 int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     using namespace GameReferences;
     using namespace ModSettings;
-
-    if (!indicatorRef_Blue || !indicatorRef_Red) {
-        return ParkourType::NoLedge;
-    }
 
     const auto player = RE::PlayerCharacter::GetSingleton();
     //const auto playerPos = player->GetPosition();
@@ -243,7 +287,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
         selectedLedgeType = LedgeCheck(ledgePoint, playerDirFlat, HardCodedVariables::climbMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::climbMaxHeight * RuntimeVariables::PlayerScale);
     }
-    if (selectedLedgeType == ParkourType::NoLedge || PlayerVsObjectAngle(ledgePoint) > 80) {
+    if (selectedLedgeType == ParkourType::NoLedge) {
         return ParkourType::NoLedge;
     }
 
@@ -251,30 +295,13 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     float waterLevel;
     player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
 
-    if (ledgePoint.z < waterLevel - 15) {
+    if (ledgePoint.z < waterLevel - 10) {
         return ParkourType::NoLedge;
-    }
-
-    // Choose indicator depending on stamina
-    currentIndicatorRef = indicatorRef_Blue; // Default to blue
-    if (Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false && CheckIsVaultActionFromType(selectedLedgeType) == false) {
-        currentIndicatorRef = indicatorRef_Red;
-        indicatorRef_Blue->Disable();
-    } else {
-        indicatorRef_Red->Disable();
-    }
-
-    // Move indicator to the correct position
-    if (currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
-        currentIndicatorRef->MoveTo(player->AsReference());
     }
 
     // RE::NiPoint3 cameraDirFlat = GetCameraDirFlat();
 
     RE::NiPoint3 backwardAdjustment = playerDirFlat * backwardOffset * RuntimeVariables::PlayerScale;
-    currentIndicatorRef->data.location = ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
-    currentIndicatorRef->Update3DPosition(true);
-    currentIndicatorRef->data.angle = RE::NiPoint3(0, 0, atan2(playerDirFlat.x, playerDirFlat.y));
 
     RuntimeVariables::backwardAdjustment = backwardAdjustment;
     RuntimeVariables::ledgePoint = ledgePoint;
@@ -282,7 +309,74 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::AdjustPlayerPosition(int ledge) {
+void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, int timeoutMS = 500) {
+    auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+    if (!vm) {
+        return;
+    }
+
+    // 1) Get the TESObjectREFR pointer you want to move:
+    RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();  // example: move the player
+
+    // 2) Wrap movingRef in a Papyrus handle
+    auto policy = vm->GetObjectHandlePolicy();
+    RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+    if (handle == policy->EmptyHandle()) {
+        return;
+    }
+
+    // 3) Lookup the Papyrus-bound "ObjectReference" instance
+    RE::BSFixedString scriptName = "ObjectReference";
+    RE::BSFixedString functionName = "TranslateTo";
+
+    RE::BSTSmartPointer<RE::BSScript::Object> object;
+    if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+        return;
+    }
+
+    float px = position.x;
+    float py = position.y;
+    float pz = position.z;
+    float rx = obj->data.angle.x;
+    float ry = obj->data.angle.y;
+    float rz = obj->data.angle.z;
+    float maxRotSpeed = 0.0f;
+
+    // 5) Build the IFunctionArguments with those locals:
+    auto args = RE::MakeFunctionArguments(std::move(px),  // afX
+                                          std::move(py),  // afY
+                                          std::move(pz),  // afZ
+                                          std::move(rx),  // afRX
+                                          std::move(ry),  // afRY
+                                          std::move(rz),  // afRZ
+                                          std::move(speed), std::move(maxRotSpeed));
+
+    // 5) Call the Papyrus method
+    RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+    vm->DispatchMethodCall1(object,        // the Papyrus ObjectReference instance
+                            functionName,  // "TranslateTo"
+                            args,          // packed arguments
+                            result);
+
+    std::jthread([vm, handle, timeoutMS]() {
+        std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
+        SKSE::GetTaskInterface()->AddTask([vm, handle]() {
+            auto args = RE::MakeFunctionArguments();
+
+            RE::BSTSmartPointer<RE::BSScript::Object> object;
+            if (!vm->FindBoundObject(handle, "StopTranslation", object)) {
+                return;
+            }
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+            vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
+                                    "StopTranslation",
+                                    args,  // packed arguments
+                                    result);
+        });
+    }).detach();
+}
+
+void Parkouring::AdjustPlayerPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     // Select appropriate ledge marker and adjustments
@@ -301,7 +395,7 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
     //const int Failed = 0;
     //const int NoLedge = -1;
 
-    switch (ledge) {
+    switch (ledgeType) {
         case 8:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
@@ -326,14 +420,14 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
             z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 3:  // Step Low
             z = HardCodedVariables::stepLowElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 20 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 2:  // Vault
@@ -351,30 +445,15 @@ void Parkouring::AdjustPlayerPosition(int ledge) {
         case 0:  // Failed (Low Stamina Animation)
             return;
         default:
-            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledge);
+            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledgeType);
             return;
-    }
-
-    // Check if the player will go underwater after position adjustment, and decrease ledge player diff.
-
-    if (player->IsInWater() && !player->AsActorState()->IsSwimming()) {
-        float waterLevel;
-        RE::NiPoint3 playerPos = player->GetPosition();
-        player->GetParentCell()->GetWaterHeight(playerPos, waterLevel);
-        auto playerWaterDiff = playerPos.z - waterLevel;
-        auto adjustThreshold = -50.0f * RuntimeVariables::PlayerScale;
-
-        if (playerWaterDiff < adjustThreshold) {
-            zAdjust += (abs(playerWaterDiff) - 60) * RuntimeVariables::PlayerScale;
-            //logger::info("ledgeZ: {} threshold {} zadjust:{} diff{}", RuntimeVariables::ledgePoint.z - playerPos.z, adjustThreshold, zAdjust,playerWaterDiff);
-        }
     }
 
     const auto newPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
-    player->SetPosition(newPosition, true);
+    Parkouring::InterpolateRefToPosition(player, newPosition);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -385,29 +464,13 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
-    // Don't shut down mod if parkour is queued, or it will allow breaking stuff, yes it has to poll this. Queue is checked above already so not doing here again.
-    if (!ModSettings::ModEnabled || RuntimeVariables::IsBeastForm) {
-        Parkouring::SetParkourOnOff(false);
-        return;
-    }
-    //else {
-    //    // Too many things reset this, temporarily checking here.
-    //    if (!AnimEventListener::Register()) {
-    //        return;
-    //    }
-    //}
+    RuntimeVariables::IsParkourActive = IsParkourActive();
 
     RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
 
-    if (!IsParkourActive()) {
-        if (GameReferences::currentIndicatorRef)
-            GameReferences::currentIndicatorRef->Disable();
-
-    } else {
-        if (GameReferences::currentIndicatorRef)
-            GameReferences::currentIndicatorRef->Enable(false);  // Don't reset inventory
-    }
+    // Indicator stuff
+    PlaceAndShowIndicator();
 }
 
 bool Parkouring::TryActivateParkour() {
@@ -415,16 +478,44 @@ bool Parkouring::TryActivateParkour() {
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
+    // Check Is Parkour Active again, make sure condition is still valid during activation
     if (!IsParkourActive() || RuntimeVariables::ParkourEndQueued) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
     }
 
     const bool isMoving = player->IsMoving();
+    const bool isVaultAction = CheckIsVaultActionFromType(LedgeToProcess);
+    const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
+    const auto cam = RE::PlayerCamera::GetSingleton();
+    // TDM camera pitch angle bug
+    if (Compatibility::TrueDirectionalMovement) {
+        if (isSwimming && cam->IsInThirdPerson() && player->GetCharController()->pitchAngle > abs(0.5)) {
+            //logger::info("{}", player->GetCharController()->pitchAngle);
+            return false;
+        }
+    }
+
+    const auto fallTime = player->GetCharController()->fallTime;
+    const bool avoidOnGroundParkour = fallTime > 0.0f;
+    const bool avoidMidairGrab = fallTime < 0.17f;
+    //logger::info(">> Fall time: {}", fallTime);
+
+    if (LedgeToProcess != ParkourType::Grab) {
+        if (avoidOnGroundParkour) {
+            return false;
+        }
+    }
+    else {
+        if (avoidMidairGrab && !isSwimming) {
+            return false;
+        }
+    }
+
     if (Smart_Parkour_Enabled && isMoving) {
-        if (CheckIsVaultActionFromType(LedgeToProcess) == false) {
+        if (!isVaultAction) {
             player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
         }
@@ -433,7 +524,6 @@ bool Parkouring::TryActivateParkour() {
     RuntimeVariables::ParkourEndQueued = true;
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
-    AdjustPlayerPosition(LedgeToProcess);
 
     // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
     // But to check player swimming state, a frame must pass. So AdjustPlayerPosition is called, then parkour runs on next frame.
@@ -446,73 +536,43 @@ bool Parkouring::TryActivateParkour() {
 void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    bool isVault = CheckIsVaultActionFromType(ledge);
-
+    // Directional jumping state fails if it triggers too early, set it to standing jump
     if (ledge == ParkourType::Grab && !PlayerIsSwimming()) {
         player->NotifyAnimationGraph("JumpStandingStart");
     }
 
-    //if (PlayerIsGrounded()) {
-    //player->NotifyAnimationGraph("JumpLandEnd");
-    //} else {
-    //player->NotifyAnimationGraph("JumpStandingStart");
-    //}
-
-    if (player->AsActorState()->IsSwimming()) {
-        player->NotifyAnimationGraph("SwimStop");
-    }
-
-    // Send Event, then check if succeeded
+    // Lock ledge to active one throughout the action;
+    RuntimeVariables::selectedLedgeType = ledge;
+    // Send Event, then check if succeeded in Graph notify hook
     player->NotifyAnimationGraph("IdleLeverPushStart");
-    SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault); });
 }
-void Parkouring::DoPostParkourControl(RE::PlayerCharacter *player, bool isVault, bool secondAttempt) {
-    // Reliably detect if the player is actually playing the animation (LOST COUNTLESS SLEEPLESS NIGHTS TO THIS,
-    // WORTH IT WOOOOO)
-    bool success = player->IsAnimationDriven();
-    // logger::info("Animation Driven: {}", success);
+void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
+    if (ModSettings::Enable_Stamina_Consumption) {
+        float cost = ParkourUtility::CalculateParkourStamina();
 
-    if (success) {
-        if (ModSettings::Enable_Stamina_Consumption) {
-            float cost = ParkourUtility::CalculateParkourStamina();
-
-            if (isVault) {
-                // logger::info("cost{}", cost / 2);
-                DamageActorStamina(player, cost / 2);
-
-            } else if (PlayerHasEnoughStamina()) {
-                // logger::info("cost{}", cost);
-                DamageActorStamina(player, cost);
-            } else {
-                RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
-                player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
-            }
+        if (isVault) {
+            // logger::info("cost{}", cost / 2);
+            DamageActorStamina(player, cost / 2);
         }
-    } else {
-        if (!secondAttempt) {
-            SKSE::GetTaskInterface()->AddTask([player, isVault] { Parkouring::DoPostParkourControl(player, isVault, true); });
-            return;
+        else if (PlayerHasEnoughStamina()) {
+            // logger::info("cost{}", cost);
+            DamageActorStamina(player, cost);
         }
-
-        // Unless there's a guaranteed method to detect parkour activation, this has to stay.
-        ToggleControlsForParkour(true);
-        RuntimeVariables::ParkourEndQueued = false;
+        else {
+            RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
+            player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
+        }
     }
 }
 
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         ButtonEventListener::Register();
-        AnimEventListener::Register();
-
-    } else {
+    }
+    else {
         ButtonEventListener::Unregister();
-        AnimEventListener::Unregister();
-
         ParkourUtility::ToggleControlsForParkour(true);
-
-        RuntimeVariables::selectedLedgeType = -1;
-        RuntimeVariables::ParkourEndQueued = false;
+        RuntimeMethods::ResetRuntimeVariables();
 
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();

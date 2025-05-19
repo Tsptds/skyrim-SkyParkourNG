@@ -5,6 +5,7 @@ namespace ModSettings {
     extern int PresetParkourKey;
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
     extern bool ModEnabled;
+    extern bool UseIndicators;
     extern float parkourDelay;
     extern bool Enable_Stamina_Consumption;
     extern bool Is_Stamina_Required;
@@ -16,11 +17,12 @@ namespace RuntimeMethods {
     extern void SetupModCompatibility();
     extern void SwapLegs();
     extern void ResetRuntimeVariables();
+    extern void CheckRequirements();
 }  // namespace RuntimeMethods
 
 namespace Compatibility {
     extern bool TrueDirectionalMovement;
-    extern bool ImprovedCamera;
+    //extern bool ImprovedCamera;
 }  // namespace Compatibility
 
 namespace HardCodedVariables {
@@ -83,6 +85,7 @@ namespace ParkourType {
 }  // namespace ParkourType
 
 namespace RuntimeVariables {
+    extern bool IsParkourActive;
     extern RE::COL_LAYER lastHitObject;
     extern float PlayerScale;
     extern int selectedLedgeType;
@@ -95,7 +98,6 @@ namespace RuntimeVariables {
     extern bool ParkourEndQueued;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
-    extern bool IsBeastForm;
 
     extern bool shouldUseRightStep;
 }  // namespace RuntimeVariables
@@ -105,4 +107,5 @@ namespace GameReferences {
     extern RE::TESObjectREFR* indicatorRef_Blue;
     extern RE::TESObjectREFR* indicatorRef_Red;
     extern RE::TESObjectREFR* currentIndicatorRef;
+    extern std::string ESP_NAME;
 }  // namespace GameReferences

@@ -21,3 +21,6 @@ SpaceAfterCStyleCast: true
 SpaceAfterLogicalNot: false
 SpaceBeforeRangeBasedForLoopColon: false
 SpaceInEmptyParentheses: false
+BreakBeforeBraces: Custom
+BraceWrapping:
+  BeforeElse: true

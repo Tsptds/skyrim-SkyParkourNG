@@ -65,8 +65,11 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
             RuntimeMethods::ResetRuntimeVariables();
 
             RuntimeVariables::IsInMainMenu = true;
+
+            //logger::info(">> In Menu");
         }
-    } else {
+    }
+    else {
         //logger::info("Menu {} closed", ev->menuName.c_str());
 
         //// Treating this as save loaded event, fires on COC command and new game, when area along with player loads.
@@ -78,7 +81,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         // Mainly for new game, if race menu closes, attempt to register listener
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            AnimEventListener::Register();
+            //AnimEventListener::Register();
 
             ParkourUtility::ToggleControlsForParkour(true);
             RuntimeMethods::ResetRuntimeVariables();
@@ -86,10 +89,14 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         if (!Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = false;
+
+            //logger::info(">> Closed Menu");
         }
 
         if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
             RuntimeVariables::IsInMainMenu = false;
+
+            //logger::info(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;

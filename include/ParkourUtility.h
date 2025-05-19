@@ -6,11 +6,13 @@ namespace ParkourUtility {
 
     bool ToggleControlsForParkour(bool enable);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
-    float PlayerVsObjectAngle(const RE::NiPoint3 &objPoint);
     void LastObjectHitType(RE::COL_LAYER obj);
     float RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::hkVector4 &normalOut, RE::COL_LAYER layerMask);
     bool IsPlayerUsingFurniture();
     bool IsPlayerInCharGen();
+    bool IsBeastForm();
+    bool IsOnMount();
+    bool bIsSynced();
     float CalculateParkourStamina();
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);

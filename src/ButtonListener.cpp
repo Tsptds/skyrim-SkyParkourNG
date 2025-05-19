@@ -1,4 +1,5 @@
-#include "ButtonListener.h"
+﻿#include "ButtonListener.h"
+#include "InputHandler.h"
 
 int32_t ButtonStates::DXCODE = 0;
 
@@ -41,12 +42,13 @@ int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
     }
     return dxcode;  // Return default value if key not found
 }
-void ButtonStates::RegisterActivation(RE::ButtonEvent* event) {
-    if (event->IsDown() || event->IsHeld()) {
-        if (ModSettings::parkourDelay <= event->heldDownSecs) {
-            if (Parkouring::TryActivateParkour()) {
-                event->heldDownSecs = ModSettings::parkourDelay;
-            }
+void ButtonStates::RegisterActivation(RE::InputEvent* event) {
+    const auto buttonEvent = event->AsButtonEvent();
+
+    // Delay Threshold Passed
+    if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
+        if (ModSettings::parkourDelay <= buttonEvent->heldDownSecs) {
+            Parkouring::TryActivateParkour();
         }
     }
 }
@@ -70,11 +72,10 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
     if (!a_event)
         return RE::BSEventNotifyControl::kContinue;
 
-    // Update this here, temporary solution to updating parkour point on loop
-    SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); });
+    // Update this here,
+    std::jthread([]() { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); }).detach();
 
     for (auto event = *a_event; event; event = event->next) {
-
         if (const auto buttonEvent = event->AsButtonEvent()) {
             auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
             // logger::info("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
@@ -82,8 +83,8 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
             // Convert Xinput codes to creation kit versions
             if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kGamepad) {
                 dxScanCode = SKSE::InputMap::GamepadMaskToKeycode(dxScanCode);
-
-            } else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
+            }
+            else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
                 dxScanCode = ButtonStates::xinputToCKMap[dxScanCode];
             }
 
@@ -99,32 +100,32 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
-
-                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
-                           userEventName == RE::UserEvents::GetSingleton()->sprint) {
-                    if (RuntimeVariables::ParkourEndQueued) {
-                        continue;
-                    }
-
-                    ButtonStates::RegisterActivation(buttonEvent);
-
-                } else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
-                           userEventName == RE::UserEvents::GetSingleton()->activate) {
-                    if (RuntimeVariables::ParkourEndQueued) {
-                        continue;
-                    }
-
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
                 }
+                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
+                         userEventName == RE::UserEvents::GetSingleton()->sprint) {
+                    if (RuntimeVariables::ParkourEndQueued) {
+                        continue;
+                    }
 
-            } else {
+                    ButtonStates::RegisterActivation(event);
+                }
+                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
+                         userEventName == RE::UserEvents::GetSingleton()->activate) {
+                    if (RuntimeVariables::ParkourEndQueued) {
+                        continue;
+                    }
+
+                    ButtonStates::RegisterActivation(event);
+                }
+            }
+            else {
                 if (dxScanCode == ButtonStates::DXCODE) {
                     if (RuntimeVariables::ParkourEndQueued) {
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(buttonEvent);
+                    ButtonStates::RegisterActivation(event);
                 }
             }
         }

@@ -1,4 +1,45 @@
-#include "ParkourUtility.h"
+﻿#include "ParkourUtility.h"
+
+//class NodeOverride {
+//    public:
+//        NodeOverride(RE::NiNode *node, float scale)
+//            : node(node) {
+//            old_scale = node->local.scale;
+//            node->local.scale = scale;
+//        }
+//        ~NodeOverride() {
+//            node->local.scale = old_scale;
+//        }
+//
+//    private:
+//        RE::NiNode *node;
+//        float old_scale;
+//};
+//static std::vector<std::unique_ptr<NodeOverride>> headOverride;
+//static std::vector<std::unique_ptr<NodeOverride>> bodyOverride;
+
+//void ToggleHeadNode(RE::PlayerCharacter *player, bool show) {
+//    // Get3D gets false, we need the THIRD PERSON NODE
+//    //auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
+//    auto *bodyNode = player->Get3D(0)->GetObjectByName("NPC Spine [Spn0]")->AsNode();
+//
+//    //auto cam = RE::PlayerCamera::GetSingleton();
+//
+//    if (show) {
+//        headOverride.clear();
+//        bodyOverride.clear();
+//    } else {
+//        // To hide the head, shrink it. Lol.
+//        headOverride.push_back(std::make_unique<NodeOverride>(headNode, 0.001f));
+//        bodyOverride.push_back(std::make_unique<NodeOverride>(bodyNode, 0.001f));
+//    }
+//    RE::NiUpdateData upd{0.0f, RE::NiUpdateData::Flag::kDirty};
+//
+//    // Push it through the node
+//    headNode->UpdateControllers(upd);
+//    headNode->UpdateDownwardPass(upd, /* arg2 = */ 0);
+//}
 
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
@@ -6,14 +47,29 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     if (IsPlayerInCharGen()) {
+        //logger::info("PLAYER HANDS BOUND");
+        return false;
+    }
+
+    if (bIsSynced()) {
+        return false;
+    }
+
+    if (IsOnMount()) {
+        return false;
+    }
+
+    if (IsBeastForm()) {
         return false;
     }
 
     if (IsPlayerUsingFurniture() /*|| !IsActorWeaponSheathed(player)*/) {
+        //logger::info("USING FURNITURE");
         return false;
     }
 
     if (PlayerWantsToDrawSheath()) {
+        //logger::info("WILL DRAW/SHEATHE");
         return false;
     }
 
@@ -27,63 +83,8 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (RuntimeVariables::IsBeastForm) {
-        return false;
-    }
-
-    // This is handled Via RaceChangeListener now
-
-    //// Check if the player has transformed into a beast race
-    //const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
-    //if (playerPreTransformData) {
-    //    /* logger::info("player race {}", playerPreTransformData->storedRace->GetFormEditorID());*/
-    //    return false;
-    //}
-
-    // This is handled inside MenuListener Now
-
-    //// List of disqualifying menu names
-    //const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
-    //                                          RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
-    //                                          RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
-    //                                          RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
-    //                                          RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
-    //                                          RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
-    //                                          RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
-    //                                          RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
-    //                                          RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
-    //                                          RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
-    //                                          RE::TweenMenu::MENU_NAME};
-    //// Check if any of the excluded menus are open
-    //for (const std::string_view menuName: excludedMenus) {
-    //    if (ui->IsMenuOpen(menuName)) {
-    //        return false;
-    //    }
-    //}
-
     return true;
 }
-
-//    // THIS DOES NOT WORK
-//void CustomToggleControls(RE::ControlMap::UEFlag a_flags, bool a_enable) {
-//    auto oldState = RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls;
-//
-//    if (a_enable) {
-//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.set(a_flags);
-//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
-//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.set(a_flags);
-//        }
-//    } else {
-//        RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls.reset(a_flags);
-//        if (RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C != RE::ControlMap::UEFlag::kInvalid) {
-//            RE::ControlMap::GetSingleton()->GetRuntimeData().unk11C.reset(a_flags);
-//        }
-//        RE::PlayerCharacter::GetSingleton()->AsActorState()->actorState1.sneaking = true;
-//    }
-//
-//    RE::UserEventEnabled event{RE::ControlMap::GetSingleton()->GetRuntimeData().enabledControls, oldState};
-//    RE::ControlMap::GetSingleton()->SendEvent(std::addressof(event));
-//}
 
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
@@ -100,8 +101,18 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
 
-    // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
-    if (Compatibility::TrueDirectionalMovement == false) {
+    // TDM swim pitch workaround. Player goes into object if presses the sneak key.
+    // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
+    if (Compatibility::TrueDirectionalMovement == true) {
+        if (enable || player->AsActorState()->IsSwimming()) {
+            controlMap->ToggleControls(RE::ControlMap::UEFlag::kSneaking, enable);
+
+            // Pitch changes cause incorrect angles
+            player->GetCharController()->pitchAngle = 0;
+        }
+    }
+    else {
+        // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
         controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
     }
 
@@ -110,42 +121,62 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
         // Match the third person camera angle to first person, so it feels better like vanilla
         if (RuntimeVariables::wasFirstPerson) {
+            //if (Compatibility::ImprovedCamera) {
+            //    ToggleHeadNode(player, true);
+
+            //    playerCamera->ForceFirstPerson();
+
+            //    /*if (!controlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kLooking)) {
+            //        controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, true);
+            //    }*/
+
+            //    RuntimeVariables::wasFirstPerson = false;
+
+            //} else {
             auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
             player->data.angle.z = thirdPersonState->currentYaw;
-
-            RuntimeVariables::wasFirstPerson = false;
             playerCamera->ForceFirstPerson();
+            RuntimeVariables::wasFirstPerson = false;
+            //}
         }
 
+        // Do these 1 frame later, animEvent hook triggers before event is sent to listeners, wait states to be updated
         // Player is sneaking as flag but not in behavior graph, match it.
         if (player->AsActorState()->actorState1.sneaking) {
-            player->NotifyAnimationGraph("SneakStart");
+            SKSE::GetTaskInterface()->AddTask([player] { player->NotifyAnimationGraph("SneakStart"); });
         }
 
         // Player has weapons not sheathed, draw them to fix behavior state.
         if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
-            player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw;
+            // TODO: Try to skip draw animation
+            SKSE::GetTaskInterface()->AddTask(
+                [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
         }
-
-    } else {
+    }
+    else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
-        if (playerCamera->IsInThirdPerson()) {
-            // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
-            // after parkour ends.
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-            thirdPersonState->stateNotActive = false;
+        /*if (Compatibility::ImprovedCamera) {
+            
+        } else*/
+        {
+            if (playerCamera->IsInThirdPerson()) {
+                // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
+                // after parkour ends.
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
+                thirdPersonState->stateNotActive = false;
+            }
+            else if (playerCamera->IsInFirstPerson()) {
+                // Save first person state and switch to third person
 
-        } else if (playerCamera->IsInFirstPerson()) {
-            // Save first person state and switch to third person
+                RuntimeVariables::wasFirstPerson = true;
+                playerCamera->ForceThirdPerson();
 
-            RuntimeVariables::wasFirstPerson = true;
-            playerCamera->ForceThirdPerson();
-
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
-            thirdPersonState->stateNotActive = false;
+                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
+                thirdPersonState->stateNotActive = false;
+            }
         }
     }
 
@@ -162,37 +193,6 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     playerDirFlat.y /= dirMagnitude;
 
     return playerDirFlat;
-}
-
-float ParkourUtility::PlayerVsObjectAngle(const RE::NiPoint3 &objPoint) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    if (!player) {
-        return 0.0f;  // Return a safe default if the player singleton is null
-    }
-
-    // Get the vector from the player's head to the object
-    RE::NiPoint3 playerToObject = objPoint - player->GetPosition();
-    playerToObject.z -= 120.0f;  // Adjust for head level
-
-    // Normalize the vector
-    const float distance = playerToObject.Length();
-    if (distance == 0.0f) {
-        return 0.0f;  // Avoid division by zero
-    }
-    playerToObject /= distance;
-
-    // Get the player's forward direction in the XY plane
-    const float playerYaw = player->data.angle.z;
-    RE::NiPoint3 playerForwardDir{std::sin(playerYaw), std::cos(playerYaw), 0.0f};
-
-    // Dot product between player's forward direction and the object direction
-    const float dot = playerToObject.x * playerForwardDir.x + playerToObject.y * playerForwardDir.y;
-
-    // Clamp the dot product to avoid domain errors in acos
-    const float clampedDot = std::clamp(dot, -1.0f, 1.0f);
-
-    // Calculate the angle in degrees
-    return std::acos(clampedDot) * 57.2958f;  // radToDeg constant
 }
 
 void ParkourUtility::LastObjectHitType(RE::COL_LAYER obj) {
@@ -280,13 +280,27 @@ bool ParkourUtility::IsPlayerUsingFurniture() {
 }
 
 bool ParkourUtility::IsPlayerInCharGen() {
-    //// Check if player has chargen flags (hands bound, saving disabled etc)     6 hands bound, 3 vamp lord transform
+    // Check if player has chargen flag hands bound
     auto player = RE::PlayerCharacter::GetSingleton();
     const auto &gs = player->GetGameStatsData();
-    if (gs.byCharGenFlag != RE::PlayerCharacter::ByCharGenFlag::kNone) {
+    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
+        //logger::info(">> Chargen: {}", gs.byCharGenFlag.underlying());
         return true;
     }
     return false;
+}
+
+bool ParkourUtility::IsBeastForm() {
+    return RE::MenuControls::GetSingleton()->InBeastForm();
+}
+
+bool ParkourUtility::IsOnMount() {
+    return RE::PlayerCharacter::GetSingleton()->IsOnMount();
+}
+
+bool ParkourUtility::bIsSynced() {
+    bool out;
+    return RE::PlayerCharacter::GetSingleton()->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
 float ParkourUtility::CalculateParkourStamina() {
@@ -294,9 +308,7 @@ float ParkourUtility::CalculateParkourStamina() {
     float equip = player->GetEquippedWeight();
     //float carry = player->GetTotalCarryWeight();
 
-    float finalCalc = ModSettings::Stamina_Damage + (equip * 0.2f);
-
-    return finalCalc;
+    return ModSettings::Stamina_Damage + (equip * 0.2f);
 }
 
 bool ParkourUtility::PlayerHasEnoughStamina() {

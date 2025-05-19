@@ -2,58 +2,47 @@
 #include "Parkouring.h"
 #include "ButtonListener.h"
 #include "RaceChangeListener.h"
-#include "AnimationListener.h"
 #include "References.h"
 #include "PCH.h"
 
 #include "InputHandler.h"
+#include "AnimEventHandler.h"
 
 using namespace ParkourUtility;
 using namespace Parkouring;
 
 void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
     ButtonStates::DXCODE = dxcode;
-    logger::info("-Custom Key: '{}'", dxcode);
+    logger::info(">Custom Key: '{}'", dxcode);
 }
 
 void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
     ModSettings::PresetParkourKey = presetKey;
-    logger::info("-Preset Key: '{}'", ModSettings::PresetParkourKey);
+    logger::info(">Preset Key: '{}'", ModSettings::PresetParkourKey);
 }
 
 void RegisterParkourDelay(RE::StaticFunctionTag *, float delay) {
     ModSettings::parkourDelay = delay;
-    logger::info("-Delay '{}'", ModSettings::parkourDelay);
+    logger::info(">Delay '{}'", ModSettings::parkourDelay);
 }
 
 void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBlocks, float damage) {
     ModSettings::Enable_Stamina_Consumption = enabled;
     ModSettings::Is_Stamina_Required = staminaBlocks;
     ModSettings::Stamina_Damage = damage;
-    logger::info("**Stamina**\n-On:'{}' -Must:'{}' -Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
+    logger::info("|Stamina|> On:'{}' >Must:'{}' >Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
                  ModSettings::Stamina_Damage);
 }
 
-void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour) {
+void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour, bool _useIndicators) {
     ModSettings::UsePresetParkourKey = _usePresetKey;
     ModSettings::Smart_Parkour_Enabled = _smartParkour;
+    ModSettings::UseIndicators = _useIndicators;
 
     ModSettings::ModEnabled = _enableMod;
 
-    //     if (ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm){Parkouring::SetParkourOnOff(true);}
-    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !RuntimeVariables::IsBeastForm);
-}
-
-void RegisterReferences(RE::StaticFunctionTag *, RE::TESObjectREFR *indicatorRef_Blue, RE::TESObjectREFR *indicatorRef_Red) {
-    if (!indicatorRef_Blue || !indicatorRef_Red) {
-        logger::error("!Indicator Refs Are Null!");
-        //SKSE::stl::report_and_fail("Indicator References Are Null, Make sure SkyParkour ESP is enabled");
-    }
-
-    GameReferences::indicatorRef_Blue = indicatorRef_Blue;
-    GameReferences::indicatorRef_Red = indicatorRef_Red;
-
-    GameReferences::currentIndicatorRef = indicatorRef_Blue;
+    // Turn on if setting is on and is not beast form. Same logic on race change listener.
+    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !ParkourUtility::IsBeastForm());
 }
 
 bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
@@ -67,43 +56,69 @@ bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
 
     vm->RegisterFunction("RegisterStaminaDamage", "SkyParkourPapyrus", RegisterStaminaDamage);
 
-    vm->RegisterFunction("RegisterReferences", "SkyParkourPapyrus", RegisterReferences);
+    return true;
+}
 
+void Install_Hooks_And_Listeners() {
+    RaceChangeListener::Register();
+    MenuListener::Register();
+    //ButtonEventListener::Register();  // Do it inside Menu Listener, when main menu closes
+
+    Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
+    Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
+    Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
+    Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
+    Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
+}
+
+bool CheckESPLoaded() {
+    auto dh = RE::TESDataHandler::GetSingleton();
+    return dh && dh->GetSingleton()->LookupLoadedLightModByName(GameReferences::ESP_NAME);
+}
+
+bool RegisterIndicators() {
+    GameReferences::indicatorRef_Blue =
+        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, GameReferences::ESP_NAME);
+    GameReferences::indicatorRef_Red =
+        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, GameReferences::ESP_NAME);
+
+    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
+        logger::error("!Indicator Refs Are Null!");
+        return false;
+    }
+
+    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
     return true;
 }
 
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
-    if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-        RaceChangeListener::Register();
-        MenuListener::Register();
-        //ButtonEventListener::Register();
+    if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
+        RuntimeMethods::CheckRequirements();
+    }
 
-        Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
-        Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
+    else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
+        // Check for ESP
+        if (!CheckESPLoaded()) {
+            RE::DebugMessageBox(
+                "SkyParkour Warning\n\n"
+                "SkyParkourV2.esp is not enabled in your load order. Mod will not work properly.");
 
-        RuntimeMethods::SetupModCompatibility();
-        logger::info("Done");
-
-    } else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
-        // Parkour Point updates with button listener, no reason to keep listening for events on loading screen
-        //ButtonEventListener::Unregister();
-        //logger::info("preload");
-        RuntimeMethods::ResetRuntimeVariables();
-
-    } else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        //ButtonEventListener::Register();
-        //ParkourUtility::ToggleControlsForParkour(true);
-        ParkourUtility::ToggleControlsForParkour(true);
-        RuntimeMethods::ResetRuntimeVariables();
-        // On game load if player is already beast form, set this true
-        if (RE::PlayerCharacter::GetSingleton()->GetPlayerRuntimeData().preTransformationData) {
-            RuntimeVariables::IsBeastForm = true;
+            logger::error("ESP NOT FOUND");
         }
 
-    } else if (message->type == SKSE::MessagingInterface::kNewGame) {
-        //ButtonEventListener::Register();
+        RegisterIndicators();
+        Install_Hooks_And_Listeners();
+        RuntimeMethods::SetupModCompatibility();
 
-        ParkourUtility::ToggleControlsForParkour(true);
+        logger::info(">> SkyParkour Loaded <<");
+    }
+    else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
+        RuntimeMethods::ResetRuntimeVariables();
+    }
+    else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
+        RuntimeMethods::ResetRuntimeVariables();
+    }
+    else if (message->type == SKSE::MessagingInterface::kNewGame) {
         RuntimeMethods::ResetRuntimeVariables();
     }
 }
@@ -126,14 +141,18 @@ namespace plugin {
         if (exists("steam_api64.dll"sv)) {
             if (exists("openvr_api.dll") || exists("Data/SkyrimVR.esm")) {
                 directory.append("Skyrim VR"sv);
-            } else {
+            }
+            else {
                 directory.append("Skyrim Special Edition"sv);
             }
-        } else if (exists("Galaxy64.dll"sv)) {
+        }
+        else if (exists("Galaxy64.dll"sv)) {
             directory.append("Skyrim Special Edition GOG"sv);
-        } else if (exists("eossdk-win64-shipping.dll"sv)) {
+        }
+        else if (exists("eossdk-win64-shipping.dll"sv)) {
             directory.append("Skyrim Special Edition EPIC"sv);
-        } else {
+        }
+        else {
             return current_path().append("skselogs");
         }
         return directory.append("SKSE"sv).make_preferred();
@@ -149,7 +168,8 @@ namespace plugin {
         std::shared_ptr<spdlog::logger> log;
         if (IsDebuggerPresent()) {
             log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::msvc_sink_mt>());
-        } else {
+        }
+        else {
             log = std::make_shared<spdlog::logger>("Global", std::make_shared<spdlog::sinks::basic_file_sink_mt>(path->string(), true));
         }
         log->set_level(spdlog::level::info);
@@ -170,7 +190,5 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
 
     SKSE::GetPapyrusInterface()->Register(PapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
-    //GameEventHandler::getInstance().onLoad();
-    //logger::info("{} has finished loading.", Plugin::Name);
     return true;
 }

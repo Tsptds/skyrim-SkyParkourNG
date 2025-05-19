@@ -139,7 +139,7 @@
 
 #define PLUGIN_LOGPATTERN_DEFAULT "[%b %d %H:%M:%S.%e] [%l] [%t] %v"
 #define PLUGIN_LOGPATTERN_DEBUG "[%b %d %H:%M:%S.%e] [%l] [%t] [%s:%#] %v"
-#define PLUGIN_LOGPATTERN_RELEASE "[%H:%M:%S.%e] %v"
+#define PLUGIN_LOGPATTERN_RELEASE "[%l] [%H:%M:%S.%e] %v"
 
 //commonlibsse-ng and skse
 #include <RE/Skyrim.h>
