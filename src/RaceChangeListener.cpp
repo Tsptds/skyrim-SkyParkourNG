@@ -33,10 +33,8 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         return RE::BSEventNotifyControl::kContinue;
 
     // it *is* the player, if it has pre transformation data, then it is a beast race. Unregister button listener to stop parkour
-    //const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
-    //if (playerPreTransformData) {
-
-    if (ParkourUtility::IsBeastForm()) {
+    const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
+    if (playerPreTransformData) {
         Parkouring::SetParkourOnOff(false);
 
         //logger::info(">> Entering Beast Form");
