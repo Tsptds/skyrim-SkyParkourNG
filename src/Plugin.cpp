@@ -5,8 +5,8 @@
 #include "References.h"
 #include "PCH.h"
 
-#include "InputHandler.h"
-#include "AnimEventHandler.h"
+#include "InputHandler.hpp"
+#include "AnimEventHandler.hpp"
 
 using namespace ParkourUtility;
 using namespace Parkouring;
