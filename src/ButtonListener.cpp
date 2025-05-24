@@ -73,7 +73,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
         return RE::BSEventNotifyControl::kContinue;
 
     // Update this here,
-    std::jthread([]() { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); }).detach();
+    _THREAD_POOL.enqueue([] { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); });
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
@@ -90,7 +90,6 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
             if (ModSettings::UsePresetParkourKey) {
                 auto userEventName = event->QUserEvent();
-                //event->AsCharEvent()->
                 //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 

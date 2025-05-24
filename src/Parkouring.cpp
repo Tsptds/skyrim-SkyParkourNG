@@ -315,8 +315,8 @@ void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 p
         return;
     }
 
-    // 1) Get the TESObjectREFR pointer you want to move:
-    RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();  // example: move the player
+    // 1) Get the TESObjectREFR pointer to move:
+    RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
 
     // 2) Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
@@ -358,7 +358,7 @@ void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 p
                             args,          // packed arguments
                             result);
 
-    std::jthread([vm, handle, timeoutMS]() {
+    _THREAD_POOL.enqueue([vm, handle, timeoutMS]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
         SKSE::GetTaskInterface()->AddTask([vm, handle]() {
             auto args = RE::MakeFunctionArguments();
@@ -373,7 +373,7 @@ void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 p
                                     args,  // packed arguments
                                     result);
         });
-    }).detach();
+    });
 }
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
