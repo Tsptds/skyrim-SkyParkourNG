@@ -45,13 +45,13 @@ bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
     }
-
-    if (IsPlayerInCharGen()) {
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    if (IsPlayerInCharGen(player)) {
         //logger::info("PLAYER HANDS BOUND");
         return false;
     }
 
-    if (bIsSynced()) {
+    if (IsPlayerInSyncedAnimation(player)) {
         return false;
     }
 
@@ -63,7 +63,7 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (IsPlayerUsingFurniture() /*|| !IsActorWeaponSheathed(player)*/) {
+    if (IsPlayerUsingFurniture(player) /*|| !IsActorWeaponSheathed(player)*/) {
         //logger::info("USING FURNITURE");
         return false;
     }
@@ -100,6 +100,7 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kFighting, enable);
 
     // TDM swim pitch workaround. Player goes into object if presses the sneak key.
     // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
@@ -270,8 +271,7 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
     return maxDist;
 }
 
-bool ParkourUtility::IsPlayerUsingFurniture() {
-    auto player = RE::PlayerCharacter::GetSingleton();
+bool ParkourUtility::IsPlayerUsingFurniture(RE::PlayerCharacter *player) {
     auto ref = player->GetOccupiedFurniture();
     if (ref) {
         return true;
@@ -279,9 +279,8 @@ bool ParkourUtility::IsPlayerUsingFurniture() {
     return false;
 }
 
-bool ParkourUtility::IsPlayerInCharGen() {
+bool ParkourUtility::IsPlayerInCharGen(RE::PlayerCharacter *player) {
     // Check if player has chargen flag hands bound
-    auto player = RE::PlayerCharacter::GetSingleton();
     const auto &gs = player->GetGameStatsData();
     if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
         //logger::info(">> Chargen: {}", gs.byCharGenFlag.underlying());
@@ -298,9 +297,9 @@ bool ParkourUtility::IsOnMount() {
     return RE::PlayerCharacter::GetSingleton()->IsOnMount();
 }
 
-bool ParkourUtility::bIsSynced() {
+bool ParkourUtility::IsPlayerInSyncedAnimation(RE::PlayerCharacter *player) {
     bool out;
-    return RE::PlayerCharacter::GetSingleton()->GetGraphVariableBool("bIsSynced", out) && out;
+    return player->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
 float ParkourUtility::CalculateParkourStamina() {
@@ -388,7 +387,6 @@ bool ParkourUtility::PlayerIsSwimming() {
 
 bool ParkourUtility::PlayerWantsToDrawSheath() {
     const auto player = RE::PlayerCharacter::GetSingleton();
-
     return player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToDraw ||
            player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToSheathe;
 }

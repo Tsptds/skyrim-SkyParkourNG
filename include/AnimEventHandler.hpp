@@ -43,7 +43,6 @@ namespace Hooks {
     template <class T>
     class AnimationEventHook : public T {
         public:
-            //RE::BSAnimationGraphManager
             using Fn_t = decltype(&T::ProcessEvent);
             static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
@@ -135,7 +134,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
     if (RuntimeVariables::ParkourEndQueued) {
         // Cancel every notify, except sent by skyparkour & some essentials
         if (a_eventName == "IdleLeverPushStart" || a_eventName == "JumpStandingStart" || a_eventName == "moveStop" ||
-            a_eventName == "turnStop" || a_eventName == "JumpLandEnd") {
+            a_eventName == "turnStop" || a_eventName == "JumpLandEnd" || a_eventName == "Ragdoll" || a_eventName == "GetUpBegin") {
             // Notify occurs on function call, return value is to evaluate fail / success.
             bool result = _origPlayerCharacter(a_this, a_eventName);
 

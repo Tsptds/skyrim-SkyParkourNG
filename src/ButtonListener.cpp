@@ -73,7 +73,9 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
         return RE::BSEventNotifyControl::kContinue;
 
     // Update this here,
-    _THREAD_POOL.enqueue([] { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); });
+    if (ModSettings::ModEnabled) {
+        _THREAD_POOL.enqueue([] { SKSE::GetTaskInterface()->AddTask([] { Parkouring::UpdateParkourPoint(); }); });
+    }
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
