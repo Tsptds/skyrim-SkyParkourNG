@@ -23,6 +23,8 @@ class ButtonEventListener : public RE::BSTEventSink<RE::InputEvent*> {
         static void Register();
         static void Unregister();
 
+        static bool SinkRegistered;
+
     private:
         virtual RE::BSEventNotifyControl ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) override;
 

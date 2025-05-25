@@ -2,6 +2,7 @@
 #include "InputHandler.hpp"
 
 int32_t ButtonStates::DXCODE = 0;
+bool ButtonEventListener::SinkRegistered = false;
 
 std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     // Mouse
@@ -57,6 +58,7 @@ void ButtonEventListener::Register() {
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->AddEventSink(ButtonEventListener::GetSingleton());
+        ButtonEventListener::SinkRegistered = true;
         logger::info("Buttons - Listening");
     }
 }
@@ -64,6 +66,7 @@ void ButtonEventListener::Unregister() {
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->RemoveEventSink(ButtonEventListener::GetSingleton());
+        ButtonEventListener::SinkRegistered = false;
         logger::info("Buttons - Not Listening");
     }
 }
