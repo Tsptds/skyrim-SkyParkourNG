@@ -79,12 +79,9 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         //    }
         //}
 
-        // Mainly for new game, if race menu closes, attempt to register listener
+        // Racemenu closed, reset some stuff
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            //AnimEventListener::Register();
-
-            ParkourUtility::ToggleControlsForParkour(true);
-            RuntimeMethods::ResetRuntimeVariables();
+            Parkouring::SetParkourOnOff(true);
         }
 
         if (!Menus::CheckMenuOpen()) {
@@ -96,7 +93,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
             RuntimeVariables::IsInMainMenu = false;
 
-            //logger::info(">> Closed Main Menu");
+            logger::info(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;

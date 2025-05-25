@@ -81,7 +81,6 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     float ledgePlayerDiff = ledgePoint.z - playerPos.z;
-    // TODO: Move corrections into tryactivateparkour func to reduce overhead
     if (PlayerIsGroundedOrSliding() || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {

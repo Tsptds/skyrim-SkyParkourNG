@@ -1,45 +1,4 @@
-﻿//namespace Hooks {
-//
-//    template <class T>
-//    class AnimGraphHolderEx : public T {
-//        public:
-//            static AnimGraphHolderEx* GetSingleton() {
-//                static AnimGraphHolderEx singleton;
-//                return &singleton;
-//            }
-//
-//            AnimGraphHolderEx() = default;
-//            ~AnimGraphHolderEx() = default;
-//
-//            using Construct_t = decltype(&T::PostCreateAnimationGraphManager);
-//            static inline REL::Relocation<Construct_t> _PostCreateAnimationGraphManager;
-//
-//            void PostCreateAnimationGraphManager(RE::BSTSmartPointer<RE::BSAnimationGraphManager>& a_animGraphMgr);
-//
-//            static void InstallConstructHook();
-//    };
-//
-//    template <class T>
-//    inline void AnimGraphHolderEx<T>::PostCreateAnimationGraphManager(RE::BSTSmartPointer<RE::BSAnimationGraphManager>& a_animGraphMgr) {
-//        logger::info("Graph Refresh");
-//        return _PostCreateAnimationGraphManager(this, a_animGraphMgr);
-//    }
-//
-//    template <class T>
-//    inline void AnimGraphHolderEx<T>::InstallConstructHook() {
-//        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_IAnimationGraphManagerHolder[0]);
-//        std::uint64_t a_offset = 0xB;
-//        _PostCreateAnimationGraphManager = a_vtbl.write_vfunc(a_offset, &AnimGraphHolderEx<T>::PostCreateAnimationGraphManager);
-//        logger::info("ConstructAnimationGraph Hook Installed");
-//    }
-//
-//}  // namespace Hooks
-//
-//// somewhere in your plugin startup:
-////void InstallAllHooks() {
-////    Hooks::AnimGraphHolderEx<RE::SimpleAnimationGraphManagerHolder>::InstallConstructHook();
-////}
-namespace Hooks {
+﻿namespace Hooks {
     template <class T>
     class AnimationEventHook : public T {
         public:

@@ -71,14 +71,6 @@ void RuntimeMethods::SetupModCompatibility() {
         Compatibility::TrueDirectionalMovement = true;
         logger::info("TDM is Installed, 360 Parkour Enabled");
     }
-
-    // Motion data does not work for first person right now, this is not going to work. Anim plays without motion.
-    // TODO: Enable this once Improved Camera releases the new patch
-    /*auto improvedCamera = GetModuleHandleA("ImprovedCameraSE.dll");
-    if (improvedCamera) {
-        Compatibility::ImprovedCamera = true;
-        logger::info("Improved Camera Patch installed.");
-    }*/
 }
 /*=========================================================================*/
 

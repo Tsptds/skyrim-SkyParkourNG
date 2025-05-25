@@ -130,7 +130,6 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
         // Do these 1 frame later, animEvent hook triggers before event is sent to listeners, wait states to be updated
         // Player is sneaking as flag but not in behavior graph, match it.
-
         // These should also not change when player is in beast form
         if (!IsBeastForm()) {
             if (player->AsActorState()->actorState1.sneaking) {
