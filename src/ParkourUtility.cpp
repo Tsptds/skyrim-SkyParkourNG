@@ -122,62 +122,48 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
         // Match the third person camera angle to first person, so it feels better like vanilla
         if (RuntimeVariables::wasFirstPerson) {
-            //if (Compatibility::ImprovedCamera) {
-            //    ToggleHeadNode(player, true);
-
-            //    playerCamera->ForceFirstPerson();
-
-            //    /*if (!controlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kLooking)) {
-            //        controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, true);
-            //    }*/
-
-            //    RuntimeVariables::wasFirstPerson = false;
-
-            //} else {
             auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
             player->data.angle.z = thirdPersonState->currentYaw;
             playerCamera->ForceFirstPerson();
             RuntimeVariables::wasFirstPerson = false;
-            //}
         }
 
         // Do these 1 frame later, animEvent hook triggers before event is sent to listeners, wait states to be updated
         // Player is sneaking as flag but not in behavior graph, match it.
-        if (player->AsActorState()->actorState1.sneaking) {
-            SKSE::GetTaskInterface()->AddTask([player] { player->NotifyAnimationGraph("SneakStart"); });
-        }
 
-        // Player has weapons not sheathed, draw them to fix behavior state.
-        if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
-            // TODO: Try to skip draw animation
-            SKSE::GetTaskInterface()->AddTask(
-                [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
+        // These should also not change when player is in beast form
+        if (!IsBeastForm()) {
+            if (player->AsActorState()->actorState1.sneaking) {
+                SKSE::GetTaskInterface()->AddTask([player] { player->NotifyAnimationGraph("SneakStart"); });
+            }
+
+            // Player has weapons not sheathed, draw them to fix behavior state.
+            if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
+                // TODO: Try to skip draw animation
+                SKSE::GetTaskInterface()->AddTask(
+                    [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
+            }
         }
     }
     else {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
-        /*if (Compatibility::ImprovedCamera) {
-            
-        } else*/
-        {
-            if (playerCamera->IsInThirdPerson()) {
-                // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
-                // after parkour ends.
-                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-                thirdPersonState->stateNotActive = false;
-            }
-            else if (playerCamera->IsInFirstPerson()) {
-                // Save first person state and switch to third person
+        if (playerCamera->IsInThirdPerson()) {
+            // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
+            // after parkour ends.
+            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
+            thirdPersonState->stateNotActive = false;
+        }
+        else if (playerCamera->IsInFirstPerson()) {
+            // Save first person state and switch to third person
 
-                RuntimeVariables::wasFirstPerson = true;
-                playerCamera->ForceThirdPerson();
+            RuntimeVariables::wasFirstPerson = true;
+            playerCamera->ForceThirdPerson();
 
-                auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-                thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
-                thirdPersonState->stateNotActive = false;
-            }
+            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
+            thirdPersonState->stateNotActive = false;
         }
     }
 

@@ -567,11 +567,11 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
 
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
-        if (!ButtonEventListener::SinkRegistered)
+        if (!ButtonEventListener::GetSingleton()->SinkRegistered)
             ButtonEventListener::Register();
     }
     else {
-        if (ButtonEventListener::SinkRegistered)
+        if (ButtonEventListener::GetSingleton()->SinkRegistered)
             ButtonEventListener::Unregister();
 
         ParkourUtility::ToggleControlsForParkour(true);
