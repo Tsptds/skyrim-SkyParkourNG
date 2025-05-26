@@ -357,20 +357,43 @@ void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 p
                             args,          // packed arguments
                             result);
 
-    _THREAD_POOL.enqueue([vm, handle, timeoutMS]() {
+    _THREAD_POOL.enqueue([vm, movingRef, timeoutMS]() {
         std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
-        SKSE::GetTaskInterface()->AddTask([vm, handle]() {
-            auto args = RE::MakeFunctionArguments();
 
-            RE::BSTSmartPointer<RE::BSScript::Object> object;
-            if (!vm->FindBoundObject(handle, "StopTranslation", object)) {
+        SKSE::GetTaskInterface()->AddTask([vm, movingRef]() {
+            auto policy = vm->GetObjectHandlePolicy();
+            RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+            if (handle == policy->EmptyHandle()) {
                 return;
             }
+
+            RE::BSFixedString scriptName = "ObjectReference";
+            RE::BSFixedString functionName = "StopTranslation";
+
+            RE::BSTSmartPointer<RE::BSScript::Object> object;
+            if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+                return;
+            }
+
+            auto args = RE::MakeFunctionArguments();
+
             RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
             vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
-                                    "StopTranslation",
+                                    functionName,
                                     args,  // packed arguments
                                     result);
+
+            // Swap the leg for step animation
+            RuntimeMethods::SwapLegs();
+
+            // Set player graph to landed
+            movingRef->NotifyAnimationGraph("JumpLandEnd");
+            movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+
+            // Reenable controls
+            ParkourUtility::ToggleControlsForParkour(true);
+            Parkouring::UpdateParkourPoint();
+            RuntimeVariables::ParkourInProgress = false;
         });
     });
 }
@@ -456,7 +479,7 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
 }
 
 void Parkouring::UpdateParkourPoint() {
-    if (RuntimeVariables::ParkourEndQueued) {
+    if (RuntimeVariables::ParkourInProgress) {
         if (GameReferences::currentIndicatorRef)
             GameReferences::currentIndicatorRef->Disable();
         RuntimeVariables::selectedLedgeType = -1;
@@ -478,7 +501,7 @@ bool Parkouring::TryActivateParkour() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
     // Check Is Parkour Active again, make sure condition is still valid during activation
-    if (!IsParkourActive() || RuntimeVariables::ParkourEndQueued) {
+    if (!IsParkourActive() || RuntimeVariables::ParkourInProgress) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
     }
@@ -520,7 +543,7 @@ bool Parkouring::TryActivateParkour() {
         }
     }
 
-    RuntimeVariables::ParkourEndQueued = true;
+    RuntimeVariables::ParkourInProgress = true;
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
 
@@ -535,15 +558,14 @@ bool Parkouring::TryActivateParkour() {
 void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    // Directional jumping state fails if it triggers too early, set it to standing jump
-    if (ledge == ParkourType::Grab && !PlayerIsSwimming()) {
-        player->NotifyAnimationGraph("JumpStandingStart");
-    }
-
     // Lock ledge to active one throughout the action;
     RuntimeVariables::selectedLedgeType = ledge;
     // Send Event, then check if succeeded in Graph notify hook
-    player->NotifyAnimationGraph("IdleLeverPushStart");
+    player->NotifyAnimationGraph("JumpStandingStart");
+    InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 250.0f, 1200);
+
+    Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
+                                         ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
     if (ModSettings::Enable_Stamina_Consumption) {

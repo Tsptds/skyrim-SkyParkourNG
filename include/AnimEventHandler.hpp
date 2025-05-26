@@ -10,22 +10,8 @@
                     if (a_event) {
                         auto actor = a_event->holder;
                         if (actor && actor->IsPlayerRef()) {
-                            //logger::info(">> AnimEvent: {}", a_event->tag.c_str());
-
-                            if (RuntimeVariables::ParkourEndQueued) {
-                                if (RE::PlayerCharacter::GetSingleton()->IsInRagdollState()) {
-                                    ParkourUtility::ToggleControlsForParkour(true);
-                                    RuntimeVariables::ParkourEndQueued = false;
-                                }
-                                // Reenable controls
-                                else if (a_event->tag == "idleChairGetUp") {
-                                    // Swap the leg for step animation
-                                    RuntimeMethods::SwapLegs();
-
-                                    ParkourUtility::ToggleControlsForParkour(true);
-                                    Parkouring::UpdateParkourPoint();
-                                    RuntimeVariables::ParkourEndQueued = false;
-                                }
+                            if (RuntimeVariables::ParkourInProgress) {
+                                logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
                             }
                         }
                     }
@@ -90,32 +76,5 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (RuntimeVariables::ParkourEndQueued) {
-        // Cancel every notify, except sent by skyparkour & some essentials
-        if (a_eventName == "IdleLeverPushStart" || a_eventName == "JumpStandingStart" || a_eventName == "moveStop" ||
-            a_eventName == "turnStop" || a_eventName == "JumpLandEnd" || a_eventName == "Ragdoll" || a_eventName == "GetUpBegin") {
-            // Notify occurs on function call, return value is to evaluate fail / success.
-            bool result = _origPlayerCharacter(a_this, a_eventName);
-
-            //logger::info(">> Sent {} - {}", a_eventName, result);
-
-            if (a_eventName == "IdleLeverPushStart") {
-                if (result) {
-                    Parkouring::AdjustPlayerPosition(RuntimeVariables::selectedLedgeType);
-                    Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
-                                                         ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
-                }
-                else {
-                    // Notify failed, unlock controls again
-                    ParkourUtility::ToggleControlsForParkour(true);
-                    RuntimeVariables::ParkourEndQueued = false;
-                }
-            }
-            return result;
-        }
-        //logger::info(">> Cancelled: {}", a_eventName.c_str());
-        return false;
-    }
-
     return _origPlayerCharacter(a_this, a_eventName);
 }

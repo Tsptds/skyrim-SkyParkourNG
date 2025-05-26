@@ -28,8 +28,7 @@ void RuntimeMethods::SwapLegs() {
 
 // Things that are not handled by MCM and persistent throughout saves without being reset on game load
 void RuntimeMethods::ResetRuntimeVariables() {
-    RuntimeVariables::ParkourEndQueued = false;
-    RuntimeVariables::wasFirstPerson = false;
+    RuntimeVariables::ParkourInProgress = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
 void RuntimeMethods::CheckRequirements() {
@@ -138,9 +137,7 @@ namespace RuntimeVariables {
     RE::NiPoint3 playerDirFlat = {0, 0, 0};
     RE::NiPoint3 backwardAdjustment = {0, 0, 0};
 
-    bool wasFirstPerson = false;
-
-    bool ParkourEndQueued = false;
+    bool ParkourInProgress = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
 

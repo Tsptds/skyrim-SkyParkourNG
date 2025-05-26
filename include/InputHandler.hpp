@@ -41,7 +41,7 @@ namespace Hooks {
                 return false;
             }
 
-            if (RuntimeVariables::ParkourEndQueued) {
+            if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
         }
@@ -95,7 +95,7 @@ namespace Hooks {
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Sneak(RE::InputEvent* a_event) {
         if (ModSettings::ModEnabled) {
-            if (RuntimeVariables::ParkourEndQueued) {
+            if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
         }

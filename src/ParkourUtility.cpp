@@ -95,19 +95,16 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto controlMap = RE::ControlMap::GetSingleton();
 
     // Toggle common controls
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMovement, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kFighting, enable);
 
     // TDM swim pitch workaround. Player goes into object if presses the sneak key.
     // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
     if (Compatibility::TrueDirectionalMovement == true) {
         if (enable || player->AsActorState()->IsSwimming()) {
-            controlMap->ToggleControls(RE::ControlMap::UEFlag::kSneaking, enable);
-
             // Pitch changes cause incorrect angles
             player->GetCharController()->pitchAngle = 0;
         }
@@ -117,34 +114,7 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
         controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
     }
 
-    if (enable) {
-        player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
-
-        // Match the third person camera angle to first person, so it feels better like vanilla
-        if (RuntimeVariables::wasFirstPerson) {
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            player->data.angle.z = thirdPersonState->currentYaw;
-            playerCamera->ForceFirstPerson();
-            RuntimeVariables::wasFirstPerson = false;
-        }
-
-        // Do these 1 frame later, animEvent hook triggers before event is sent to listeners, wait states to be updated
-        // Player is sneaking as flag but not in behavior graph, match it.
-        // These should also not change when player is in beast form
-        if (!IsBeastForm()) {
-            if (player->AsActorState()->actorState1.sneaking) {
-                SKSE::GetTaskInterface()->AddTask([player] { player->NotifyAnimationGraph("SneakStart"); });
-            }
-
-            // Player has weapons not sheathed, draw them to fix behavior state.
-            if (player->AsActorState()->actorState2.weaponState != RE::WEAPON_STATE::kSheathed) {
-                // TODO: Try to skip draw animation
-                SKSE::GetTaskInterface()->AddTask(
-                    [player] { player->AsActorState()->actorState2.weaponState = RE::WEAPON_STATE::kWantToDraw; });
-            }
-        }
-    }
-    else {
+    if (!enable) {
         // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
 
         if (playerCamera->IsInThirdPerson()) {
@@ -152,16 +122,6 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
             // after parkour ends.
             auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
             thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-            thirdPersonState->stateNotActive = false;
-        }
-        else if (playerCamera->IsInFirstPerson()) {
-            // Save first person state and switch to third person
-
-            RuntimeVariables::wasFirstPerson = true;
-            playerCamera->ForceThirdPerson();
-
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset = 0.3f;
             thirdPersonState->stateNotActive = false;
         }
     }

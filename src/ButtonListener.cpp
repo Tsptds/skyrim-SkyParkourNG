@@ -99,7 +99,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
                 if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
                     userEventName == RE::UserEvents::GetSingleton()->jump) {
-                    if (RuntimeVariables::ParkourEndQueued) {
+                    if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
@@ -107,7 +107,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 }
                 else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
                          userEventName == RE::UserEvents::GetSingleton()->sprint) {
-                    if (RuntimeVariables::ParkourEndQueued) {
+                    if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
@@ -115,7 +115,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 }
                 else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
                          userEventName == RE::UserEvents::GetSingleton()->activate) {
-                    if (RuntimeVariables::ParkourEndQueued) {
+                    if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
@@ -124,7 +124,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
             }
             else {
                 if (dxScanCode == ButtonStates::DXCODE) {
-                    if (RuntimeVariables::ParkourEndQueued) {
+                    if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
