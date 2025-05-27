@@ -11,7 +11,7 @@ namespace Parkouring {
                    float maxVaultHeight);
     bool PlaceAndShowIndicator();
     int GetLedgePoint(float backwardOffset);
-    void InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed, int timeoutMS);
+    void InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed, int timeoutMS);
     void AdjustPlayerPosition(int ledgeType);
 
     bool TryActivateParkour();

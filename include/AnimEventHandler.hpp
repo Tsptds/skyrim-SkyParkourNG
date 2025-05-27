@@ -7,11 +7,24 @@
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
                 if (ModSettings::ModEnabled) {
-                    if (a_event) {
-                        auto actor = a_event->holder;
-                        if (actor && actor->IsPlayerRef()) {
-                            if (RuntimeVariables::ParkourInProgress) {
+                    if (RuntimeVariables::ParkourInProgress) {
+                        if (a_event) {
+                            auto actor = a_event->holder;
+                            if (actor && actor->IsPlayerRef()) {
                                 logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
+
+                                const auto player = RE::PlayerCharacter::GetSingleton();
+                                if (a_event->tag == "SkyParkour_Begin") {
+                                    const auto payload = a_event->payload.c_str();
+                                    if (payload)
+                                        Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
+                                                                             std::strtof(payload, nullptr), 1000);
+                                }
+                                else if (a_event->tag == "SkyParkour_End" || a_event->tag == "JumpLandEnd") {
+                                    player->NotifyAnimationGraph("JumpLandEnd");
+                                    player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
+                                                                                                        ParkourType::NoLedge);
+                                }
                             }
                         }
                     }
@@ -76,5 +89,13 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (RuntimeVariables::ParkourInProgress) {
+        if (a_eventName == "JumpLandEnd") {
+            // Reenable controls
+            ParkourUtility::ToggleControlsForParkour(true);
+            Parkouring::UpdateParkourPoint();
+            RuntimeVariables::ParkourInProgress = false;
+        }
+    }
     return _origPlayerCharacter(a_this, a_eventName);
 }

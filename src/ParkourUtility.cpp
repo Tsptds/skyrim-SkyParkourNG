@@ -95,8 +95,8 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto controlMap = RE::ControlMap::GetSingleton();
 
     // Toggle common controls
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMovement, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);
+    //player->SetGraphVariableBool("bAnimationDriven", !enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
@@ -112,18 +112,6 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     else {
         // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
         controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
-    }
-
-    if (!enable) {
-        // First person breaks the mod, cause furniture state has no animations for it. Keep player in TPS until parkour ends.
-
-        if (playerCamera->IsInThirdPerson()) {
-            // Stop POV switching if it is already happening in 3rd person, then enable cam state so mouse wheel works
-            // after parkour ends.
-            auto thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
-            thirdPersonState->targetZoomOffset = thirdPersonState->currentZoomOffset;
-            thirdPersonState->stateNotActive = false;
-        }
     }
 
     return true;

@@ -308,7 +308,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, int timeoutMS = 500) {
+void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, int timeoutMS = 500) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
@@ -389,18 +389,12 @@ void Parkouring::InterpolateRefToPosition(RE::TESObjectREFR *obj, RE::NiPoint3 p
             // Set player graph to landed
             movingRef->NotifyAnimationGraph("JumpLandEnd");
             movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
-
-            // Reenable controls
-            ParkourUtility::ToggleControlsForParkour(true);
-            Parkouring::UpdateParkourPoint();
-            RuntimeVariables::ParkourInProgress = false;
         });
     });
 }
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-
     // Select appropriate ledge marker and adjustments
     // switch takes constants so can't pass these from references.h, here's the lookup table
 
@@ -511,14 +505,13 @@ bool Parkouring::TryActivateParkour() {
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
-    const auto cam = RE::PlayerCamera::GetSingleton();
     // TDM camera pitch angle bug
-    if (Compatibility::TrueDirectionalMovement) {
-        if (isSwimming && cam->IsInThirdPerson() && player->GetCharController()->pitchAngle > abs(0.5)) {
-            //logger::info("{}", player->GetCharController()->pitchAngle);
-            return false;
-        }
-    }
+    //const auto cam = RE::PlayerCamera::GetSingleton();
+    //if (Compatibility::TrueDirectionalMovement) {
+    //    if (isSwimming && cam->IsInThirdPerson() && player->GetCharController()->pitchAngle > abs(0.5)) {
+    //        return false;
+    //    }
+    //}
 
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
@@ -544,7 +537,8 @@ bool Parkouring::TryActivateParkour() {
     }
 
     RuntimeVariables::ParkourInProgress = true;
-    player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
+    //player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
+    player->SetGraphVariableInt("SkyParkourLedge", ParkourType::StepLow);
     ToggleControlsForParkour(false);
 
     // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
@@ -561,8 +555,13 @@ void Parkouring::ParkourReadyRun(int ledge) {
     // Lock ledge to active one throughout the action;
     RuntimeVariables::selectedLedgeType = ledge;
     // Send Event, then check if succeeded in Graph notify hook
+
+    const auto cam = RE::PlayerCamera::GetSingleton();
+    // Use direct motion for fps, anim event motion data for tps
+    if (cam && cam->IsInFirstPerson()) {
+        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, 1200);
+    }
     player->NotifyAnimationGraph("JumpStandingStart");
-    InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 250.0f, 1200);
 
     Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
                                          ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
