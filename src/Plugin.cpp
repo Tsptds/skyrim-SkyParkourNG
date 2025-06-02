@@ -71,11 +71,6 @@ void Install_Hooks_And_Listeners() {
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 }
 
-bool CheckESPLoaded() {
-    auto dh = RE::TESDataHandler::GetSingleton();
-    return dh && dh->GetSingleton()->LookupLoadedLightModByName(GameReferences::ESP_NAME);
-}
-
 bool RegisterIndicators() {
     GameReferences::indicatorRef_Blue =
         RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, GameReferences::ESP_NAME);
@@ -93,17 +88,19 @@ bool RegisterIndicators() {
 
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
+        RuntimeMethods::ReadIni();
         RuntimeMethods::CheckRequirements();
     }
-
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Check for ESP
-        if (!CheckESPLoaded()) {
-            RE::DebugMessageBox(
-                "SkyParkour Warning\n\n"
-                "SkyParkourV2.esp is not enabled in your load order. Mod will not work properly.");
+        if (!RuntimeMethods::CheckESPLoaded()) {
+            logger::error("ESP NOT FOUND: |{}|", GameReferences::ESP_NAME);
+            std::string err =
+                "SkyParkour Warning\n\n" + GameReferences::ESP_NAME + " is not enabled in your load order. Mod will not work.";
 
-            logger::error("ESP NOT FOUND");
+            RE::DebugMessageBox(err.c_str());
+            logger::info(">> SkyParkour *failed* to load <<");
+            return;
         }
 
         RegisterIndicators();

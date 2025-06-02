@@ -17,6 +17,8 @@ namespace RuntimeMethods {
     extern void SetupModCompatibility();
     extern void SwapLegs();
     extern void ResetRuntimeVariables();
+    extern bool CheckESPLoaded();
+    extern void ReadIni();
     extern void CheckRequirements();
 }  // namespace RuntimeMethods
 
@@ -94,6 +96,7 @@ namespace RuntimeVariables {
     extern RE::NiPoint3 backwardAdjustment;
 
     extern bool ParkourInProgress;
+    extern bool ParkourQueuedForStart;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
 
