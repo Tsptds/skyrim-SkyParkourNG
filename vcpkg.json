@@ -16,7 +16,8 @@
         "directxtk",
         "rapidcsv",
         "spdlog",
-        "boost-algorithm"
+        "boost-algorithm",
+        "simpleini"
       ]
     }
   },
