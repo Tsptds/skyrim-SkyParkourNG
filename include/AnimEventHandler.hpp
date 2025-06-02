@@ -20,8 +20,8 @@
                                         Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
                                                                              std::strtof(payload, nullptr), 1000);
                                 }
-                                else if (a_event->tag == "SkyParkour_End" || a_event->tag == "JumpLandEnd") {
-                                    player->NotifyAnimationGraph("JumpLandEnd");
+                                else if (a_event->tag == "SkyParkour_End") {
+                                    player->NotifyAnimationGraph("SkyParkour_EndNotify");
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
                                 }
@@ -90,11 +90,22 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourInProgress) {
-        if (a_eventName == "JumpLandEnd") {
+        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpStandingStart") {
+            RuntimeVariables::ParkourQueuedForStart = false;
+            return _origPlayerCharacter(a_this, a_eventName);
+        }
+        else if (a_eventName == "SkyParkour_EndNotify") {
             // Reenable controls
             ParkourUtility::ToggleControlsForParkour(true);
             Parkouring::UpdateParkourPoint();
             RuntimeVariables::ParkourInProgress = false;
+
+            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
+            return true;
+        }
+        else {
+            logger::info(">> Cancelled notify: {}", a_eventName);
+            return false;
         }
     }
     return _origPlayerCharacter(a_this, a_eventName);

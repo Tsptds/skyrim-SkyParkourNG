@@ -31,6 +31,32 @@ void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::ParkourInProgress = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
+bool RuntimeMethods::CheckESPLoaded() {
+    auto dh = RE::TESDataHandler::GetSingleton();
+    return dh && (dh->GetSingleton()->LookupLoadedLightModByName(GameReferences::ESP_NAME) ||
+                  dh->GetSingleton()->LookupLoadedModByName(GameReferences::ESP_NAME));
+}
+void RuntimeMethods::ReadIni() {
+    CSimpleIniA ini;
+    ini.SetUnicode();
+
+    SI_Error rc = ini.LoadFile("./Data/SKSE/Plugins/SkyParkourNG.ini");
+    if (rc < 0) {
+        std::string f = std::filesystem::current_path().string().c_str();
+        logger::error("SkyParkourNG.ini not in path: {}", f);
+        logger::error("SkyParkour: Failed to Read ini, using default configs");
+    }
+    else {
+        const char *name = ini.GetValue("ESP", "sEspName");
+        if (!name) {
+            logger::error("SkyParkour: sEspName reading failed, using default config: SkyParkourV2");
+        }
+        else {
+            logger::info("sEspName: {}", name);
+            GameReferences::ESP_NAME = name;
+        }
+    }
+}
 void RuntimeMethods::CheckRequirements() {
     struct Requirements {
             const char *BDI = "BehaviorDataInjector.dll";
@@ -75,7 +101,6 @@ void RuntimeMethods::SetupModCompatibility() {
 
 namespace Compatibility {
     bool TrueDirectionalMovement = false;
-    //bool ImprovedCamera = false;
 }  // namespace Compatibility
 
 namespace HardCodedVariables {
@@ -138,6 +163,7 @@ namespace RuntimeVariables {
     RE::NiPoint3 backwardAdjustment = {0, 0, 0};
 
     bool ParkourInProgress = false;
+    bool ParkourQueuedForStart = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
 

@@ -387,7 +387,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
             RuntimeMethods::SwapLegs();
 
             // Set player graph to landed
-            movingRef->NotifyAnimationGraph("JumpLandEnd");
+            movingRef->NotifyAnimationGraph("SkyParkour_EndNotify");
             movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         });
     });
@@ -538,7 +538,7 @@ bool Parkouring::TryActivateParkour() {
 
     RuntimeVariables::ParkourInProgress = true;
     //player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
-    player->SetGraphVariableInt("SkyParkourLedge", ParkourType::StepLow);
+    player->SetGraphVariableInt("SkyParkourLedge", ParkourType::StepLow);    // TODO:: Remove this later, for testing only sending step
     ToggleControlsForParkour(false);
 
     // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
@@ -561,6 +561,8 @@ void Parkouring::ParkourReadyRun(int ledge) {
     if (cam && cam->IsInFirstPerson()) {
         InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, 1200);
     }
+    
+    RuntimeVariables::ParkourQueuedForStart = true;
     player->NotifyAnimationGraph("JumpStandingStart");
 
     Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
