@@ -308,7 +308,8 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, int timeoutMS = 500) {
+void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, bool useTimeout,
+                                          int timeoutMS) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
@@ -356,41 +357,42 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                             functionName,  // "TranslateTo"
                             args,          // packed arguments
                             result);
+    if (useTimeout) {
+        _THREAD_POOL.enqueue([vm, movingRef, timeoutMS]() {
+            std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
 
-    _THREAD_POOL.enqueue([vm, movingRef, timeoutMS]() {
-        std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
+            SKSE::GetTaskInterface()->AddTask([vm, movingRef]() {
+                auto policy = vm->GetObjectHandlePolicy();
+                RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+                if (handle == policy->EmptyHandle()) {
+                    return;
+                }
 
-        SKSE::GetTaskInterface()->AddTask([vm, movingRef]() {
-            auto policy = vm->GetObjectHandlePolicy();
-            RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
-            if (handle == policy->EmptyHandle()) {
-                return;
-            }
+                RE::BSFixedString scriptName = "ObjectReference";
+                RE::BSFixedString functionName = "StopTranslation";
 
-            RE::BSFixedString scriptName = "ObjectReference";
-            RE::BSFixedString functionName = "StopTranslation";
+                RE::BSTSmartPointer<RE::BSScript::Object> object;
+                if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+                    return;
+                }
 
-            RE::BSTSmartPointer<RE::BSScript::Object> object;
-            if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
-                return;
-            }
+                auto args = RE::MakeFunctionArguments();
 
-            auto args = RE::MakeFunctionArguments();
+                RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+                vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
+                                        functionName,
+                                        args,  // packed arguments
+                                        result);
 
-            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
-            vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
-                                    functionName,
-                                    args,  // packed arguments
-                                    result);
+                // Swap the leg for step animation
+                RuntimeMethods::SwapLegs();
 
-            // Swap the leg for step animation
-            RuntimeMethods::SwapLegs();
-
-            // Set player graph to landed
-            movingRef->NotifyAnimationGraph("SkyParkour_EndNotify");
-            movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+                // Set player graph to landed
+                movingRef->NotifyAnimationGraph("SkyParkour_EndNotify");
+                movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+            });
         });
-    });
+    }
 }
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
@@ -537,8 +539,7 @@ bool Parkouring::TryActivateParkour() {
     }
 
     RuntimeVariables::ParkourInProgress = true;
-    //player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
-    player->SetGraphVariableInt("SkyParkourLedge", ParkourType::StepLow);    // TODO:: Remove this later, for testing only sending step
+    player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
 
     // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
@@ -559,11 +560,11 @@ void Parkouring::ParkourReadyRun(int ledge) {
     const auto cam = RE::PlayerCamera::GetSingleton();
     // Use direct motion for fps, anim event motion data for tps
     if (cam && cam->IsInFirstPerson()) {
-        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, 1200);
+        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1200);
     }
-    
+
     RuntimeVariables::ParkourQueuedForStart = true;
-    player->NotifyAnimationGraph("JumpStandingStart");
+    player->NotifyAnimationGraph("JumpFall");
 
     Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
                                          ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));

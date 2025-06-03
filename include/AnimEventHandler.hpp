@@ -18,7 +18,7 @@
                                     const auto payload = a_event->payload.c_str();
                                     if (payload)
                                         Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
-                                                                             std::strtof(payload, nullptr), 1000);
+                                                                             std::strtof(payload, nullptr));
                                 }
                                 else if (a_event->tag == "SkyParkour_End") {
                                     player->NotifyAnimationGraph("SkyParkour_EndNotify");
@@ -90,7 +90,7 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourInProgress) {
-        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpStandingStart") {
+        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpFall") {
             RuntimeVariables::ParkourQueuedForStart = false;
             return _origPlayerCharacter(a_this, a_eventName);
         }
