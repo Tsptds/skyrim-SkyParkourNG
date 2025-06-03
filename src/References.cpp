@@ -42,9 +42,8 @@ void RuntimeMethods::ReadIni() {
 
     SI_Error rc = ini.LoadFile("./Data/SKSE/Plugins/SkyParkourNG.ini");
     if (rc < 0) {
-        std::string f = std::filesystem::current_path().string().c_str();
-        logger::error("SkyParkourNG.ini not in path: {}", f);
-        logger::error("SkyParkour: Failed to Read ini, using default configs");
+        std::string f = std::filesystem::current_path().string();
+        logger::error("** SkyParkourNG.ini not found in: |{}| >Using default configs", f);
     }
     else {
         const char *name = ini.GetValue("ESP", "sEspName");
@@ -94,7 +93,7 @@ void RuntimeMethods::SetupModCompatibility() {
     auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
     if (TDM) {
         Compatibility::TrueDirectionalMovement = true;
-        logger::info("TDM is Installed, 360 Parkour Enabled");
+        logger::info("** TDM Found, 360 Parkour Enabled");
     }
 }
 /*=========================================================================*/
