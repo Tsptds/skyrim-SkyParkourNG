@@ -95,11 +95,20 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto controlMap = RE::ControlMap::GetSingleton();
 
     // Toggle common controls
-    //player->SetGraphVariableBool("bAnimationDriven", !enable);
+    player->SetGraphVariableBool("bAnimationDriven", !enable);              // Block rotation & movement
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
+
+    // POV switch is blocked due to kPOVSwitch being disabled, but doesn't cancel ongoing switch (camera sliding into FPS)
+    if (!enable && playerCamera->IsInThirdPerson()) {
+        RE::ThirdPersonState *thirdPersonState = nullptr;
+        thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
+        thirdPersonState->targetZoomOffset = thirdPersonState->savedZoomOffset = thirdPersonState->currentZoomOffset;
+        thirdPersonState->stateNotActive = false;  // Manually setting targetZoomOffset sets this true, reset it
+    }
 
     // TDM swim pitch workaround. Player goes into object if presses the sneak key.
     // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
