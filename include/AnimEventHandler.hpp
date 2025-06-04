@@ -98,7 +98,13 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
 
         if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpFall") {
             RuntimeVariables::ParkourQueuedForStart = false;
-            return _origPlayerCharacter(a_this, a_eventName);
+            auto success = _origPlayerCharacter(a_this, a_eventName);
+            if (!success) {
+                /* Parkour Failed for whatever reason */
+                ParkourUtility::ToggleControlsForParkour(true);
+                RuntimeVariables::ParkourInProgress = false;
+            }
+            return success;
         }
         else if (a_eventName == "SkyParkour_EndNotify") {
             // Reenable controls
