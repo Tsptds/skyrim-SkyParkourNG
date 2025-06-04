@@ -16,9 +16,10 @@
                                 const auto player = RE::PlayerCharacter::GetSingleton();
                                 if (a_event->tag == "SkyParkour_Begin") {
                                     const auto payload = a_event->payload.c_str();
-                                    if (payload)
-                                        Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
-                                                                             std::strtof(payload, nullptr));
+                                    //if (payload)
+                                    Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
+                                                                         std::strtof(payload, nullptr));
+                                    //Parkouring::AdjustPlayerPosition()
                                 }
                                 else if (a_event->tag == "SkyParkour_End") {
                                     player->NotifyAnimationGraph("SkyParkour_EndNotify");
@@ -96,8 +97,41 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
         else if (a_eventName == "SkyParkour_EndNotify") {
             // Reenable controls
-            ParkourUtility::ToggleControlsForParkour(true);
+            RuntimeMethods::SwapLegs();
             Parkouring::UpdateParkourPoint();
+            ParkourUtility::ToggleControlsForParkour(true);
+
+            auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+            if (!vm) {
+                return false;
+            }
+
+            // 1) Get the TESObjectREFR pointer to move:
+            RE::TESObjectREFR* movingRef = RE::PlayerCharacter::GetSingleton();
+
+            // 2) Wrap movingRef in a Papyrus handle
+            auto policy = vm->GetObjectHandlePolicy();
+            RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+            if (handle == policy->EmptyHandle()) {
+                return false;
+            }
+
+            RE::BSFixedString scriptName = "ObjectReference";
+            RE::BSFixedString functionName = "StopTranslation";
+
+            RE::BSTSmartPointer<RE::BSScript::Object> object;
+            if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+                return false;
+            }
+
+            auto args = RE::MakeFunctionArguments();
+
+            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+            vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
+                                    functionName,
+                                    args,  // packed arguments
+                                    result);
+
             RuntimeVariables::ParkourInProgress = false;
 
             RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
