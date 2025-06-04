@@ -327,7 +327,8 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
 
     // 3) Lookup the Papyrus-bound "ObjectReference" instance
     RE::BSFixedString scriptName = "ObjectReference";
-    RE::BSFixedString functionName = "TranslateTo";
+    RE::BSFixedString functionName =
+        "TranslateTo";  // For SplineTranslateTo, add std::move(float) between rz and speed. Does an overshoot, and pullback. Sometimes too strong.
 
     RE::BSTSmartPointer<RE::BSScript::Object> object;
     if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
@@ -349,6 +350,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                                           std::move(rx),  // afRX
                                           std::move(ry),  // afRY
                                           std::move(rz),  // afRZ
+                                          //std::move(100.0f),
                                           std::move(speed), std::move(maxRotSpeed));
 
     // 5) Call the Papyrus method
@@ -552,7 +554,8 @@ bool Parkouring::TryActivateParkour() {
 }
 void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-
+    auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
+    logger::info("Dist: {}", dist);
     // Lock ledge to active one throughout the action;
     RuntimeVariables::selectedLedgeType = ledge;
     // Send Event, then check if succeeded in Graph notify hook
