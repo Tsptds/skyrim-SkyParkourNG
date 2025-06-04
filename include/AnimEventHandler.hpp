@@ -11,8 +11,7 @@
                         if (a_event) {
                             auto actor = a_event->holder;
                             if (actor && actor->IsPlayerRef()) {
-                                logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
-
+                                //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
                                 const auto player = RE::PlayerCharacter::GetSingleton();
                                 if (a_event->tag == "SkyParkour_Begin") {
                                     const auto payload = a_event->payload.c_str();
@@ -91,6 +90,12 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourInProgress) {
+        /*----------Whitelist-------------------------------*/
+        if (a_eventName == "moveStop" || a_eventName == "turnStop" || a_eventName == "SprintStop") {
+            return _origPlayerCharacter(a_this, a_eventName);
+        }
+        /*--------------------------------------------------*/
+
         if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpFall") {
             RuntimeVariables::ParkourQueuedForStart = false;
             return _origPlayerCharacter(a_this, a_eventName);
@@ -98,15 +103,17 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         else if (a_eventName == "SkyParkour_EndNotify") {
             // Reenable controls
             RuntimeMethods::SwapLegs();
-            Parkouring::UpdateParkourPoint();
             ParkourUtility::ToggleControlsForParkour(true);
+
+            RuntimeVariables::ParkourInProgress = false;
+            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
 
             auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
             if (!vm) {
                 return false;
             }
 
-            // 1) Get the TESObjectREFR pointer to move:
+            /*          // 1) Get the TESObjectREFR pointer to move:
             RE::TESObjectREFR* movingRef = RE::PlayerCharacter::GetSingleton();
 
             // 2) Wrap movingRef in a Papyrus handle
@@ -134,11 +141,11 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
 
             RuntimeVariables::ParkourInProgress = false;
 
-            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
+            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");       */
             return true;
         }
         else {
-            logger::info(">> Cancelled notify: {}", a_eventName);
+            //logger::info(">> Cancelled notify: {}", a_eventName);
             return false;
         }
     }
