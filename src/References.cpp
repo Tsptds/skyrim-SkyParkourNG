@@ -33,8 +33,8 @@ void RuntimeMethods::ResetRuntimeVariables() {
 }
 bool RuntimeMethods::CheckESPLoaded() {
     auto dh = RE::TESDataHandler::GetSingleton();
-    return dh && (dh->GetSingleton()->LookupLoadedLightModByName(GameReferences::ESP_NAME) ||
-                  dh->GetSingleton()->LookupLoadedModByName(GameReferences::ESP_NAME));
+    return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
+                  dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
 }
 void RuntimeMethods::ReadIni() {
     CSimpleIniA ini;
@@ -52,7 +52,12 @@ void RuntimeMethods::ReadIni() {
         }
         else {
             logger::info("sEspName: {}", name);
-            GameReferences::ESP_NAME = name;
+            IniSettings::ESP_NAME = name;
+        }
+
+        const bool devMode = ini.GetBoolValue("DEV", "bIgnoreRequirements");
+        if (devMode) {
+            IniSettings::IgnoreRequirements = true;
         }
     }
 }
@@ -175,5 +180,9 @@ namespace GameReferences {
 
     RE::TESObjectREFR *currentIndicatorRef;
 
-    std::string ESP_NAME = "SkyParkourV2.esp";
 }  // namespace GameReferences
+
+namespace IniSettings {
+    std::string ESP_NAME = "SkyParkourV2.esp";
+    bool IgnoreRequirements = false;
+}  // namespace IniSettings

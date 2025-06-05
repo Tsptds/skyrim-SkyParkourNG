@@ -72,10 +72,8 @@ void Install_Hooks_And_Listeners() {
 }
 
 bool RegisterIndicators() {
-    GameReferences::indicatorRef_Blue =
-        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, GameReferences::ESP_NAME);
-    GameReferences::indicatorRef_Red =
-        RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, GameReferences::ESP_NAME);
+    GameReferences::indicatorRef_Blue = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, IniSettings::ESP_NAME);
+    GameReferences::indicatorRef_Red = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, IniSettings::ESP_NAME);
 
     if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
@@ -89,14 +87,17 @@ bool RegisterIndicators() {
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::ReadIni();
+
+        if (IniSettings::IgnoreRequirements) {
+            return;
+        }
         RuntimeMethods::CheckRequirements();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Check for ESP
         if (!RuntimeMethods::CheckESPLoaded()) {
-            logger::error("ESP NOT FOUND: |{}|", GameReferences::ESP_NAME);
-            std::string err =
-                "SkyParkour Warning\n\n" + GameReferences::ESP_NAME + " is not enabled in your load order. Mod will not work.";
+            logger::error("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
+            std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod will not work.";
 
             RE::DebugMessageBox(err.c_str());
             logger::info(">> SkyParkour *failed* to load <<");
