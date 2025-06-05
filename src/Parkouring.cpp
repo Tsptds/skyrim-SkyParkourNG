@@ -242,8 +242,7 @@ bool Parkouring::PlaceAndShowIndicator() {
         GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
     }
 
-    GameReferences::currentIndicatorRef->data.location =
-        RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8);  // Offset upwards slightly
+    GameReferences::currentIndicatorRef->data.location = RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8);  // Offset upwards slightly
 
     GameReferences::currentIndicatorRef->Update3DPosition(true);
 
@@ -573,7 +572,12 @@ void Parkouring::ParkourReadyRun(int ledge) {
     }
 
     RuntimeVariables::ParkourQueuedForStart = true;
-    player->NotifyAnimationGraph("JumpFall");
+    if (ledge == ParkourType::Grab) {
+        player->NotifyAnimationGraph("JumpStandingStart");
+    }
+    else {
+        player->NotifyAnimationGraph("JumpFall");
+    }
 
     Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
                                          ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));

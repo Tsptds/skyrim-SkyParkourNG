@@ -96,7 +96,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
         /*--------------------------------------------------*/
 
-        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpFall") {
+        if (RuntimeVariables::ParkourQueuedForStart && (a_eventName == "JumpFall" || a_eventName == "JumpStandingStart")) {
+            // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
             RuntimeVariables::ParkourQueuedForStart = false;
             auto success = _origPlayerCharacter(a_this, a_eventName);
             if (!success) {
@@ -114,12 +115,13 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             RuntimeVariables::ParkourInProgress = false;
             RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
 
+            /*
             auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
             if (!vm) {
                 return false;
             }
 
-            /*          // 1) Get the TESObjectREFR pointer to move:
+                      // 1) Get the TESObjectREFR pointer to move:
             RE::TESObjectREFR* movingRef = RE::PlayerCharacter::GetSingleton();
 
             // 2) Wrap movingRef in a Papyrus handle
