@@ -1,4 +1,4 @@
-#include "Parkouring.h"
+﻿#include "Parkouring.h"
 
 using namespace ParkourUtility;
 
@@ -230,10 +230,10 @@ bool Parkouring::PlaceAndShowIndicator() {
     if (ModSettings::Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false &&
         CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
         GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
-        GameReferences::indicatorRef_Blue->Disable();
+        SKSE::GetTaskInterface()->AddTask([]() { GameReferences::indicatorRef_Blue->Disable(); });
     }
     else {
-        GameReferences::indicatorRef_Red->Disable();
+        SKSE::GetTaskInterface()->AddTask([]() { GameReferences::indicatorRef_Red->Disable(); });
     }
 
     // Move indicator to the correct position
@@ -243,7 +243,7 @@ bool Parkouring::PlaceAndShowIndicator() {
     }
 
     GameReferences::currentIndicatorRef->data.location =
-        RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 10);  // Offset upwards slightly, 5 -> 10
+        RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8);  // Offset upwards slightly
 
     GameReferences::currentIndicatorRef->Update3DPosition(true);
 
@@ -484,13 +484,19 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
-    RuntimeVariables::IsParkourActive = IsParkourActive();
+    _THREAD_POOL.enqueue([]() {
+        bool activeStatus = IsParkourActive();
+        float scale = ScaleUtility::GetScale();
 
-    RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
-    RuntimeVariables::selectedLedgeType = GetLedgePoint();
+        SKSE::GetTaskInterface()->AddTask([activeStatus, scale]() {
+            RuntimeVariables::IsParkourActive = activeStatus;
+            RuntimeVariables::PlayerScale = scale;
+            RuntimeVariables::selectedLedgeType = GetLedgePoint();
+        });
+    });
 
     // Indicator stuff
-    PlaceAndShowIndicator();
+    _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
 }
 
 bool Parkouring::TryActivateParkour() {
