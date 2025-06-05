@@ -51,6 +51,10 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
+    if (IsPlayerAlreadyAnimationDriven(player)) {
+        return false;
+    }
+
     if (IsPlayerInSyncedAnimation(player)) {
         return false;
     }
@@ -211,6 +215,11 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
     // if (logLayer) logger::info("Nothing hit");
 
     return maxDist;
+}
+
+bool ParkourUtility::IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player) {
+    bool out;
+    return player->GetGraphVariableBool("bAnimationDriven", out) && out;
 }
 
 bool ParkourUtility::IsPlayerUsingFurniture(RE::PlayerCharacter *player) {
