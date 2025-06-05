@@ -91,7 +91,7 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     if (RuntimeVariables::ParkourInProgress) {
         /*----------Whitelist-------------------------------*/
-        if (a_eventName == "moveStop" || a_eventName == "turnStop" || a_eventName == "SprintStop") {
+        if (a_eventName == "moveStop" || a_eventName == "turnStop") {
             return _origPlayerCharacter(a_this, a_eventName);
         }
         /*--------------------------------------------------*/
