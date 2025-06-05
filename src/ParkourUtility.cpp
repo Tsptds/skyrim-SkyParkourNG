@@ -93,8 +93,15 @@ bool ParkourUtility::IsParkourActive() {
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto playerCamera = RE::PlayerCamera::GetSingleton();
-    if (!player || !playerCamera)
+    auto controller = player->GetCharController();
+
+    if (!player || !playerCamera || !controller)
         return false;
+
+    // Gravity is normally 1
+    controller->gravity = enable;
+
+    controller->wantState = RE::hkpCharacterStateType::kOnGround;
 
     auto controlMap = RE::ControlMap::GetSingleton();
 
