@@ -112,7 +112,7 @@ namespace HardCodedVariables {
     const float climbMaxHeight = 250.0f;
     const float climbMinHeight = 20.0f;
 
-    const float vaultMaxHeight = 90.0f;
+    const float vaultMaxHeight = 115.0f;
     const float vaultMinHeight = 40.5f;
 
     // These are the height ranges for parkour type selection, represent low limits.

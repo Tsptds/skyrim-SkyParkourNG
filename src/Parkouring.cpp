@@ -276,7 +276,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     RE::NiPoint3 ledgePoint;
 
     if (isMoving || !ModSettings::Smart_Parkour_Enabled) {
-        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, 85, 70 * RuntimeVariables::PlayerScale,
+        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, 85, 80 * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
     }
