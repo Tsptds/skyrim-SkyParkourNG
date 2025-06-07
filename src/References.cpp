@@ -29,6 +29,8 @@ void RuntimeMethods::SwapLegs() {
 // Things that are not handled by MCM and persistent throughout saves without being reset on game load
 void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::ParkourInProgress = false;
+    RuntimeVariables::ParkourQueuedForStart = false;
+    RuntimeVariables::IsInRagdollOrGettingUp = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
 }
 bool RuntimeMethods::CheckESPLoaded() {
@@ -170,6 +172,7 @@ namespace RuntimeVariables {
     bool ParkourQueuedForStart = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
+    bool IsInRagdollOrGettingUp = false;
 
     bool shouldUseRightStep = true;
 }  // namespace RuntimeVariables

@@ -406,36 +406,30 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    // Select appropriate ledge marker and adjustments
-    // switch takes constants so can't pass these from references.h, here's the lookup table
 
     float zAdjust = 0;
     float z = 0;
-    //const int Highest = 8;
-    //const int High = 7;
-    //const int Medium = 6;
-    //const int Low = 5;
-    //const int StepHigh = 4;
-    //const int StepLow = 3;
-    //const int Vault = 2;
-    //const int Grab = 1;
-    //const int Failed = 0;
-    //const int NoLedge = -1;
 
     switch (ledgeType) {
         case 8:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
+            RuntimeVariables::backwardAdjustment =
+                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 7:  // High ledge
             z = HardCodedVariables::highLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
+            RuntimeVariables::backwardAdjustment =
+                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 6:  // Medium ledge
             z = HardCodedVariables::medLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
+            RuntimeVariables::backwardAdjustment =
+                RuntimeVariables::playerDirFlat * 60 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 5:  // Low ledge
@@ -561,34 +555,38 @@ bool Parkouring::TryActivateParkour() {
     // But to check player swimming state, a frame must pass. So AdjustPlayerPosition is called, then parkour runs on next frame.
     // Also, ToggleControlsForParkour switches POVs, and it can crash the game if the player camera state is not updated.
     // MEANING THIS THING SHOULD RUN ON THE NEXT FRAME
-    SKSE::GetTaskInterface()->AddTask([LedgeToProcess]() { ParkourReadyRun(LedgeToProcess); });
+
+    SKSE::GetTaskInterface()->AddTask([LedgeToProcess, player]() {
+        /*Since ToggleControls sets player animation driven, send a white-listed moveStop event to stop moving */
+        if (player->IsMoving()) {
+            player->NotifyAnimationGraph("moveStop");
+        }
+        ParkourReadyRun(LedgeToProcess);
+    });
 
     return true;
 }
 void Parkouring::ParkourReadyRun(int ledge) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
-    logger::info("Dist: {}", dist);
-    // Lock ledge to active one throughout the action;
-    RuntimeVariables::selectedLedgeType = ledge;
-    // Send Event, then check if succeeded in Graph notify hook
+    //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
+    //logger::info("Dist: {}", dist);
 
+    // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
     const auto cam = RE::PlayerCamera::GetSingleton();
-    // Use direct motion for fps, anim event motion data for tps
     if (cam && cam->IsInFirstPerson()) {
-        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1200);
-    }
-
-    RuntimeVariables::ParkourQueuedForStart = true;
-    if (ledge == ParkourType::Grab) {
-        player->NotifyAnimationGraph("JumpStandingStart");
+        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1100);
     }
     else {
-        player->NotifyAnimationGraph("JumpFall");
-    }
+        RuntimeVariables::ParkourQueuedForStart = true;
 
-    Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter::GetSingleton(),
-                                         ParkourUtility::CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType));
+        // Send Event, then check if succeeded in Graph notify hook
+        if (ledge == ParkourType::Grab) {
+            player->NotifyAnimationGraph("JumpStandingStart");
+        }
+        else {
+            player->NotifyAnimationGraph("JumpFall");
+        }
+    }
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
     if (ModSettings::Enable_Stamina_Consumption) {

@@ -45,6 +45,11 @@ bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
     }
+
+    if (RuntimeVariables::IsInRagdollOrGettingUp) {
+        return false;
+    }
+
     const auto player = RE::PlayerCharacter::GetSingleton();
     if (IsPlayerInCharGen(player)) {
         //logger::info("PLAYER HANDS BOUND");

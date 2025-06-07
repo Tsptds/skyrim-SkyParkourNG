@@ -7,18 +7,33 @@
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
                 if (ModSettings::ModEnabled) {
-                    if (RuntimeVariables::ParkourInProgress) {
-                        if (a_event) {
-                            auto actor = a_event->holder;
-                            if (actor && actor->IsPlayerRef()) {
+                    if (a_event) {
+                        auto actor = a_event->holder;
+                        if (actor && actor->IsPlayerRef()) {
+                            /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
+                            if (a_event->tag == "GetUpExit") {
+                                RuntimeVariables::IsInRagdollOrGettingUp = false;
+                            }
+
+                            if (RuntimeVariables::ParkourInProgress) {
                                 //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
                                 const auto player = RE::PlayerCharacter::GetSingleton();
                                 if (a_event->tag == "SkyParkour_Begin") {
                                     const auto payload = a_event->payload.c_str();
-                                    //if (payload)
+
                                     Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
                                                                          std::strtof(payload, nullptr));
-                                    //Parkouring::AdjustPlayerPosition()
+                                }
+                                else if (a_event->tag == "SkyParkour_OverShoot") {
+                                    const auto payload = a_event->payload.c_str();
+                                    Parkouring::InterpolateRefToPosition(player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 50.0f)),
+                                                                         std::strtof(payload, nullptr));
+                                }
+                                else if (a_event->tag == "SkyParkour_UnderShoot") {
+                                    const auto payload = a_event->payload.c_str();
+                                    Parkouring::InterpolateRefToPosition(
+                                        player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, -90.0f * RuntimeVariables::PlayerScale)),
+                                        std::strtof(payload, nullptr));
                                 }
                                 else if (a_event->tag == "SkyParkour_End") {
                                     player->NotifyAnimationGraph("SkyParkour_EndNotify");
@@ -89,6 +104,10 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (a_eventName == "Ragdoll") {
+        /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
+        RuntimeVariables::IsInRagdollOrGettingUp = true;
+    }
     if (RuntimeVariables::ParkourInProgress) {
         /*----------Whitelist-------------------------------*/
         if (a_eventName == "moveStop" || a_eventName == "turnStop") {
@@ -96,11 +115,32 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
         /*--------------------------------------------------*/
 
+        if (a_eventName == "Ragdoll") {
+            /*Unlock controls on ragdoll*/
+            bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
+            if (didRagdoll) {
+                ParkourUtility::ToggleControlsForParkour(true);
+                RuntimeVariables::ParkourInProgress = false;
+            }
+
+            /*And of course send the event,*/
+            return didRagdoll;
+        }
+
+        // This is the part where it actually sends the animation event
         if (RuntimeVariables::ParkourQueuedForStart && (a_eventName == "JumpFall" || a_eventName == "JumpStandingStart")) {
             // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
             RuntimeVariables::ParkourQueuedForStart = false;
             auto success = _origPlayerCharacter(a_this, a_eventName);
-            if (!success) {
+            if (success) {
+                auto player = RE::PlayerCharacter::GetSingleton();
+                int32_t ledgeType;
+                player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
+
+                Parkouring::AdjustPlayerPosition(ledgeType);
+                Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+            }
+            else {
                 /* Parkour Failed for whatever reason */
                 ParkourUtility::ToggleControlsForParkour(true);
                 RuntimeVariables::ParkourInProgress = false;

@@ -99,6 +99,7 @@ namespace RuntimeVariables {
     extern bool ParkourQueuedForStart;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
+    extern bool IsInRagdollOrGettingUp;
 
     extern bool shouldUseRightStep;
 }  // namespace RuntimeVariables
