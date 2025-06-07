@@ -226,14 +226,22 @@ bool Parkouring::PlaceAndShowIndicator() {
     }
 
     // Choose indicator depending on stamina
-    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;  // Default to blue
     if (ModSettings::Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false &&
         CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
-        GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
-        SKSE::GetTaskInterface()->AddTask([]() { GameReferences::indicatorRef_Blue->Disable(); });
+        SKSE::GetTaskInterface()->AddTask([]() {
+            GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
+            GameReferences::indicatorRef_Blue->Disable();
+        });
     }
     else {
-        SKSE::GetTaskInterface()->AddTask([]() { GameReferences::indicatorRef_Red->Disable(); });
+        SKSE::GetTaskInterface()->AddTask([]() {
+            GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;  // Default to blue
+            GameReferences::indicatorRef_Red->Disable();
+        });
+    }
+
+    if (!GameReferences::currentIndicatorRef) {
+        return false;
     }
 
     // Move indicator to the correct position

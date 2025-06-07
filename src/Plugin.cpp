@@ -72,8 +72,10 @@ void Install_Hooks_And_Listeners() {
 }
 
 bool RegisterIndicators() {
-    GameReferences::indicatorRef_Blue = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, IniSettings::ESP_NAME);
-    GameReferences::indicatorRef_Red = RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, IniSettings::ESP_NAME);
+    GameReferences::indicatorRef_Blue =
+        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, IniSettings::ESP_NAME));
+    GameReferences::indicatorRef_Red =
+        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, IniSettings::ESP_NAME));
 
     if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");

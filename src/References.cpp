@@ -175,10 +175,10 @@ namespace RuntimeVariables {
 }  // namespace RuntimeVariables
 
 namespace GameReferences {
-    RE::TESObjectREFR *indicatorRef_Blue;
-    RE::TESObjectREFR *indicatorRef_Red;
+    RE::NiPointer<RE::TESObjectREFR> indicatorRef_Blue;
+    RE::NiPointer<RE::TESObjectREFR> indicatorRef_Red;
 
-    RE::TESObjectREFR *currentIndicatorRef;
+    RE::NiPointer<RE::TESObjectREFR> currentIndicatorRef;
 
 }  // namespace GameReferences
 

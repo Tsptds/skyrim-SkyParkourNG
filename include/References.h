@@ -105,9 +105,9 @@ namespace RuntimeVariables {
 
 namespace GameReferences {
 
-    extern RE::TESObjectREFR* indicatorRef_Blue;
-    extern RE::TESObjectREFR* indicatorRef_Red;
-    extern RE::TESObjectREFR* currentIndicatorRef;
+    extern RE::NiPointer<RE::TESObjectREFR> indicatorRef_Blue;
+    extern RE::NiPointer<RE::TESObjectREFR> indicatorRef_Red;
+    extern RE::NiPointer<RE::TESObjectREFR> currentIndicatorRef;
 }  // namespace GameReferences
 
 namespace IniSettings {
