@@ -486,14 +486,13 @@ void Parkouring::UpdateParkourPoint() {
     }
 
     _THREAD_POOL.enqueue([]() {
-        bool activeStatus = IsParkourActive();
-        float scale = ScaleUtility::GetScale();
+        RuntimeVariables::IsParkourActive = IsParkourActive();
+        RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
 
-        SKSE::GetTaskInterface()->AddTask([activeStatus, scale]() {
-            RuntimeVariables::IsParkourActive = activeStatus;
-            RuntimeVariables::PlayerScale = scale;
-            RuntimeVariables::selectedLedgeType = GetLedgePoint();
-        });
+        if (!RuntimeVariables::ParkourInProgress) {
+            /*Avoid updating the ledge if parkour already started*/
+            SKSE::GetTaskInterface()->AddTask([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
+        }
     });
 
     // Indicator stuff
