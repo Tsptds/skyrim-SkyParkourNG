@@ -116,6 +116,14 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RuntimeMethods::ResetRuntimeVariables();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        int32_t out;
+        if (player->GetGraphVariableInt("SkyParkourLedge", out) && out && out != -1) {
+            logger::warn(">>SAVE LOADED WITH ONGOING PARKOUR, FIXING IT<<");
+            ParkourUtility::ToggleControlsForParkour(true);
+            player->NotifyAnimationGraph("JumpLandEnd");
+        }
+
         RuntimeMethods::ResetRuntimeVariables();
     }
     else if (message->type == SKSE::MessagingInterface::kNewGame) {

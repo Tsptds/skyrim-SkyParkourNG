@@ -32,6 +32,10 @@ void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::ParkourQueuedForStart = false;
     RuntimeVariables::IsInRagdollOrGettingUp = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
+    auto player = RE::PlayerCharacter::GetSingleton();
+    if (player) {
+        player->SetGraphVariableInt("SkyParkourLedge", -1);
+    }
 }
 bool RuntimeMethods::CheckESPLoaded() {
     auto dh = RE::TESDataHandler::GetSingleton();
