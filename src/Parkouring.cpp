@@ -358,7 +358,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                                           std::move(ry),  // afRY
                                           std::move(rz),  // afRZ
                                           //std::move(100.0f),
-                                          std::move(speed), std::move(maxRotSpeed));
+                                          std::move(speed * RuntimeVariables::PlayerScale), std::move(maxRotSpeed));
 
     // 5) Call the Papyrus method
     RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
