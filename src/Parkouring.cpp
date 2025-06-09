@@ -485,6 +485,7 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
+    /*Diving Demo*/
     _THREAD_POOL.enqueue([]() {
         RuntimeVariables::IsParkourActive = IsParkourActive();
         RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
@@ -493,7 +494,45 @@ void Parkouring::UpdateParkourPoint() {
             /*Avoid updating the ledge if parkour already started*/
             SKSE::GetTaskInterface()->AddTask([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
         }
+
+        auto *player = RE::PlayerCharacter::GetSingleton();
+        if (!player)
+            return;
+
+        auto pos = player->GetPosition();
+        float waterZ = -RE::NI_INFINITY;
+        if (auto *cell = player->GetParentCell())
+            cell->GetWaterHeight(pos, waterZ);
+
+        if (waterZ == -RE::NI_INFINITY) {
+            // no water here → definitely not diving
+            player->SetGraphVariableInt("SkyParkour_Diving", 0);
+            return;
+        }
+
+        SKSE::GetTaskInterface()->AddTask([waterZ, player, pos]() {
+            float gap = pos.z - waterZ;
+            int dive = 0;
+            if (gap > 0.0f) {
+                // precompute player height
+                float playerH = 120.0f * RuntimeVariables::PlayerScale;
+                RE::hkVector4 normal;
+                float hitDist =
+                    RayCast(pos + RE::NiPoint3{0, 0, playerH}, RE::NiPoint3{0, 0, -1}, playerH * 10.0f, normal, RE::COL_LAYER::kLOS);
+
+                // require the ray actually hit something above the water AND that that
+                // distance is greater than your gap, AND that hit surface is roughly flat
+                if (hitDist > 0.0f && abs(gap + playerH + 50 * RuntimeVariables::PlayerScale) < abs(hitDist) &&
+                    normal.quad.m128_f32[2] > 0.8f) {
+                    dive = 1;
+                }
+                //logger::info("hit {} - Water {}", hitDist, gap + playerH);
+            }
+
+            player->SetGraphVariableInt("SkyParkour_Diving", dive);
+        });
     });
+    /*Diving Demo*/
 
     // Indicator stuff
     _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
