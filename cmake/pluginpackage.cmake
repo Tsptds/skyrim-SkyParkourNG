@@ -1,7 +1,6 @@
 ######## install and distribution
 install(FILES
         "${CMAKE_CURRENT_SOURCE_DIR}/dist/${PROJECT_NAME}.ini"
-        "${CMAKE_CURRENT_SOURCE_DIR}/dist/${PROJECT_NAME}.toml"
         CONFIGURATIONS Debug Release RelWithDebInfo
         DESTINATION ${PLUGIN_INSTALL_DEST} OPTIONAL)
 
