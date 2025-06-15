@@ -35,10 +35,13 @@
                                         player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, -90.0f * RuntimeVariables::PlayerScale)),
                                         std::strtof(payload, nullptr));
                                 }
-                                else if (a_event->tag == "SkyParkour_End") {
+                                else if (a_event->tag == "SkyParkour_End" || a_event->tag == "JumpLandEnd") {
+                                    /* JumpLandEnd can both be coming from anim events or player->notify, couldn't find a way to cancel this one unlike notify. */
+
                                     player->NotifyAnimationGraph("SkyParkour_EndNotify");
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
+                                    Parkouring::StopInterpolationToPosition();
                                 }
                             }
                         }
@@ -128,7 +131,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
 
         // This is the part where it actually sends the animation event
-        if (RuntimeVariables::ParkourQueuedForStart && (a_eventName == "JumpFall" || a_eventName == "JumpStandingStart")) {
+        if (RuntimeVariables::ParkourQueuedForStart && (a_eventName == "JumpFall" || a_eventName == "JumpStandingStart") ||
+            a_eventName == "JumpDirectionalStart") {
             // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
             RuntimeVariables::ParkourQueuedForStart = false;
             auto success = _origPlayerCharacter(a_this, a_eventName);

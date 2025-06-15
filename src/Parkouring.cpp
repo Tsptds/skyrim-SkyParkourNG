@@ -370,28 +370,8 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
         _THREAD_POOL.enqueue([vm, movingRef, timeoutMS]() {
             std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
 
-            SKSE::GetTaskInterface()->AddTask([vm, movingRef]() {
-                auto policy = vm->GetObjectHandlePolicy();
-                RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
-                if (handle == policy->EmptyHandle()) {
-                    return;
-                }
-
-                RE::BSFixedString scriptName = "ObjectReference";
-                RE::BSFixedString functionName = "StopTranslation";
-
-                RE::BSTSmartPointer<RE::BSScript::Object> object;
-                if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
-                    return;
-                }
-
-                auto args = RE::MakeFunctionArguments();
-
-                RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
-                vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
-                                        functionName,
-                                        args,  // packed arguments
-                                        result);
+            SKSE::GetTaskInterface()->AddTask([movingRef]() {
+                StopInterpolationToPosition();
 
                 // Swap the leg for step animation
                 RuntimeMethods::SwapLegs();
@@ -402,6 +382,34 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
             });
         });
     }
+}
+void Parkouring::StopInterpolationToPosition() {
+    auto movingRef = RE::PlayerCharacter::GetSingleton();
+    auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
+    if (!vm) {
+        return;
+    }
+    auto policy = vm->GetObjectHandlePolicy();
+    RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
+    if (handle == policy->EmptyHandle()) {
+        return;
+    }
+
+    RE::BSFixedString scriptName = "ObjectReference";
+    RE::BSFixedString functionName = "StopTranslation";
+
+    RE::BSTSmartPointer<RE::BSScript::Object> object;
+    if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
+        return;
+    }
+
+    auto args = RE::MakeFunctionArguments();
+
+    RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
+    vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
+                            functionName,
+                            args,  // packed arguments
+                            result);
 }
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
@@ -612,18 +620,22 @@ void Parkouring::ParkourReadyRun(int ledge) {
     // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
     const auto cam = RE::PlayerCamera::GetSingleton();
     if (cam && cam->IsInFirstPerson()) {
+        /* TODO: Do something for fps*/
+        if (ledge) {
+            /* TODO: */
+        }
         InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1100);
     }
     else {
         RuntimeVariables::ParkourQueuedForStart = true;
 
         // Send Event, then check if succeeded in Graph notify hook
-        if (ledge == ParkourType::Grab) {
-            player->NotifyAnimationGraph("JumpStandingStart");
-        }
+        //if (ledge == ParkourType::Grab) {
+        /*player->IsMoving() ? player->NotifyAnimationGraph("JumpStandingStart") : */ player->NotifyAnimationGraph("JumpDirectionalStart");
+        /*}
         else {
             player->NotifyAnimationGraph("JumpFall");
-        }
+        }*/
     }
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
