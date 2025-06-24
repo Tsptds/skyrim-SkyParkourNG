@@ -217,54 +217,61 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 }
 
 bool Parkouring::PlaceAndShowIndicator() {
-    if (ModSettings::UseIndicators == false) {
+    const bool useIndicators = ModSettings::UseIndicators;
+    if (!useIndicators) {
         return false;
     }
 
-    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
-        return false;
-    }
+    const bool enableStamina = ModSettings::Enable_Stamina_Consumption;
+    const bool hasStamina = PlayerHasEnoughStamina();
+    const auto ledgeType = RuntimeVariables::selectedLedgeType;
 
-    // Choose indicator depending on stamina
-    if (ModSettings::Enable_Stamina_Consumption && PlayerHasEnoughStamina() == false &&
-        CheckIsVaultActionFromType(RuntimeVariables::selectedLedgeType) == false) {
-        SKSE::GetTaskInterface()->AddTask([]() {
-            GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Red;
-            GameReferences::indicatorRef_Blue->Disable();
-        });
-    }
-    else {
-        SKSE::GetTaskInterface()->AddTask([]() {
-            GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;  // Default to blue
-            GameReferences::indicatorRef_Red->Disable();
-        });
-    }
+    // Indicators cause crashes, only
+    const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckIsVaultActionFromType(ledgeType);
 
-    if (!GameReferences::currentIndicatorRef) {
-        return false;
-    }
+    SKSE::GetTaskInterface()->AddTask([useRed]() {
+        auto blueRef = GameReferences::indicatorRef_Blue;
+        auto redRef = GameReferences::indicatorRef_Red;
+        if (!blueRef || !redRef) {
+            return;
+        }
 
-    // Move indicator to the correct position
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    if (GameReferences::currentIndicatorRef->GetParentCell() != player->GetParentCell()) {
-        GameReferences::currentIndicatorRef->MoveTo(player->AsReference());
-    }
+        auto &currentRef = GameReferences::currentIndicatorRef;
+        currentRef = useRed ? redRef : blueRef;
 
-    GameReferences::currentIndicatorRef->data.location = RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8);  // Offset upwards slightly
+        if (useRed) {
+            if (blueRef)
+                blueRef->Disable();
+        }
+        else {
+            if (redRef)
+                redRef->Disable();
+        }
 
-    GameReferences::currentIndicatorRef->Update3DPosition(true);
+        if (!currentRef) {
+            return;
+        }
 
-    GameReferences::currentIndicatorRef->data.angle =
-        RE::NiPoint3(0, 0, atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
+        const auto player = RE::PlayerCharacter::GetSingleton();
+        if (!player) {
+            return;
+        }
 
-    if (!RuntimeVariables::IsParkourActive) {
-        if (GameReferences::currentIndicatorRef)
-            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Disable(); });
-    }
-    else {
-        if (GameReferences::currentIndicatorRef)
-            SKSE::GetTaskInterface()->AddTask([]() { GameReferences::currentIndicatorRef->Enable(false); });  // Don't reset inventory
-    }
+        if (currentRef->GetParentCell() != player->GetParentCell()) {
+            currentRef->MoveTo(player->AsReference());
+        }
+
+        currentRef->data.location = RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8.0f);
+        currentRef->data.angle = RE::NiPoint3(0, 0, std::atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
+        currentRef->Update3DPosition(true);
+
+        if (RuntimeVariables::IsParkourActive) {
+            currentRef->Enable(false);
+        }
+        else {
+            currentRef->Disable();
+        }
+    });
 
     return true;
 }
@@ -490,7 +497,6 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
-    /*Diving Demo*/
     _THREAD_POOL.enqueue([]() {
         RuntimeVariables::IsParkourActive = IsParkourActive();
         RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
@@ -500,6 +506,7 @@ void Parkouring::UpdateParkourPoint() {
             SKSE::GetTaskInterface()->AddTask([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
         }
 
+        /*Diving Demo*/
         auto *player = RE::PlayerCharacter::GetSingleton();
         if (!player)
             return;
@@ -536,8 +543,8 @@ void Parkouring::UpdateParkourPoint() {
 
             player->SetGraphVariableInt("SkyParkour_Diving", dive);
         });
+        /*Diving Demo*/
     });
-    /*Diving Demo*/
 
     //logger::info("{}", RE::GetSecondsSinceLastFrame());
 
