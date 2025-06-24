@@ -46,6 +46,10 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
+    if (RuntimeVariables::ParkourInCoolDown) {
+        return false;
+    }
+
     if (RuntimeVariables::IsInRagdollOrGettingUp) {
         return false;
     }
@@ -95,6 +99,25 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
+void ParkourUtility::Freeze(RE::Actor &a_actor) {
+    a_actor.PauseCurrentDialogue();
+    a_actor.InterruptCast(false);
+    a_actor.StopInteractingQuick(true);
+
+    //a_actor.reset(RE::Actor::BOOL_FLAGS::kShouldAnimGraphUpdate);
+
+    if (const auto charController = a_actor.GetCharController(); charController) {
+        charController->flags.set(RE::CHARACTER_FLAGS::kNotPushable);
+        charController->flags.set(RE::CHARACTER_FLAGS::kNoCharacterCollisions);
+
+        charController->flags.reset(RE::CHARACTER_FLAGS::kRecordHits);
+        charController->flags.reset(RE::CHARACTER_FLAGS::kHitFlags);
+    }
+
+    //a_actor.EnableAI(false);
+    a_actor.StopMoving(1.0f);
+}
+
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto playerCamera = RE::PlayerCamera::GetSingleton();
@@ -106,7 +129,18 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     // Gravity is normally 1
     controller->gravity = enable;
 
-    controller->wantState = RE::hkpCharacterStateType::kOnGround;
+    //controller->wantState = enable ? RE::hkpCharacterStateType::kOnGround : RE::hkpCharacterStateType::kJumping;
+
+    /*if (enable) {
+        controller->flags.reset(RE::CHARACTER_FLAGS::kNotPushable);
+        controller->flags.set(RE::CHARACTER_FLAGS::kRecordHits);
+        controller->flags.set(RE::CHARACTER_FLAGS::kHitFlags);
+    }
+    else {
+        controller->flags.set(RE::CHARACTER_FLAGS::kNotPushable);
+        controller->flags.reset(RE::CHARACTER_FLAGS::kRecordHits);
+        controller->flags.reset(RE::CHARACTER_FLAGS::kHitFlags);
+    }*/
 
     auto controlMap = RE::ControlMap::GetSingleton();
 
@@ -154,7 +188,7 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     return playerDirFlat;
 }
 
-void ParkourUtility::LastObjectHitType(RE::COL_LAYER obj) {
+void ParkourUtility::UpdateLastObjectHitType(RE::COL_LAYER obj) {
     RuntimeVariables::lastHitObject = obj;
 }
 
@@ -193,7 +227,7 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
         normalOut = pickData.rayOutput.normal;
 
         const uint32_t layerIndex = pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F;
-        LastObjectHitType(static_cast<RE::COL_LAYER>(layerIndex));
+        UpdateLastObjectHitType(static_cast<RE::COL_LAYER>(layerIndex));
 
         if (layerIndex == 0) {
             return -1.0f;  // Invalid layer hit

@@ -20,7 +20,6 @@
                                 const auto player = RE::PlayerCharacter::GetSingleton();
                                 if (a_event->tag == "SkyParkour_Begin") {
                                     const auto payload = a_event->payload.c_str();
-
                                     Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
                                                                          std::strtof(payload, nullptr));
                                 }
@@ -131,8 +130,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
 
         // This is the part where it actually sends the animation event
-        if (RuntimeVariables::ParkourQueuedForStart && (a_eventName == "JumpFall" || a_eventName == "JumpStandingStart") ||
-            a_eventName == "JumpDirectionalStart") {
+        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpDirectionalStart") {
             // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
             RuntimeVariables::ParkourQueuedForStart = false;
             auto success = _origPlayerCharacter(a_this, a_eventName);
@@ -155,7 +153,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             // Reenable controls
             RuntimeMethods::SwapLegs();
             ParkourUtility::ToggleControlsForParkour(true);
-
+            RuntimeVariables::ParkourInCoolDown = true;
             RuntimeVariables::ParkourInProgress = false;
             RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
 

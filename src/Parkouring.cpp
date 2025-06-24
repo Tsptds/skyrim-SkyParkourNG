@@ -485,6 +485,7 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
     Parkouring::InterpolateRefToPosition(player, newPosition);
 }
 
+static inline float cooldown = 0.0f;
 void Parkouring::UpdateParkourPoint() {
     if (RuntimeVariables::ParkourInProgress) {
         if (GameReferences::currentIndicatorRef)
@@ -541,6 +542,20 @@ void Parkouring::UpdateParkourPoint() {
         });
     });
     /*Diving Demo*/
+
+    //logger::info("{}", RE::GetSecondsSinceLastFrame());
+
+    /* CoolDown Logic */
+    if (RuntimeVariables::ParkourInCoolDown && !RuntimeVariables::IsMenuOpen) {
+        _THREAD_POOL.enqueue([]() {
+            cooldown += RE::GetSecondsSinceLastFrame();
+            //logger::info("waiting cooldown {}", cooldown);
+            if (cooldown > 0.1f) {
+                cooldown = 0;
+                RuntimeVariables::ParkourInCoolDown = false;
+            }
+        });
+    }
 
     // Indicator stuff
     _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
