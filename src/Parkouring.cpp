@@ -485,7 +485,6 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
     Parkouring::InterpolateRefToPosition(player, newPosition);
 }
 
-static inline float cooldown = 0.0f;
 void Parkouring::UpdateParkourPoint() {
     if (RuntimeVariables::ParkourInProgress) {
         if (GameReferences::currentIndicatorRef)
@@ -545,18 +544,6 @@ void Parkouring::UpdateParkourPoint() {
 
     //logger::info("{}", RE::GetSecondsSinceLastFrame());
 
-    /* CoolDown Logic */
-    if (RuntimeVariables::ParkourInCoolDown && !RuntimeVariables::IsMenuOpen) {
-        _THREAD_POOL.enqueue([]() {
-            cooldown += RE::GetSecondsSinceLastFrame();
-            //logger::info("waiting cooldown {}", cooldown);
-            if (cooldown > 0.1f) {
-                cooldown = 0;
-                RuntimeVariables::ParkourInCoolDown = false;
-            }
-        });
-    }
-
     // Indicator stuff
     _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
 }
@@ -577,17 +564,8 @@ bool Parkouring::TryActivateParkour() {
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
-    // TDM camera pitch angle bug
-    //const auto cam = RE::PlayerCamera::GetSingleton();
-    //if (Compatibility::TrueDirectionalMovement) {
-    //    if (isSwimming && cam->IsInThirdPerson() && player->GetCharController()->pitchAngle > abs(0.5)) {
-    //        return false;
-    //    }
-    //}
-
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
-    const bool avoidMidairGrab = fallTime < 0.17f;
     //logger::info(">> Fall time: {}", fallTime);
 
     if (LedgeToProcess != ParkourType::Grab) {
@@ -595,13 +573,9 @@ bool Parkouring::TryActivateParkour() {
             return false;
         }
     }
-    else {
-        if (avoidMidairGrab && !isSwimming) {
-            return false;
-        }
-    }
 
-    if (Smart_Parkour_Enabled && isMoving) {
+    /* Cancel if moving, but allow during swimming */
+    if (Smart_Parkour_Enabled && isMoving && !isSwimming) {
         if (!isVaultAction) {
             player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
@@ -612,18 +586,7 @@ bool Parkouring::TryActivateParkour() {
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
 
-    // I pass ledge to function, cause addtask runs on the next frame. If the ledge type changes in the next frame, adjustment will be wrong.
-    // But to check player swimming state, a frame must pass. So AdjustPlayerPosition is called, then parkour runs on next frame.
-    // Also, ToggleControlsForParkour switches POVs, and it can crash the game if the player camera state is not updated.
-    // MEANING THIS THING SHOULD RUN ON THE NEXT FRAME
-
-    SKSE::GetTaskInterface()->AddTask([LedgeToProcess, player]() {
-        /*Since ToggleControls sets player animation driven, send a white-listed moveStop event to stop moving */
-        if (player->IsMoving()) {
-            player->NotifyAnimationGraph("moveStop");
-        }
-        ParkourReadyRun(LedgeToProcess);
-    });
+    ParkourReadyRun(LedgeToProcess);
 
     return true;
 }
@@ -644,13 +607,7 @@ void Parkouring::ParkourReadyRun(int ledge) {
     else {
         RuntimeVariables::ParkourQueuedForStart = true;
 
-        // Send Event, then check if succeeded in Graph notify hook
-        //if (ledge == ParkourType::Grab) {
-        /*player->IsMoving() ? player->NotifyAnimationGraph("JumpStandingStart") : */ player->NotifyAnimationGraph("JumpDirectionalStart");
-        /*}
-        else {
-            player->NotifyAnimationGraph("JumpFall");
-        }*/
+        player->NotifyAnimationGraph("SkyParkour");
     }
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {

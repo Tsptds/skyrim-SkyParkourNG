@@ -34,12 +34,38 @@
                                         player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, -90.0f * RuntimeVariables::PlayerScale)),
                                         std::strtof(payload, nullptr));
                                 }
-                                else if (a_event->tag == "SkyParkour_End" || a_event->tag == "JumpLandEnd") {
-                                    /* JumpLandEnd can both be coming from anim events or player->notify, couldn't find a way to cancel this one unlike notify. */
+                                else if (a_event->tag == "SkyParkour_VaultForward") {
+                                    const auto payload = a_event->payload.c_str();
 
-                                    player->NotifyAnimationGraph("SkyParkour_EndNotify");
+                                    auto onlyForwardVec = player->GetPosition() + RuntimeVariables::playerDirFlat * 20;
+
+                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
+                                }
+                                else if (a_event->tag == "SkyParkour_RelativeForward") {
+                                    const auto payload = a_event->payload.c_str();
+
+                                    auto onlyForwardVec = player->GetPosition() + RuntimeVariables::playerDirFlat * 20;
+
+                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
+                                }
+                                else if (a_event->tag == "SkyParkour_RelativeDownward") {
+                                    const auto payload = a_event->payload.c_str();
+
+                                    auto onlyForwardVec = player->GetPosition() + RE::NiPoint3{0, 0, -30};
+
+                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
+                                }
+                                else if (a_event->tag == "SkyParkour_Stop") {
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
+
+                                    /* Swap last leg (Step animations) */
+                                    RuntimeMethods::SwapLegs();
+
+                                    /* Reenable controls */
+                                    ParkourUtility::ToggleControlsForParkour(true);
+                                    RuntimeVariables::ParkourInProgress = false;
+
                                     Parkouring::StopInterpolationToPosition();
                                 }
                             }
@@ -130,7 +156,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         }
 
         // This is the part where it actually sends the animation event
-        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "JumpDirectionalStart") {
+        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "SkyParkour") {
             // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
             RuntimeVariables::ParkourQueuedForStart = false;
             auto success = _origPlayerCharacter(a_this, a_eventName);
@@ -148,51 +174,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
                 RuntimeVariables::ParkourInProgress = false;
             }
             return success;
-        }
-        else if (a_eventName == "SkyParkour_EndNotify") {
-            // Reenable controls
-            RuntimeMethods::SwapLegs();
-            ParkourUtility::ToggleControlsForParkour(true);
-            RuntimeVariables::ParkourInCoolDown = true;
-            RuntimeVariables::ParkourInProgress = false;
-            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");
-
-            /*
-            auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
-            if (!vm) {
-                return false;
-            }
-
-                      // 1) Get the TESObjectREFR pointer to move:
-            RE::TESObjectREFR* movingRef = RE::PlayerCharacter::GetSingleton();
-
-            // 2) Wrap movingRef in a Papyrus handle
-            auto policy = vm->GetObjectHandlePolicy();
-            RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
-            if (handle == policy->EmptyHandle()) {
-                return false;
-            }
-
-            RE::BSFixedString scriptName = "ObjectReference";
-            RE::BSFixedString functionName = "StopTranslation";
-
-            RE::BSTSmartPointer<RE::BSScript::Object> object;
-            if (!vm->FindBoundObject(handle, scriptName.c_str(), object)) {
-                return false;
-            }
-
-            auto args = RE::MakeFunctionArguments();
-
-            RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
-            vm->DispatchMethodCall1(object,  // the Papyrus ObjectReference instance
-                                    functionName,
-                                    args,  // packed arguments
-                                    result);
-
-            RuntimeVariables::ParkourInProgress = false;
-
-            RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("JumpLandEnd");       */
-            return true;
         }
         else {
             //logger::info(">> Cancelled notify: {}", a_eventName);

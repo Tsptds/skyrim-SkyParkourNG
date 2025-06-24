@@ -46,10 +46,6 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (RuntimeVariables::ParkourInCoolDown) {
-        return false;
-    }
-
     if (RuntimeVariables::IsInRagdollOrGettingUp) {
         return false;
     }
@@ -128,24 +124,10 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
 
     // Gravity is normally 1
     controller->gravity = enable;
-
-    //controller->wantState = enable ? RE::hkpCharacterStateType::kOnGround : RE::hkpCharacterStateType::kJumping;
-
-    /*if (enable) {
-        controller->flags.reset(RE::CHARACTER_FLAGS::kNotPushable);
-        controller->flags.set(RE::CHARACTER_FLAGS::kRecordHits);
-        controller->flags.set(RE::CHARACTER_FLAGS::kHitFlags);
-    }
-    else {
-        controller->flags.set(RE::CHARACTER_FLAGS::kNotPushable);
-        controller->flags.reset(RE::CHARACTER_FLAGS::kRecordHits);
-        controller->flags.reset(RE::CHARACTER_FLAGS::kHitFlags);
-    }*/
-
+    controller->fallStartHeight = player->GetPositionZ();
     auto controlMap = RE::ControlMap::GetSingleton();
 
     // Toggle common controls
-    player->SetGraphVariableBool("bAnimationDriven", !enable);              // Block rotation & movement
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);

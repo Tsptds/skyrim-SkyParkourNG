@@ -91,6 +91,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RuntimeMethods::ReadIni();
 
         if (IniSettings::IgnoreRequirements) {
+            logger::warn(">>> Requirement Checks Skipped <<<");
             return;
         }
         RuntimeMethods::CheckRequirements();
