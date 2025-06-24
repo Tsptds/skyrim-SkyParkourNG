@@ -523,7 +523,7 @@ void Parkouring::UpdateParkourPoint() {
                 float playerH = 120.0f * RuntimeVariables::PlayerScale;
                 RE::hkVector4 normal;
                 float hitDist =
-                    RayCast(pos + RE::NiPoint3{0, 0, playerH}, RE::NiPoint3{0, 0, -1}, playerH * 10.0f, normal, RE::COL_LAYER::kLOS);
+                    RayCast(pos + RE::NiPoint3{0, 0, playerH}, RE::NiPoint3{0, 0, -1}, playerH * 1000.0f, normal, RE::COL_LAYER::kLOS);
 
                 // require the ray actually hit something above the water AND that that
                 // distance is greater than your gap, AND that hit surface is roughly flat
