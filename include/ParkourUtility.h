@@ -3,7 +3,7 @@
 #include "ScaleUtility.h"
 
 namespace ParkourUtility {
-    void Freeze(RE::Actor &actor);
+    void StopInteractions(RE::Actor &actor);
     bool ToggleControlsForParkour(bool enable);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
     void UpdateLastObjectHitType(RE::COL_LAYER obj);

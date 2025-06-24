@@ -55,6 +55,10 @@
 
                                     Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
                                 }
+
+                                else if (a_event->tag == "SkyParkour_Start") {
+                                    ParkourUtility::StopInteractions(*player);
+                                }
                                 else if (a_event->tag == "SkyParkour_Stop") {
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);

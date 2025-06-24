@@ -95,23 +95,23 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
-void ParkourUtility::Freeze(RE::Actor &a_actor) {
+void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.PauseCurrentDialogue();
     a_actor.InterruptCast(false);
     a_actor.StopInteractingQuick(true);
 
     //a_actor.reset(RE::Actor::BOOL_FLAGS::kShouldAnimGraphUpdate);
 
-    if (const auto charController = a_actor.GetCharController(); charController) {
+    /*if (const auto charController = a_actor.GetCharController(); charController) {
         charController->flags.set(RE::CHARACTER_FLAGS::kNotPushable);
         charController->flags.set(RE::CHARACTER_FLAGS::kNoCharacterCollisions);
 
         charController->flags.reset(RE::CHARACTER_FLAGS::kRecordHits);
         charController->flags.reset(RE::CHARACTER_FLAGS::kHitFlags);
-    }
+    }*/
 
     //a_actor.EnableAI(false);
-    a_actor.StopMoving(1.0f);
+    //a_actor.StopMoving(1.0f);
 }
 
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
