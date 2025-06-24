@@ -58,10 +58,6 @@
                                 else if (a_event->tag == "SkyParkour_Stop") {
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
-
-                                    /* Swap last leg (Step animations) */
-                                    RuntimeMethods::SwapLegs();
-
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControlsForParkour(true);
                                     RuntimeVariables::ParkourInProgress = false;
@@ -135,49 +131,14 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
     if (a_eventName == "Ragdoll") {
         /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
         RuntimeVariables::IsInRagdollOrGettingUp = true;
-    }
-    if (RuntimeVariables::ParkourInProgress) {
-        /*----------Whitelist-------------------------------*/
-        if (a_eventName == "moveStop" || a_eventName == "turnStop") {
-            return _origPlayerCharacter(a_this, a_eventName);
-        }
-        /*--------------------------------------------------*/
-
-        if (a_eventName == "Ragdoll") {
+        if (RuntimeVariables::ParkourInProgress) {
             /*Unlock controls on ragdoll*/
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
                 ParkourUtility::ToggleControlsForParkour(true);
                 RuntimeVariables::ParkourInProgress = false;
             }
-
-            /*And of course send the event,*/
             return didRagdoll;
-        }
-
-        // This is the part where it actually sends the animation event
-        if (RuntimeVariables::ParkourQueuedForStart && a_eventName == "SkyParkour") {
-            // Fall for grounded ones, Jump for midair ones. Seems to work more consistently.
-            RuntimeVariables::ParkourQueuedForStart = false;
-            auto success = _origPlayerCharacter(a_this, a_eventName);
-            if (success) {
-                auto player = RE::PlayerCharacter::GetSingleton();
-                int32_t ledgeType;
-                player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
-
-                Parkouring::AdjustPlayerPosition(ledgeType);
-                Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
-            }
-            else {
-                /* Parkour Failed for whatever reason */
-                ParkourUtility::ToggleControlsForParkour(true);
-                RuntimeVariables::ParkourInProgress = false;
-            }
-            return success;
-        }
-        else {
-            //logger::info(">> Cancelled notify: {}", a_eventName);
-            return false;
         }
     }
     return _origPlayerCharacter(a_this, a_eventName);

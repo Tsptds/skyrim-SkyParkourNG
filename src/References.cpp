@@ -29,7 +29,6 @@ void RuntimeMethods::SwapLegs() {
 // Things that are not handled by MCM and persistent throughout saves without being reset on game load
 void RuntimeMethods::ResetRuntimeVariables() {
     RuntimeVariables::ParkourInProgress = false;
-    RuntimeVariables::ParkourQueuedForStart = false;
     RuntimeVariables::IsInRagdollOrGettingUp = false;
     RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
     auto player = RE::PlayerCharacter::GetSingleton();
@@ -173,7 +172,6 @@ namespace RuntimeVariables {
     RE::NiPoint3 backwardAdjustment = {0, 0, 0};
 
     bool ParkourInProgress = false;
-    bool ParkourQueuedForStart = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
     bool IsInRagdollOrGettingUp = false;

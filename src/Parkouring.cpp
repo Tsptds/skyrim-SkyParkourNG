@@ -371,14 +371,11 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
             std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
 
             SKSE::GetTaskInterface()->AddTask([movingRef]() {
+                movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
                 StopInterpolationToPosition();
 
-                // Swap the leg for step animation
-                RuntimeMethods::SwapLegs();
-
-                // Set player graph to landed
-                movingRef->NotifyAnimationGraph("SkyParkour_EndNotify");
-                movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+                ParkourUtility::ToggleControlsForParkour(true);
+                RuntimeVariables::ParkourInProgress = false;
             });
         });
     }
@@ -586,28 +583,41 @@ bool Parkouring::TryActivateParkour() {
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
     ToggleControlsForParkour(false);
 
-    ParkourReadyRun(LedgeToProcess);
+    ParkourReadyRun();
 
     return true;
 }
-void Parkouring::ParkourReadyRun(int ledge) {
+void Parkouring::ParkourReadyRun() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
 
     // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
     const auto cam = RE::PlayerCamera::GetSingleton();
+
     if (cam && cam->IsInFirstPerson()) {
         /* TODO: Do something for fps*/
-        if (ledge) {
-            /* TODO: */
-        }
         InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1100);
     }
     else {
-        RuntimeVariables::ParkourQueuedForStart = true;
+        bool success = player->NotifyAnimationGraph("SkyParkour");
+        if (success) {
+            int32_t ledgeType;
+            player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
 
-        player->NotifyAnimationGraph("SkyParkour");
+            /* Swap last leg (Step animations) */
+            if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
+                RuntimeMethods::SwapLegs();
+            }
+
+            Parkouring::AdjustPlayerPosition(ledgeType);
+            Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+        }
+        else {
+            /* Parkour Failed for whatever reason */
+            ParkourUtility::ToggleControlsForParkour(true);
+            RuntimeVariables::ParkourInProgress = false;
+        }
     }
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {

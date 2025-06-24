@@ -96,7 +96,6 @@ namespace RuntimeVariables {
     extern RE::NiPoint3 backwardAdjustment;
 
     extern bool ParkourInProgress;
-    extern bool ParkourQueuedForStart;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
     extern bool IsInRagdollOrGettingUp;
