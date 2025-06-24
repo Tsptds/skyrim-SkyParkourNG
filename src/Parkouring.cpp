@@ -570,10 +570,16 @@ bool Parkouring::TryActivateParkour() {
 
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
+    const bool avoidMidairParkour = fallTime < 0.17f;
     //logger::info(">> Fall time: {}", fallTime);
 
     if (LedgeToProcess != ParkourType::Grab) {
         if (avoidOnGroundParkour) {
+            return false;
+        }
+    }
+    else {
+        if (avoidMidairParkour && !isSwimming) {
             return false;
         }
     }
