@@ -57,6 +57,7 @@
                                 }
 
                                 else if (a_event->tag == "SkyParkour_Start") {
+                                    ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
                                 }
                                 else if (a_event->tag == "SkyParkour_Stop") {

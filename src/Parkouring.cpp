@@ -594,8 +594,6 @@ bool Parkouring::TryActivateParkour() {
 
     RuntimeVariables::ParkourInProgress = true;
     player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
-    ToggleControlsForParkour(false);
-
     ParkourReadyRun();
 
     return true;

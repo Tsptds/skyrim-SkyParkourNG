@@ -70,7 +70,7 @@ namespace Hooks {
                         RE::ButtonEvent* upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
 
                         if (downEvt || upEvt) {
-                            std::jthread([this, downEvt, upEvt, a_data]() {
+                            _THREAD_POOL.enqueue([this, downEvt, upEvt, a_data]() {
                                 SKSE::GetTaskInterface()->AddTask([this, downEvt, upEvt, a_data]() {
                                     if (downEvt) {
                                         _ProcessButtonJump(this, downEvt, a_data);
@@ -81,7 +81,7 @@ namespace Hooks {
                                         delete upEvt;
                                     }
                                 });
-                            }).detach();
+                            });
                             return;  // don’t let the engine see the original Up
                         }
                     }

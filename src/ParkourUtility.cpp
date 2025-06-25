@@ -119,23 +119,21 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto playerCamera = RE::PlayerCamera::GetSingleton();
     auto controller = player->GetCharController();
 
-    if (!player || !playerCamera || !controller)
-        return false;
-
-    // Gravity is normally 1
+    // Gravity is normally 1, 0 it to prevent falling (BAD SOLUTION, CAN STILL FLING PLAYER ON COLLISIONS)
     controller->gravity = enable;
+    /* Reset Fall Damage */
     controller->fallStartHeight = player->GetPositionZ();
-    auto controlMap = RE::ControlMap::GetSingleton();
 
     // Toggle common controls
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
+    auto controlMap = RE::ControlMap::GetSingleton();
+    //controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kWheelZoom, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
 
     // POV switch is blocked due to kPOVSwitch being disabled, but doesn't cancel ongoing switch (camera sliding into FPS)
-    if (!enable && playerCamera->IsInThirdPerson()) {
+    if (playerCamera && !enable && playerCamera->IsInThirdPerson()) {
         RE::ThirdPersonState *thirdPersonState = nullptr;
         thirdPersonState = skyrim_cast<RE::ThirdPersonState *>(playerCamera->currentState.get());
         thirdPersonState->targetZoomOffset = thirdPersonState->savedZoomOffset = thirdPersonState->currentZoomOffset;
