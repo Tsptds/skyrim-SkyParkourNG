@@ -133,6 +133,37 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (a_eventName == "testmove1") {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto curPos = player->GetPosition();
+        auto diff = RE::NiPoint3{0, 0, 120};
+        auto newPos = curPos + diff;
+        auto speed = diff.Length() * 0.5f;  // 2s
+
+        logger::info("{}", player->GetPosition());
+        Parkouring::InterpolateRefToPosition(player, newPos, speed);
+    }
+    else if (a_eventName == "testmove2") {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto curPos = player->GetPosition();
+        auto diff = RE::NiPoint3{0, 0, 120};
+        auto newPos = curPos + diff;
+        auto speed = diff.Length();  // 1s
+
+        logger::info("{}", player->GetPosition());
+        Parkouring::InterpolateRefToPosition(player, newPos, speed);
+    }
+    else if (a_eventName == "testmove3") {
+        auto player = RE::PlayerCharacter::GetSingleton();
+        auto curPos = player->GetPosition();
+        auto diff = RE::NiPoint3{0, 0, 120};
+        auto newPos = curPos + diff;
+        auto speed = diff.Length() * 2;  // 1s
+
+        logger::info("{}", player->GetPosition());
+        Parkouring::InterpolateRefToPosition(player, newPos, speed);
+    }
+
     if (a_eventName == "Ragdoll") {
         /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
         RuntimeVariables::IsInRagdollOrGettingUp = true;
