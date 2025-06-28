@@ -18,7 +18,8 @@
                             if (RuntimeVariables::ParkourInProgress) {
                                 //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
                                 const auto player = RE::PlayerCharacter::GetSingleton();
-                                if (a_event->tag == "SkyParkour_Begin") {
+
+                                /*if (a_event->tag == "SkyParkour_Begin") {
                                     const auto payload = a_event->payload.c_str();
                                     Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
                                                                          std::strtof(payload, nullptr));
@@ -54,9 +55,8 @@
                                     auto onlyForwardVec = player->GetPosition() + RE::NiPoint3{0, 0, -30};
 
                                     Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
-                                }
-
-                                else if (a_event->tag == "SkyParkour_Start") {
+                                }*/
+                                if (a_event->tag == "SkyParkour_Start") {
                                     ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
                                 }
@@ -133,37 +133,6 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (a_eventName == "testmove1") {
-        auto player = RE::PlayerCharacter::GetSingleton();
-        auto curPos = player->GetPosition();
-        auto diff = RE::NiPoint3{0, 0, 120};
-        auto newPos = curPos + diff;
-        auto speed = diff.Length() * 0.5f;  // 2s
-
-        logger::info("{}", player->GetPosition());
-        Parkouring::InterpolateRefToPosition(player, newPos, speed);
-    }
-    else if (a_eventName == "testmove2") {
-        auto player = RE::PlayerCharacter::GetSingleton();
-        auto curPos = player->GetPosition();
-        auto diff = RE::NiPoint3{0, 0, 120};
-        auto newPos = curPos + diff;
-        auto speed = diff.Length();  // 1s
-
-        logger::info("{}", player->GetPosition());
-        Parkouring::InterpolateRefToPosition(player, newPos, speed);
-    }
-    else if (a_eventName == "testmove3") {
-        auto player = RE::PlayerCharacter::GetSingleton();
-        auto curPos = player->GetPosition();
-        auto diff = RE::NiPoint3{0, 0, 120};
-        auto newPos = curPos + diff;
-        auto speed = diff.Length() * 2;  // 1s
-
-        logger::info("{}", player->GetPosition());
-        Parkouring::InterpolateRefToPosition(player, newPos, speed);
-    }
-
     if (a_eventName == "Ragdoll") {
         /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
         RuntimeVariables::IsInRagdollOrGettingUp = true;

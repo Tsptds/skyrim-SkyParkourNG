@@ -322,8 +322,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float speed = 500.0f, bool useTimeout,
-                                          int timeoutMS) {
+void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float seconds) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
@@ -331,6 +330,10 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
 
     // 1) Get the TESObjectREFR pointer to move:
     RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
+
+    auto curPos = movingRef->GetPosition();
+    auto diff = position - curPos;
+    auto speed = diff.Length() * (seconds < 0 ? 1 : (1 / seconds));  // Default negative seconds to 1
 
     // 2) Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
@@ -357,7 +360,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     float rz = obj->data.angle.z;
     float maxRotSpeed = 0.0f;
 
-    // 5) Build the IFunctionArguments with those locals:
+    // 4) Build the IFunctionArguments with those locals:
     auto args = RE::MakeFunctionArguments(std::move(px),  // afX
                                           std::move(py),  // afY
                                           std::move(pz),  // afZ
@@ -373,19 +376,6 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                             functionName,  // "TranslateTo"
                             args,          // packed arguments
                             result);
-    if (useTimeout) {
-        _THREAD_POOL.enqueue([vm, movingRef, timeoutMS]() {
-            std::this_thread::sleep_for(std::chrono::milliseconds(timeoutMS));
-
-            SKSE::GetTaskInterface()->AddTask([movingRef]() {
-                movingRef->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
-                StopInterpolationToPosition();
-
-                ParkourUtility::ToggleControlsForParkour(true);
-                RuntimeVariables::ParkourInProgress = false;
-            });
-        });
-    }
 }
 void Parkouring::StopInterpolationToPosition() {
     auto movingRef = RE::PlayerCharacter::GetSingleton();
@@ -486,7 +476,7 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
-    Parkouring::InterpolateRefToPosition(player, newPosition);
+    Parkouring::InterpolateRefToPosition(player, newPosition, 0.5f);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -606,29 +596,28 @@ void Parkouring::ParkourReadyRun() {
     // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
     const auto cam = RE::PlayerCamera::GetSingleton();
 
-    if (cam && cam->IsInFirstPerson()) {
-        /* TODO: Do something for fps*/
-        InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 400.0f, true, 1100);
+    bool success = player->NotifyAnimationGraph("SkyParkour");
+    if (success) {
+        int32_t ledgeType;
+        player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
+
+        /* Swap last leg (Step animations) */
+        if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
+            RuntimeMethods::SwapLegs();
+        }
+
+        Parkouring::AdjustPlayerPosition(ledgeType);
+        Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+
+        if (cam && cam->IsInFirstPerson()) {
+            /* TODO: Do something for fps*/
+            InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 1.1f);
+        }
     }
     else {
-        bool success = player->NotifyAnimationGraph("SkyParkour");
-        if (success) {
-            int32_t ledgeType;
-            player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
-
-            /* Swap last leg (Step animations) */
-            if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
-                RuntimeMethods::SwapLegs();
-            }
-
-            Parkouring::AdjustPlayerPosition(ledgeType);
-            Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
-        }
-        else {
-            /* Parkour Failed for whatever reason */
-            ParkourUtility::ToggleControlsForParkour(true);
-            RuntimeVariables::ParkourInProgress = false;
-        }
+        /* Parkour Failed for whatever reason */
+        ParkourUtility::ToggleControlsForParkour(true);
+        RuntimeVariables::ParkourInProgress = false;
     }
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
