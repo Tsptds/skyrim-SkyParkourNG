@@ -322,7 +322,7 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float seconds) {
+void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float seconds, bool isRelative) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
@@ -332,7 +332,26 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
 
     auto curPos = movingRef->GetPosition();
-    auto diff = position - curPos;
+    RE::NiPoint3 relativeTranslatedToWorld = position;
+
+    if (isRelative) {
+        auto facing = RuntimeVariables::playerDirFlat;
+        // playerDirFlat = forward vector (x,y,0), normalized
+        float rightX = facing.y;
+        float rightY = -facing.x;
+
+        // parsed.x = left-right offset (right positive)
+        // parsed.y = forward-back offset (forward positive)
+
+        float worldX =
+            curPos.x + position.x * rightX * RuntimeVariables::PlayerScale + position.y * facing.x * RuntimeVariables::PlayerScale;
+        float worldY =
+            curPos.y + position.x * rightY * RuntimeVariables::PlayerScale + position.y * facing.y * RuntimeVariables::PlayerScale;
+        float worldZ = curPos.z + position.z * RuntimeVariables::PlayerScale;
+        relativeTranslatedToWorld = RE::NiPoint3{worldX, worldY, worldZ};
+    }
+
+    auto diff = relativeTranslatedToWorld - curPos;
     auto speed = diff.Length() * (seconds < 0 ? 1 : (1 / seconds));  // Default negative seconds to 1
 
     // 2) Wrap movingRef in a Papyrus handle
@@ -352,9 +371,9 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
         return;
     }
 
-    float px = position.x;
-    float py = position.y;
-    float pz = position.z;
+    float px = relativeTranslatedToWorld.x;
+    float py = relativeTranslatedToWorld.y;
+    float pz = relativeTranslatedToWorld.z;
     float rx = obj->data.angle.x;
     float ry = obj->data.angle.y;
     float rz = obj->data.angle.z;
@@ -368,7 +387,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                                           std::move(ry),  // afRY
                                           std::move(rz),  // afRZ
                                           //std::move(100.0f),
-                                          std::move(speed * RuntimeVariables::PlayerScale), std::move(maxRotSpeed));
+                                          std::move(speed), std::move(maxRotSpeed));
 
     // 5) Call the Papyrus method
     RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
@@ -408,7 +427,7 @@ void Parkouring::StopInterpolationToPosition() {
 
 void Parkouring::AdjustPlayerPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-
+    player->GetCharController()->SetLinearVelocityImpl(0);
     float zAdjust = 0;
     float z = 0;
 
@@ -417,14 +436,14 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 45 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 7:  // High ledge
             z = HardCodedVariables::highLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 45 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 6:  // Medium ledge
@@ -476,7 +495,7 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
-    Parkouring::InterpolateRefToPosition(player, newPosition, 0.5f);
+    Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -546,7 +565,8 @@ bool Parkouring::TryActivateParkour() {
     using namespace GameReferences;
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
-    const auto LedgeToProcess = RuntimeVariables::selectedLedgeType;
+    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
+    const auto LedgePointToProcess = RuntimeVariables::ledgePoint;
     // Check Is Parkour Active again, make sure condition is still valid during activation
     if (!IsParkourActive() || RuntimeVariables::ParkourInProgress) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
@@ -554,7 +574,7 @@ bool Parkouring::TryActivateParkour() {
     }
 
     const bool isMoving = player->IsMoving();
-    const bool isVaultAction = CheckIsVaultActionFromType(LedgeToProcess);
+    const bool isVaultAction = CheckIsVaultActionFromType(LedgeTypeToProcess);
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
@@ -563,7 +583,7 @@ bool Parkouring::TryActivateParkour() {
     const bool avoidMidairParkour = fallTime < 0.17f;
     //logger::info(">> Fall time: {}", fallTime);
 
-    if (LedgeToProcess != ParkourType::Grab) {
+    if (LedgeTypeToProcess != ParkourType::Grab) {
         if (avoidOnGroundParkour) {
             return false;
         }
@@ -583,12 +603,11 @@ bool Parkouring::TryActivateParkour() {
     }
 
     RuntimeVariables::ParkourInProgress = true;
-    player->SetGraphVariableInt("SkyParkourLedge", LedgeToProcess);
-    ParkourReadyRun();
+    ParkourReadyRun(LedgePointToProcess, LedgeTypeToProcess);
 
     return true;
 }
-void Parkouring::ParkourReadyRun() {
+void Parkouring::ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
@@ -596,22 +615,21 @@ void Parkouring::ParkourReadyRun() {
     // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
     const auto cam = RE::PlayerCamera::GetSingleton();
 
+    player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
+    Parkouring::AdjustPlayerPosition(ledgeType);
+
     bool success = player->NotifyAnimationGraph("SkyParkour");
     if (success) {
-        int32_t ledgeType;
-        player->GetGraphVariableInt("SkyParkourLedge", ledgeType);
-
         /* Swap last leg (Step animations) */
         if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
             RuntimeMethods::SwapLegs();
         }
 
-        Parkouring::AdjustPlayerPosition(ledgeType);
         Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
 
         if (cam && cam->IsInFirstPerson()) {
             /* TODO: Do something for fps*/
-            InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 1.1f);
+            InterpolateRefToPosition(player, ledgePoint, 1.1f);
         }
     }
     else {

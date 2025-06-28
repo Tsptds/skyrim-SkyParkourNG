@@ -2,6 +2,10 @@
     template <class T>
     class AnimationEventHook : public T {
         public:
+            struct ParsedPayload {
+                    float x, y, z, sec;
+            };
+
             using Fn_t = decltype(&T::ProcessEvent);
             static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
@@ -10,57 +14,34 @@
                     if (a_event) {
                         auto actor = a_event->holder;
                         if (actor && actor->IsPlayerRef()) {
-                            /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
                             if (a_event->tag == "GetUpExit") {
+                                /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
                                 RuntimeVariables::IsInRagdollOrGettingUp = false;
                             }
 
                             if (RuntimeVariables::ParkourInProgress) {
                                 //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
-                                const auto player = RE::PlayerCharacter::GetSingleton();
 
-                                /*if (a_event->tag == "SkyParkour_Begin") {
-                                    const auto payload = a_event->payload.c_str();
-                                    Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint,
-                                                                         std::strtof(payload, nullptr));
+                                if (a_event->tag == "SkyParkour_Move") {
+                                    if (!a_event->payload.empty()) {
+                                        const auto player = RE::PlayerCharacter::GetSingleton();
+                                        player->GetCharController()->SetLinearVelocityImpl(0);
+                                        const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
+
+                                        const auto relativePos = RE::NiPoint3{parsed.x, parsed.y, parsed.z};
+                                        const auto seconds = parsed.sec;
+
+                                        constexpr bool isRelative = true;
+                                        Parkouring::InterpolateRefToPosition(player, relativePos, seconds, isRelative);
+                                    }
                                 }
-                                else if (a_event->tag == "SkyParkour_OverShoot") {
-                                    const auto payload = a_event->payload.c_str();
-                                    Parkouring::InterpolateRefToPosition(player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 50.0f)),
-                                                                         std::strtof(payload, nullptr));
-                                }
-                                else if (a_event->tag == "SkyParkour_UnderShoot") {
-                                    const auto payload = a_event->payload.c_str();
-                                    Parkouring::InterpolateRefToPosition(
-                                        player, (RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, -90.0f * RuntimeVariables::PlayerScale)),
-                                        std::strtof(payload, nullptr));
-                                }
-                                else if (a_event->tag == "SkyParkour_VaultForward") {
-                                    const auto payload = a_event->payload.c_str();
-
-                                    auto onlyForwardVec = player->GetPosition() + RuntimeVariables::playerDirFlat * 20;
-
-                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
-                                }
-                                else if (a_event->tag == "SkyParkour_RelativeForward") {
-                                    const auto payload = a_event->payload.c_str();
-
-                                    auto onlyForwardVec = player->GetPosition() + RuntimeVariables::playerDirFlat * 20;
-
-                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
-                                }
-                                else if (a_event->tag == "SkyParkour_RelativeDownward") {
-                                    const auto payload = a_event->payload.c_str();
-
-                                    auto onlyForwardVec = player->GetPosition() + RE::NiPoint3{0, 0, -30};
-
-                                    Parkouring::InterpolateRefToPosition(player, onlyForwardVec, std::strtof(payload, nullptr));
-                                }*/
-                                if (a_event->tag == "SkyParkour_Start") {
+                                else if (a_event->tag == "SkyParkour_Start") {
+                                    const auto player = RE::PlayerCharacter::GetSingleton();
                                     ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
                                 }
                                 else if (a_event->tag == "SkyParkour_Stop") {
+                                    const auto player = RE::PlayerCharacter::GetSingleton();
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
                                     /* Reenable controls */
@@ -81,6 +62,26 @@
                 constexpr std::size_t idx = 0x1;
                 _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
                 logger::info(">> AnimEvent Hook Installed");
+            }
+
+        private:
+            /* UNSAFE */
+            ParsedPayload ParsePayload(const char* payload) {
+                /* Expected anim event - payload format: SkyParkour_Move.x_y_z@s */
+                const char* ptr = payload;
+
+                float x = std::strtof(ptr, const_cast<char**>(&ptr));
+                ++ptr;  // Skip '_'
+
+                float y = std::strtof(ptr, const_cast<char**>(&ptr));
+                ++ptr;  // Skip '_'
+
+                float z = std::strtof(ptr, const_cast<char**>(&ptr));
+                ++ptr;  // Skip '@'
+
+                float sec = std::strtof(ptr, const_cast<char**>(&ptr));
+
+                return {x, y, z, sec};
             }
     };
 }  // namespace Hooks

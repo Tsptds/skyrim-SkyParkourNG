@@ -123,6 +123,7 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controller->gravity = enable;
     /* Reset Fall Damage */
     controller->fallStartHeight = player->GetPositionZ();
+    controller->SetLinearVelocityImpl(0);
 
     // Toggle common controls
     auto controlMap = RE::ControlMap::GetSingleton();
