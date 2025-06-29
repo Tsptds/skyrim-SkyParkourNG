@@ -436,14 +436,14 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
             z = HardCodedVariables::highestLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 45 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 7:  // High ledge
             z = HardCodedVariables::highLedgeElevation - 3;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 45 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 6:  // Medium ledge
@@ -495,7 +495,8 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
-    Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
+    //Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
+    player->SetPosition(newPosition, true);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -616,16 +617,18 @@ void Parkouring::ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType) {
     const auto cam = RE::PlayerCamera::GetSingleton();
 
     player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
-    Parkouring::AdjustPlayerPosition(ledgeType);
 
     bool success = player->NotifyAnimationGraph("SkyParkour");
     if (success) {
+        Parkouring::AdjustPlayerPosition(ledgeType);
         /* Swap last leg (Step animations) */
         if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
             RuntimeMethods::SwapLegs();
         }
-
-        Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+        /* Steps don't consume stamina anymore */
+        else {
+            Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+        }
 
         if (cam && cam->IsInFirstPerson()) {
             /* TODO: Do something for fps*/

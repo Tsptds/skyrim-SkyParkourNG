@@ -69,9 +69,6 @@ void RuntimeMethods::ReadIni() {
 void RuntimeMethods::CheckRequirements() {
     struct Requirements {
             const char *BDI = "BehaviorDataInjector.dll";
-            const char *AMR = "AnimationMotionRevolution.dll";
-            const char *OAR = "OpenAnimationReplacer.dll";
-            const char *OAR_Math = "OpenAnimationReplacer-Math.dll";
 
             static Requirements *Get() {
                 static Requirements req;
@@ -80,21 +77,12 @@ void RuntimeMethods::CheckRequirements() {
     };
 
     auto BDI = GetModuleHandleA(Requirements::Get()->BDI);
-    auto AMR = GetModuleHandleA(Requirements::Get()->AMR);
-    auto OAR = GetModuleHandleA(Requirements::Get()->OAR);
-    auto OAR_Math = GetModuleHandleA(Requirements::Get()->OAR_Math);
 
-    if (!BDI || !AMR || !OAR || !OAR_Math) {
+    if (!BDI) {
         std::string msg = "\nSkyParkourV2: Loading aborted, required mods not found:\n\n";
 
         if (!BDI)
             msg += Requirements::Get()->BDI + std::string("\n");
-        if (!AMR)
-            msg += Requirements::Get()->AMR + std::string("\n");
-        if (!OAR)
-            msg += Requirements::Get()->OAR + std::string("\n");
-        if (!OAR_Math)
-            msg += Requirements::Get()->OAR_Math + std::string("\n");
 
         SKSE::stl::report_and_fail(msg);
     }
