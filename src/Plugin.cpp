@@ -94,7 +94,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
             logger::warn(">>> Requirement Checks Skipped <<<");
             return;
         }
-        RuntimeMethods::CheckRequirements();
+        //RuntimeMethods::CheckRequirements();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Check for ESP
