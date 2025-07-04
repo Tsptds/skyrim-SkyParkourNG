@@ -147,5 +147,14 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             return didRagdoll;
         }
     }
+    else if (a_eventName == "SkyParkour_Stop") {
+        const auto player = RE::PlayerCharacter::GetSingleton();
+        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+        /* Reenable controls */
+        ParkourUtility::ToggleControlsForParkour(true);
+        RuntimeVariables::ParkourInProgress = false;
+
+        Parkouring::StopInterpolationToPosition();
+    }
     return _origPlayerCharacter(a_this, a_eventName);
 }
