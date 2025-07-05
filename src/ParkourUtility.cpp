@@ -111,7 +111,7 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     }*/
 
     //a_actor.EnableAI(false);
-    //a_actor.StopMoving(1.0f);
+    a_actor.StopMoving(1.0f);
 }
 
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
