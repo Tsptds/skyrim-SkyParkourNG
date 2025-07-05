@@ -1,4 +1,5 @@
 ﻿namespace Hooks {
+    bool didActivate = false;
     template <class T>
     class AnimationEventHook : public T {
         public:
@@ -36,6 +37,7 @@
                                     }
                                 }
                                 else if (a_event->tag == "SkyParkour_Start") {
+                                    didActivate = true;
                                     const auto player = RE::PlayerCharacter::GetSingleton();
                                     ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
@@ -49,6 +51,7 @@
                                     RuntimeVariables::ParkourInProgress = false;
 
                                     Parkouring::StopInterpolationToPosition();
+                                    didActivate = false;
                                 }
                             }
                         }
@@ -134,6 +137,11 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (didActivate && RuntimeVariables::ParkourInProgress && a_eventName == "SkyParkour") {
+        /* Don't send event during parkour. TODO: Move this into behavior patch later by disabling self transition. */
+        return false;
+    }
+
     if (a_eventName == "Ragdoll") {
         /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
         RuntimeVariables::IsInRagdollOrGettingUp = true;
@@ -155,6 +163,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::ParkourInProgress = false;
 
         Parkouring::StopInterpolationToPosition();
+        didActivate = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }
