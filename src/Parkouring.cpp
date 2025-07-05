@@ -56,7 +56,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Backward ray to check for obstructions behind the vaultable surface
         RE::NiPoint3 backwardRayStart = fwdRayStart + checkDir * (fwdRayDist - 2) + RE::NiPoint3(0, 0, 5);
-        const float maxObstructionDistance = 10.0f * RuntimeVariables::PlayerScale;
+        const float maxObstructionDistance = 15.0f * RuntimeVariables::PlayerScale;
         float backwardRayDist = RayCast(backwardRayStart, checkDir, maxObstructionDistance, normalOut, RE::COL_LAYER::kLOS);
 
         if (backwardRayDist > 0 && backwardRayDist < maxObstructionDistance) {
@@ -433,28 +433,22 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
 
     switch (ledgeType) {
         case 8:  // Highest Ledge
-            z = HardCodedVariables::highestLedgeElevation - 3;
+            z = HardCodedVariables::highestLedgeElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 7:  // High ledge
-            z = HardCodedVariables::highLedgeElevation - 3;
+            z = HardCodedVariables::highLedgeElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 80 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 6:  // Medium ledge
-            z = HardCodedVariables::medLedgeElevation - 3;
+            z = HardCodedVariables::medLedgeElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 60 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 5:  // Low ledge
-            z = HardCodedVariables::lowLedgeElevation - 3;
+            z = HardCodedVariables::lowLedgeElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             break;
 
@@ -462,23 +456,23 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
             z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 15 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 3:  // Step Low
             z = HardCodedVariables::stepLowElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 30 * RuntimeVariables::PlayerScale;  // Override backward offset
+                RuntimeVariables::playerDirFlat * 15 * RuntimeVariables::PlayerScale;  // Override backward offset
             break;
 
         case 2:  // Vault
-            z = HardCodedVariables::vaultElevation - 3;
+            z = HardCodedVariables::vaultElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             break;
 
         case 1:  // Grab (Midair or Out of Water)
-            z = HardCodedVariables::grabElevation - 3;
+            z = HardCodedVariables::grabElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
             RuntimeVariables::backwardAdjustment =
                 RuntimeVariables::playerDirFlat * 40 * RuntimeVariables::PlayerScale;  // Override backward offset
