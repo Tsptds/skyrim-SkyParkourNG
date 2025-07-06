@@ -1,5 +1,6 @@
 ﻿namespace Hooks {
     bool didActivate = false;
+
     template <class T>
     class AnimationEventHook : public T {
         public:
@@ -44,13 +45,16 @@
                                 }
                                 else if (a_event->tag == "SkyParkour_Stop") {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
+                                    /* Post position correction */
+                                    Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 0.2f);
+
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControlsForParkour(true);
                                     RuntimeVariables::ParkourInProgress = false;
 
-                                    Parkouring::StopInterpolationToPosition();
+                                    //Parkouring::StopInterpolationToPosition();
                                     didActivate = false;
                                 }
                             }
@@ -149,6 +153,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             /*Unlock controls on ragdoll*/
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
+                Parkouring::StopInterpolationToPosition();
                 ParkourUtility::ToggleControlsForParkour(true);
                 RuntimeVariables::ParkourInProgress = false;
             }
@@ -162,7 +167,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         ParkourUtility::ToggleControlsForParkour(true);
         RuntimeVariables::ParkourInProgress = false;
 
-        Parkouring::StopInterpolationToPosition();
         didActivate = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);

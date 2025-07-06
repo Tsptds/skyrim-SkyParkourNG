@@ -13,7 +13,7 @@ namespace Parkouring {
     int GetLedgePoint(float backwardOffset);
     void InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float seconds, bool isRelative = false);
     void StopInterpolationToPosition();
-    void AdjustPlayerPosition(int ledgeType);
+    void CalculateStartingPosition(int ledgeType);
 
     bool TryActivateParkour();
     void UpdateParkourPoint();

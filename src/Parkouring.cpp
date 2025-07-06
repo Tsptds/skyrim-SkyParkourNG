@@ -331,7 +331,8 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     // 1) Get the TESObjectREFR pointer to move:
     RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
 
-    auto curPos = movingRef->GetPosition();
+    /* Keep this relative to start position, not relative per move annotation. If fps is low, some annotations may be missed. */
+    auto curPos = /*movingRef->GetPosition();*/ RuntimeVariables::PlayerStartPosition;
     RE::NiPoint3 relativeTranslatedToWorld = position;
 
     if (isRelative) {
@@ -425,7 +426,7 @@ void Parkouring::StopInterpolationToPosition() {
                             result);
 }
 
-void Parkouring::AdjustPlayerPosition(int ledgeType) {
+void Parkouring::CalculateStartingPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     player->GetCharController()->SetLinearVelocityImpl(0);
     float zAdjust = 0;
@@ -485,12 +486,13 @@ void Parkouring::AdjustPlayerPosition(int ledgeType) {
             return;
     }
 
-    const auto newPosition =
+    //const auto newPosition =
+    RuntimeVariables::PlayerStartPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
                      RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
 
     //Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
-    player->SetPosition(newPosition, true);
+    //player->SetPosition(RuntimeVariables::PlayerStartPosition, true);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -614,7 +616,8 @@ void Parkouring::ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType) {
 
     bool success = player->NotifyAnimationGraph("SkyParkour");
     if (success) {
-        Parkouring::AdjustPlayerPosition(ledgeType);
+        /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */
+        Parkouring::CalculateStartingPosition(ledgeType);
         /* Swap last leg (Step animations) */
         if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
             RuntimeMethods::SwapLegs();
