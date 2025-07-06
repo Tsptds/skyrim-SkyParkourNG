@@ -32,7 +32,7 @@ for i in range(1, len(motions)):
     t1, x1, y1, z1 = motions[i]
     duration = t1 - t0
     dx, dy, dz = x1 - start_x, y1 - start_y, z1 - start_z
-    moves.append((t0, f"SkyParkour_Move.{dx}_{dy}_{dz}@{duration:.6f}"))
+    moves.append((t0, f"SkyParkour_Move.{dx}|{dy}|{dz}@{duration:.6f}"))
 
 # Merge moves and sounds, sorted by timestamp
 all_events = [(t, desc) for t, desc in moves] + sounds

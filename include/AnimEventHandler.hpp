@@ -74,14 +74,15 @@
         private:
             /* UNSAFE */
             ParsedPayload ParsePayload(const char* payload) {
-                /* Expected anim event - payload format: SkyParkour_Move.x_y_z@s */
+                /* Expected anim event - payload format: SkyParkour_Move.x|y|z@s */
+                /* Separators are actually just non numeric chars, but for clarity this one seems fine */
                 const char* ptr = payload;
 
                 float x = std::strtof(ptr, const_cast<char**>(&ptr));
-                ++ptr;  // Skip '_'
+                ++ptr;  // Skip '|'
 
                 float y = std::strtof(ptr, const_cast<char**>(&ptr));
-                ++ptr;  // Skip '_'
+                ++ptr;  // Skip '|'
 
                 float z = std::strtof(ptr, const_cast<char**>(&ptr));
                 ++ptr;  // Skip '@'
