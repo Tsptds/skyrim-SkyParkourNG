@@ -566,7 +566,6 @@ bool Parkouring::TryActivateParkour() {
     using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
-    const auto LedgePointToProcess = RuntimeVariables::ledgePoint;
     // Check Is Parkour Active again, make sure condition is still valid during activation
     if (!IsParkourActive() || RuntimeVariables::ParkourInProgress) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
@@ -603,17 +602,14 @@ bool Parkouring::TryActivateParkour() {
     }
 
     RuntimeVariables::ParkourInProgress = true;
-    ParkourReadyRun(LedgePointToProcess, LedgeTypeToProcess);
+    ParkourReadyRun(LedgeTypeToProcess);
 
     return true;
 }
-void Parkouring::ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType) {
+void Parkouring::ParkourReadyRun(int32_t ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
-
-    // Use timeout for fps, anim event motion data for tps, maybe add fps anims later
-    const auto cam = RE::PlayerCamera::GetSingleton();
 
     player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
 
@@ -628,11 +624,6 @@ void Parkouring::ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType) {
         /* Steps don't consume stamina anymore */
         else {
             Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
-        }
-
-        if (cam && cam->IsInFirstPerson()) {
-            /* TODO: Do something for fps*/
-            InterpolateRefToPosition(player, ledgePoint, 1.1f);
         }
     }
     else {

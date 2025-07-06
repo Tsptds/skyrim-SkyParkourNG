@@ -17,7 +17,7 @@ namespace Parkouring {
 
     bool TryActivateParkour();
     void UpdateParkourPoint();
-    void ParkourReadyRun(RE::NiPoint3 ledgePoint, int32_t ledgeType);
+    void ParkourReadyRun(int32_t ledgeType);
     void PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault);
 
     void SetParkourOnOff(bool turnOn);

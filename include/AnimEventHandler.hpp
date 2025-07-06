@@ -45,8 +45,7 @@
                                 }
                                 else if (a_event->tag == "SkyParkour_Stop") {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
-                                    /* Post position correction */
-                                    Parkouring::InterpolateRefToPosition(player, RuntimeVariables::ledgePoint, 0.2f);
+                                    Parkouring::StopInterpolationToPosition();
 
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
                                                                                                         ParkourType::NoLedge);
@@ -54,7 +53,6 @@
                                     ParkourUtility::ToggleControlsForParkour(true);
                                     RuntimeVariables::ParkourInProgress = false;
 
-                                    //Parkouring::StopInterpolationToPosition();
                                     didActivate = false;
                                 }
                             }
@@ -163,6 +161,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
     }
     else if (a_eventName == "SkyParkour_Stop") {
         const auto player = RE::PlayerCharacter::GetSingleton();
+        Parkouring::StopInterpolationToPosition();
+
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         /* Reenable controls */
         ParkourUtility::ToggleControlsForParkour(true);
