@@ -331,28 +331,31 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     // 1) Get the TESObjectREFR pointer to move:
     RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
 
-    /* Keep this relative to start position, not relative per move annotation. If fps is low, some annotations may be missed. */
-    auto curPos = /*movingRef->GetPosition();*/ RuntimeVariables::PlayerStartPosition;
+    /* Calculate speed from cur pos to target dist / time. BUT Read annotations relative to start position. */
+    auto curPos = movingRef->GetPosition();
     RE::NiPoint3 relativeTranslatedToWorld = position;
 
     if (isRelative) {
-        auto facing = RuntimeVariables::playerDirFlat;
+        const auto facing = RuntimeVariables::playerDirFlat;
         // playerDirFlat = forward vector (x,y,0), normalized
-        float rightX = facing.y;
-        float rightY = -facing.x;
+        const float rightX = facing.y;
+        const float rightY = -facing.x;
 
         // parsed.x = left-right offset (right positive)
         // parsed.y = forward-back offset (forward positive)
 
-        float worldX =
-            curPos.x + position.x * rightX * RuntimeVariables::PlayerScale + position.y * facing.x * RuntimeVariables::PlayerScale;
-        float worldY =
-            curPos.y + position.x * rightY * RuntimeVariables::PlayerScale + position.y * facing.y * RuntimeVariables::PlayerScale;
-        float worldZ = curPos.z + position.z * RuntimeVariables::PlayerScale;
+        const auto startPos = RuntimeVariables::PlayerStartPosition;
+
+        const float worldX =
+            startPos.x + position.x * rightX * RuntimeVariables::PlayerScale + position.y * facing.x * RuntimeVariables::PlayerScale;
+        const float worldY =
+            startPos.y + position.x * rightY * RuntimeVariables::PlayerScale + position.y * facing.y * RuntimeVariables::PlayerScale;
+        const float worldZ = startPos.z + position.z * RuntimeVariables::PlayerScale;
+
         relativeTranslatedToWorld = RE::NiPoint3{worldX, worldY, worldZ};
     }
 
-    auto diff = relativeTranslatedToWorld - curPos;
+    const auto diff = relativeTranslatedToWorld - curPos;
     auto speed = seconds < 0 ? 5000 : diff.Length() * (1 / seconds);  // Snap to pos if negative seconds
 
     // 2) Wrap movingRef in a Papyrus handle
