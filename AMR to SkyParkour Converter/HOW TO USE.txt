@@ -22,7 +22,17 @@ These anim events trigger certain stuff in the game, and have payloads for addit
 <Timestamp> is the time when annotation triggers (for e.g 0.333334). The timestamps aren't in real seconds, but more like <timestamp> multiplied by a second.
 
 
-The format of SkyParkour annotations:
+There are 4 main anim events:
+SkyParkour_Start
+SkyParkour_Stop
+SkyParkour_Move
+SkyParkour_Recovery
+
+> Start and Stop are fired automatically, you shouldn't add these to your animations.
+> Move is the equivalent of AMR's animmotion
+> Recovery is for having a skippable window for the animation, exits early if any of the 4-way movement input is received after this event.
+
+The format of SkyParkour_Move annotation:
 -------------------------------
 <Timestamp> SkyParkour_Move.x|y|z@s
 -------------------------------
