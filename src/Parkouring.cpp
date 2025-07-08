@@ -483,7 +483,7 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
             break;
 
         case 0:  // Failed (Low Stamina Animation)
-            return;
+            break;
         default:
             logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledgeType);
             return;
@@ -492,7 +492,8 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
     //const auto newPosition =
     RuntimeVariables::PlayerStartPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
-                     RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y, RuntimeVariables::ledgePoint.z + zAdjust};
+                     RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y,
+                     ledgeType == ParkourType::Failed ? player->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
 
     //Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
     //player->SetPosition(RuntimeVariables::PlayerStartPosition, true);
