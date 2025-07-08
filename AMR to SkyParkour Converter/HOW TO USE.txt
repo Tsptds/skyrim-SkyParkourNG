@@ -5,8 +5,9 @@ You need hkanno & HCT 2010.2 for annotating skyrim animations.
 SkyParkour supports root motion-like movement, where you can export root motion data from the root motion export blender plugin
 and then use this tool to convert AMR annotations to be useable by SkyParkour.
 Just put your annotation txt files into _Annotations folder, run "Convert All AMR to SkyParkour" bat file and the txt files will be overwritten.
+The tool will preserve SoundPlay annotations, but any other will be lost in the process.
 
-But this format also allows achieving decent movement with manual annotations and having some more control over them.
+This format also allows achieving decent movement with manual annotations and having some more control over them.
 
 SkyParkour now doesn't rely on AMR nor Skyrim's animation driven movement system, instead
 it uses the animation event & payload system of Skyrim to process this data, so it should be familiar to people
@@ -58,11 +59,11 @@ An example annotation sequence converted from AMR:
 	0.866667 SkyParkour_Move.0.0|11.0|35.0@0.033333
 	0.900000 SkyParkour_Move.0.0|18.0|55.0@0.500000
 
-This basically means, on 0.866667 timestamp, start going to x->0 y->11 z->35 in 0.033333 seconds.
-Then on 0.9, start going to x->0 y->18 z->55 in 0.5 seconds.
+This basically means, on 0.866667 timestamp, start going to x->0 y->11 z->35 in 0.033333 seconds. (Arrives ar 0.9)
+Then on 0.9, start going to x->0 y->18 z->55 in 0.5 seconds. (Arrives at 1.4)
 
 As mentioned above, in case of too long s values, previous movement will cancel. This can result in the next movement being faster to catch up.
 
 YOU DON'T NEED TO ADD ALL THOSE ZEROS AFTER x y z or s values, it's just how the exporter formats it.
 
-Numbers are of type float so you can have something like 0.001234567890 though I see no point in such little movement.
+Numbers are of float type so you can have something like 0.001234 though I see no point in such little movement.
