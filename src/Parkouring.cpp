@@ -564,11 +564,13 @@ bool Parkouring::TryActivateParkour() {
     }
 
     RuntimeVariables::ParkourInProgress = true;
-    ParkourReadyRun(LedgeTypeToProcess);
+
+    /* Also pass swimming state for stamina calculation logic */
+    ParkourReadyRun(LedgeTypeToProcess, isSwimming);
 
     return true;
 }
-void Parkouring::ParkourReadyRun(int32_t ledgeType) {
+void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
@@ -585,7 +587,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType) {
         }
         /* Steps don't consume stamina anymore */
         else {
-            Parkouring::PostParkourStaminaDamage(player, ParkourUtility::CheckIsVaultActionFromType(ledgeType));
+            const bool isVaultAction = ParkourUtility::CheckIsVaultActionFromType(ledgeType);
+            Parkouring::PostParkourStaminaDamage(player, isVaultAction, isSwimming);
         }
     }
     else {
@@ -594,11 +597,12 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType) {
         RuntimeVariables::ParkourInProgress = false;
     }
 }
-void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault) {
+void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault, bool isSwimming) {
     if (ModSettings::Enable_Stamina_Consumption) {
         float cost = ParkourUtility::CalculateParkourStamina();
 
-        if (isVault) {
+        /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like vault. */
+        if (isVault || isSwimming) {
             // logger::info("cost{}", cost / 2);
             DamageActorStamina(player, cost / 2);
         }
