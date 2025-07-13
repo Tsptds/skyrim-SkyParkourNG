@@ -11,7 +11,7 @@
 
 class ThreadPool {
     public:
-        ThreadPool(size_t n = std::max(1u, std::thread::hardware_concurrency() - 1)) {
+        ThreadPool(size_t n = std::max(1u, std::jthread::hardware_concurrency() - 1)) {
             for (size_t i = 0; i < n; ++i) {
                 workers.emplace_back([this](std::stop_token st) {
                     while (!st.stop_requested()) {
