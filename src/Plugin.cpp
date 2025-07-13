@@ -58,7 +58,6 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
             std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod will not work.";
 
             RE::DebugMessageBox(err.c_str());
-            logger::info(">> SkyParkour *failed* to load <<");
             return;
         }
 
@@ -76,8 +75,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         int32_t out;
         if (player->GetGraphVariableInt("SkyParkourLedge", out) && out && out != -1) {
             logger::warn(">>SAVE LOADED WITH ONGOING PARKOUR, FIXING IT<<");
-            ParkourUtility::ToggleControlsForParkour(true);
-            player->NotifyAnimationGraph("JumpLandEnd");
+            player->NotifyAnimationGraph("SkyParkour_Stop");
         }
 
         RuntimeMethods::ResetRuntimeVariables();
