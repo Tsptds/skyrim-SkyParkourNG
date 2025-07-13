@@ -18,13 +18,13 @@ namespace RuntimeMethods {
     extern void SwapLegs();
     extern void ResetRuntimeVariables();
     extern bool CheckESPLoaded();
-    extern void ReadIni();
+    extern std::unique_ptr<CSimpleIniA> GetIniHandle();
+    extern void ReadIniStartup();
     extern void CheckRequirements();
 }  // namespace RuntimeMethods
 
 namespace Compatibility {
     extern bool TrueDirectionalMovement;
-    //extern bool ImprovedCamera;
 }  // namespace Compatibility
 
 namespace HardCodedVariables {

@@ -3,12 +3,9 @@
 #include "References.h"
 #include "Parkouring.h"
 
-namespace SkyParkour_PapyrusInterface {
+namespace SkyParkour_Papyrus {
 
     extern void AddFuncsToVm(RE::BSScript::IVirtualMachine *vm);
-
-    extern bool ReadMCM();
-    extern bool WriteMCM();
 
     extern void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode);
     extern void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey);

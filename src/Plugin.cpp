@@ -10,7 +10,7 @@ using namespace ParkourUtility;
 using namespace Parkouring;
 
 bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
-    SkyParkour_PapyrusInterface::AddFuncsToVm(vm);
+    SkyParkour_Papyrus::AddFuncsToVm(vm);
     return true;
 }
 
@@ -43,7 +43,7 @@ bool RegisterIndicators() {
 
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
-        RuntimeMethods::ReadIni();
+        RuntimeMethods::ReadIniStartup();
 
         if (IniSettings::IgnoreRequirements) {
             logger::warn(">>> Requirement Checks Skipped <<<");

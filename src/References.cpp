@@ -14,45 +14,50 @@ namespace ModSettings {
     bool Is_Stamina_Required = true;
     float Stamina_Damage = 20.0f;
 
-    bool Smart_Parkour_Enabled = true;  // Don't use high/failed ledge when moving, don't use vault when standing still
+    bool Smart_Parkour_Enabled = true;
 }  // namespace ModSettings
 
-/*=========================================================================*/
-// Alternate step animations
-void RuntimeMethods::SwapLegs() {
-    RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
-    RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
+namespace RuntimeMethods {
 
-    //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
-}
+    void SwapLegs() {
+        RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
+        RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
 
-// Things that are not handled by MCM and persistent throughout saves without being reset on game load
-void RuntimeMethods::ResetRuntimeVariables() {
-    RuntimeVariables::ParkourInProgress = false;
-    RuntimeVariables::RecoveryFramesActive = false;
-    RuntimeVariables::IsInRagdollOrGettingUp = false;
-    RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
-    auto player = RE::PlayerCharacter::GetSingleton();
-    if (player) {
-        player->SetGraphVariableInt("SkyParkourLedge", -1);
+        //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
     }
-}
-bool RuntimeMethods::CheckESPLoaded() {
-    auto dh = RE::TESDataHandler::GetSingleton();
-    return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
-                  dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
-}
-void RuntimeMethods::ReadIni() {
-    CSimpleIniA ini;
-    ini.SetUnicode();
 
-    SI_Error rc = ini.LoadFile("./Data/SKSE/Plugins/SkyParkourNG.ini");
-    if (rc < 0) {
-        std::string f = std::filesystem::current_path().string();
-        logger::error("** SkyParkourNG.ini not found in: |{}| >Using default configs", f);
+    // Things that are not handled by MCM and persistent throughout saves without being reset on game load
+    void ResetRuntimeVariables() {
+        RuntimeVariables::ParkourInProgress = false;
+        RuntimeVariables::RecoveryFramesActive = false;
+        RuntimeVariables::IsInRagdollOrGettingUp = false;
+        RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
+        auto player = RE::PlayerCharacter::GetSingleton();
+        if (player) {
+            player->SetGraphVariableInt("SkyParkourLedge", -1);
+        }
     }
-    else {
-        const char *name = ini.GetValue("ESP", "sEspName");
+    bool CheckESPLoaded() {
+        auto dh = RE::TESDataHandler::GetSingleton();
+        return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
+                      dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
+    }
+    std::unique_ptr<CSimpleIniA> GetIniHandle() {
+        auto ini = std::make_unique<CSimpleIniA>();
+        ini->SetUnicode();
+
+        SI_Error rc = ini->LoadFile("./Data/SKSE/Plugins/SkyParkourNG.ini");
+        if (rc < 0) {
+            logger::error("** SkyParkourNG.ini not found > Using default configs");
+            return nullptr;
+        }
+
+        return ini;
+    }
+
+    void ReadIniStartup() {
+        auto ini = GetIniHandle();
+        const char *name = ini->GetValue("ESP", "sEspName");
         if (!name) {
             logger::error("SkyParkour: sEspName reading failed, using default config: SkyParkourV2");
         }
@@ -61,41 +66,40 @@ void RuntimeMethods::ReadIni() {
             IniSettings::ESP_NAME = name;
         }
 
-        const bool devMode = ini.GetBoolValue("DEV", "bIgnoreRequirements");
+        const bool devMode = ini->GetBoolValue("DEV", "bIgnoreRequirements");
         if (devMode) {
             IniSettings::IgnoreRequirements = true;
         }
     }
-}
-void RuntimeMethods::CheckRequirements() {
-    struct Requirements {
-            const char *BDI = "BehaviorDataInjector.dll";
+    void CheckRequirements() {
+        struct Requirements {
+                const char *BDI = "BehaviorDataInjector.dll";
 
-            static Requirements *Get() {
-                static Requirements req;
-                return &req;
-            }
-    };
+                static Requirements *Get() {
+                    static Requirements req;
+                    return &req;
+                }
+        };
 
-    auto BDI = GetModuleHandleA(Requirements::Get()->BDI);
+        auto BDI = GetModuleHandleA(Requirements::Get()->BDI);
 
-    if (!BDI) {
-        std::string msg = "\nSkyParkourV2: Loading aborted, required mods not found:\n\n";
+        if (!BDI) {
+            std::string msg = "\nSkyParkourV2: Loading aborted, required mods not found:\n\n";
 
-        if (!BDI)
-            msg += Requirements::Get()->BDI + std::string("\n");
+            if (!BDI)
+                msg += Requirements::Get()->BDI + std::string("\n");
 
-        SKSE::stl::report_and_fail(msg);
+            SKSE::stl::report_and_fail(msg);
+        }
     }
-}
-void RuntimeMethods::SetupModCompatibility() {
-    auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
-    if (TDM) {
-        Compatibility::TrueDirectionalMovement = true;
-        logger::info("** TDM Found, 360 Parkour Enabled");
+    void SetupModCompatibility() {
+        auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
+        if (TDM) {
+            Compatibility::TrueDirectionalMovement = true;
+            logger::info("** TDM Found, 360 Parkour Enabled");
+        }
     }
-}
-/*=========================================================================*/
+}  // namespace RuntimeMethods
 
 namespace Compatibility {
     bool TrueDirectionalMovement = false;
