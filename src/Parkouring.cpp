@@ -599,6 +599,10 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault, bool isSwimming) {
     if (ModSettings::Enable_Stamina_Consumption) {
+        if (player->IsGodMode()) {
+            return;
+        }
+
         float cost = ParkourUtility::CalculateParkourStamina();
 
         /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like vault. */
