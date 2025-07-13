@@ -27,7 +27,6 @@
                                 if (a_event->tag == "SkyParkour_Move") {
                                     if (!a_event->payload.empty()) {
                                         const auto player = RE::PlayerCharacter::GetSingleton();
-                                        player->GetCharController()->SetLinearVelocityImpl(0);
                                         const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
 
                                         const auto relativePos = RE::NiPoint3{parsed.x, parsed.y, parsed.z};
@@ -67,7 +66,7 @@
                 return _ProcessEvent(this, a_event, a_eventSource);
             }
             static void InstallAnimEventHook() {
-                // Hooking the vfunc directly
+                // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
                 auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
                 constexpr std::size_t idx = 0x1;
                 _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
@@ -75,7 +74,7 @@
             }
 
         private:
-            /* UNSAFE */
+            /* TODO: UNSAFE, fix this */
             ParsedPayload ParsePayload(const char* payload) {
                 /* Expected anim event - payload format: SkyParkour_Move.x|y|z@s */
                 /* Separators are actually just non numeric chars, but for clarity this one seems fine */
