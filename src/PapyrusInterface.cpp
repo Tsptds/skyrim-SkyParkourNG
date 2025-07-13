@@ -1,8 +1,19 @@
 #include "PapyrusInterface.h"
 namespace SkyParkour_PapyrusInterface {
 
-    bool ReadMCM() {}
-    bool WriteMCM() {}
+    void AddFuncsToVm(RE::BSScript::IVirtualMachine *vm) {
+        vm->RegisterFunction("RegisterParkourSettings", "SkyParkourPapyrus", RegisterParkourSettings);
+        vm->RegisterFunction("RegisterCustomParkourKey", "SkyParkourPapyrus", RegisterCustomParkourKey);
+        vm->RegisterFunction("RegisterPresetParkourKey", "SkyParkourPapyrus", RegisterPresetParkourKey);
+        vm->RegisterFunction("RegisterParkourDelay", "SkyParkourPapyrus", RegisterParkourDelay);
+        vm->RegisterFunction("RegisterStaminaDamage", "SkyParkourPapyrus", RegisterStaminaDamage);
+    }
+    bool ReadMCM() {
+    
+    }
+    bool WriteMCM() {
+    
+    }
     void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
         ButtonStates::DXCODE = dxcode;
         logger::info(">Custom Key: '{}'", dxcode);

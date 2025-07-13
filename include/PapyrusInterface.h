@@ -2,7 +2,10 @@
 #include "PCH.h"
 #include "References.h"
 #include "Parkouring.h"
+
 namespace SkyParkour_PapyrusInterface {
+
+    extern void AddFuncsToVm(RE::BSScript::IVirtualMachine *vm);
 
     extern bool ReadMCM();
     extern bool WriteMCM();

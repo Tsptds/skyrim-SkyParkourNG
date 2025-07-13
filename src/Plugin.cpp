@@ -10,13 +10,7 @@ using namespace ParkourUtility;
 using namespace Parkouring;
 
 bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
-    using namespace SkyParkour_PapyrusInterface;
-    vm->RegisterFunction("RegisterParkourSettings", "SkyParkourPapyrus", RegisterParkourSettings);
-    vm->RegisterFunction("RegisterCustomParkourKey", "SkyParkourPapyrus", RegisterCustomParkourKey);
-    vm->RegisterFunction("RegisterPresetParkourKey", "SkyParkourPapyrus", RegisterPresetParkourKey);
-    vm->RegisterFunction("RegisterParkourDelay", "SkyParkourPapyrus", RegisterParkourDelay);
-    vm->RegisterFunction("RegisterStaminaDamage", "SkyParkourPapyrus", RegisterStaminaDamage);
-
+    SkyParkour_PapyrusInterface::AddFuncsToVm(vm);
     return true;
 }
 
@@ -128,7 +122,7 @@ namespace plugin {
         return directory.append("SKSE"sv).make_preferred();
     }
 
-    void initializeLogging() {
+    static void InitializeLogging() {
         auto path = getLogDirectory();
         if (!path) {
             report_and_fail("Can't find SKSE log directory");
@@ -150,10 +144,8 @@ namespace plugin {
     }
 }  // namespace plugin
 
-using namespace plugin;
-
 extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
-    initializeLogging();
+    plugin::InitializeLogging();
 
     Init(skse, false);
     logger::info("'{} {}' / Skyrim '{}'", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
