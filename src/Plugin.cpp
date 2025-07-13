@@ -1,59 +1,20 @@
 #include "ParkourUtility.h"
-#include "Parkouring.h"
-#include "ButtonListener.h"
 #include "RaceChangeListener.h"
 #include "References.h"
+#include "PapyrusInterface.h"
 #include "PCH.h"
-
 #include "InputHandler.hpp"
 #include "AnimEventHandler.hpp"
 
 using namespace ParkourUtility;
 using namespace Parkouring;
 
-void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
-    ButtonStates::DXCODE = dxcode;
-    logger::info(">Custom Key: '{}'", dxcode);
-}
-
-void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey) {
-    ModSettings::PresetParkourKey = presetKey;
-    logger::info(">Preset Key: '{}'", ModSettings::PresetParkourKey);
-}
-
-void RegisterParkourDelay(RE::StaticFunctionTag *, float delay) {
-    ModSettings::parkourDelay = delay;
-    logger::info(">Delay '{}'", ModSettings::parkourDelay);
-}
-
-void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBlocks, float damage) {
-    ModSettings::Enable_Stamina_Consumption = enabled;
-    ModSettings::Is_Stamina_Required = staminaBlocks;
-    ModSettings::Stamina_Damage = damage;
-    logger::info("|Stamina|> On:'{}' >Must:'{}' >Dmg:'{}'", ModSettings::Enable_Stamina_Consumption, ModSettings::Is_Stamina_Required,
-                 ModSettings::Stamina_Damage);
-}
-
-void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour, bool _useIndicators) {
-    ModSettings::UsePresetParkourKey = _usePresetKey;
-    ModSettings::Smart_Parkour_Enabled = _smartParkour;
-    ModSettings::UseIndicators = _useIndicators;
-
-    ModSettings::ModEnabled = _enableMod;
-
-    // Turn on if setting is on and is not beast form. Same logic on race change listener.
-    Parkouring::SetParkourOnOff(ModSettings::ModEnabled && !ParkourUtility::IsBeastForm());
-}
-
-bool PapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
+bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
+    using namespace SkyParkour_PapyrusInterface;
     vm->RegisterFunction("RegisterParkourSettings", "SkyParkourPapyrus", RegisterParkourSettings);
-
     vm->RegisterFunction("RegisterCustomParkourKey", "SkyParkourPapyrus", RegisterCustomParkourKey);
-
     vm->RegisterFunction("RegisterPresetParkourKey", "SkyParkourPapyrus", RegisterPresetParkourKey);
-
     vm->RegisterFunction("RegisterParkourDelay", "SkyParkourPapyrus", RegisterParkourDelay);
-
     vm->RegisterFunction("RegisterStaminaDamage", "SkyParkourPapyrus", RegisterStaminaDamage);
 
     return true;
@@ -197,7 +158,7 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
     Init(skse, false);
     logger::info("'{} {}' / Skyrim '{}'", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
 
-    SKSE::GetPapyrusInterface()->Register(PapyrusFunctions);
+    SKSE::GetPapyrusInterface()->Register(RegisterPapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
     return true;
 }
