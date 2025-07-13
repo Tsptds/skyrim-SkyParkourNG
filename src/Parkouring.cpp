@@ -529,7 +529,7 @@ bool Parkouring::TryActivateParkour() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
     // Check Is Parkour Active again, make sure condition is still valid during activation
-    if (!IsParkourActive() || RuntimeVariables::ParkourInProgress) {
+    if (!IsParkourActive() || RuntimeVariables::ParkourInProgress || LedgeTypeToProcess == ParkourType::NoLedge) {
         player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
         return false;
     }
