@@ -1,13 +1,7 @@
 #include "PapyrusInterface.h"
 namespace SkyParkour_PapyrusInterface {
 
-    bool ReadMCM() {
-        auto ini = RuntimeMethods::GetIniHandle();
-        if (!ini) {
-            logger::error(">>> CAN'T READ MCM SETTINGS, INI FILE NOT FOUND <<<");
-            return false;
-        }
-    }
+    bool ReadMCM() {}
     bool WriteMCM() {}
     void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode) {
         ButtonStates::DXCODE = dxcode;
