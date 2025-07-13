@@ -150,6 +150,10 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         return false;
     }
 
+    if (a_eventName == "SkyParkour" && !RuntimeVariables::IsParkourActive) {
+        return false;
+    }
+
     if (a_eventName == "Ragdoll") {
         /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
         RuntimeVariables::IsInRagdollOrGettingUp = true;
