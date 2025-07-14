@@ -29,6 +29,7 @@ namespace RuntimeMethods {
     // Things that are not handled by MCM and persistent throughout saves without being reset on game load
     void ResetRuntimeVariables() {
         RuntimeVariables::ParkourInProgress = false;
+        RuntimeVariables::ParkourActivatedOnce = false;
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::IsInRagdollOrGettingUp = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
@@ -167,6 +168,7 @@ namespace RuntimeVariables {
     RE::NiPoint3 PlayerStartPosition = {0, 0, 0};
 
     bool ParkourInProgress = false;
+    bool ParkourActivatedOnce = false;
     bool RecoveryFramesActive = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;

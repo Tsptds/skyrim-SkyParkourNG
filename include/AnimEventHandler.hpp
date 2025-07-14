@@ -1,5 +1,4 @@
 ﻿namespace Hooks {
-    bool didActivate = false;
 
     template <class T>
     class AnimationEventHook : public T {
@@ -38,7 +37,6 @@
                                     }
                                 }
                                 else if (a_event->tag == "SkyParkour_Start") {
-                                    didActivate = true;
                                     const auto player = RE::PlayerCharacter::GetSingleton();
                                     ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
@@ -58,7 +56,7 @@
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
 
-                                    didActivate = false;
+                                    RuntimeVariables::ParkourActivatedOnce = false;
                                 }
                             }
                         }
@@ -145,7 +143,7 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (didActivate && RuntimeVariables::ParkourInProgress && a_eventName == "SkyParkour") {
+    if (RuntimeVariables::ParkourActivatedOnce && RuntimeVariables::ParkourInProgress && a_eventName == "SkyParkour") {
         /* Don't send event during parkour. TODO: Move this into behavior patch later by disabling self transition. */
         return false;
     }
@@ -159,7 +157,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::IsInRagdollOrGettingUp = true;
         if (RuntimeVariables::ParkourInProgress) {
             /*Unlock controls on ragdoll*/
-            didActivate = false;
+            RuntimeVariables::ParkourActivatedOnce = false;
 
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
@@ -181,7 +179,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
 
-        didActivate = false;
+        RuntimeVariables::ParkourActivatedOnce = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }

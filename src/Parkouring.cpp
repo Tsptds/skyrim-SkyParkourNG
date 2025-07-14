@@ -579,6 +579,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
     bool success = player->NotifyAnimationGraph("SkyParkour");
     if (success) {
+        RuntimeVariables::ParkourActivatedOnce = true;
         /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */
         Parkouring::CalculateStartingPosition(ledgeType);
         /* Swap last leg (Step animations) */
