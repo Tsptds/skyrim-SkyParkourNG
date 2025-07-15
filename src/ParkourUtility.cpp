@@ -119,11 +119,11 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto playerCamera = RE::PlayerCamera::GetSingleton();
     auto controller = player->GetCharController();
 
-    // Gravity is normally 1, 0 it to prevent falling (BAD SOLUTION, CAN STILL FLING PLAYER ON COLLISIONS)
-    controller->gravity = enable;
     /* Reset Fall Damage */
     controller->fallStartHeight = player->GetPositionZ();
     controller->SetLinearVelocityImpl(0);
+
+    controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
     // Toggle common controls
     auto controlMap = RE::ControlMap::GetSingleton();
