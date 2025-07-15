@@ -356,7 +356,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     }
 
     const auto diff = relativeTranslatedToWorld - curPos;
-    auto speed = seconds < 0 ? 5000 : diff.Length() * (1 / seconds);  // Snap to pos if negative seconds
+    auto speed = seconds <= 0 ? 5000 : diff.Length() / seconds;  // Snap to pos if negative seconds
 
     // 2) Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
