@@ -27,6 +27,7 @@
                                 if (a_event->tag == "SkyParkour_Move") {
                                     if (!a_event->payload.empty()) {
                                         const auto player = RE::PlayerCharacter::GetSingleton();
+                                        player->GetCharController()->SetLinearVelocityImpl(RE::hkVector4(0, 0, 0, 0));
                                         const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
 
                                         const auto relativePos = RE::NiPoint3{parsed.x, parsed.y, parsed.z};

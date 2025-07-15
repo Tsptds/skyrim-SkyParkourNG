@@ -431,7 +431,6 @@ void Parkouring::StopInterpolationToPosition() {
 
 void Parkouring::CalculateStartingPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    player->GetCharController()->SetLinearVelocityImpl(0);
     float zAdjust = 0;
     float z = 0;
 

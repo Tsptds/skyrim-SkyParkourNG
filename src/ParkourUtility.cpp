@@ -122,7 +122,6 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controller->fallStartHeight = player->GetPositionZ();
     /* Set gravity on off */
     controller->gravity = enable;
-    controller->SetLinearVelocityImpl(0);
 
     //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
