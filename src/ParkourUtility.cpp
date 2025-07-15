@@ -371,17 +371,3 @@ bool ParkourUtility::PlayerIsOnStairs() {
             PluginReferences::lastHitObject == RE::COL_LAYER::kStairHelper*/
         ;
 }
-
-float ParkourUtility::magnitudeXY(float x, float y) {
-    return sqrt(x * x + y * y);
-}
-
-//void ParkourUtility::MoveMarkerToLedge(RE::TESObjectREFR *ledgeMarker, RE::NiPoint3 ledgePoint, RE::NiPoint3 backwardAdjustment,
-//                                       float zAdjust) {
-//    // Position ledge marker with adjustments
-//    ledgeMarker->SetPosition({ledgePoint.x - backwardAdjustment.x, ledgePoint.y - backwardAdjustment.y, ledgePoint.z + zAdjust});
-//}
-
-//void ParkourUtility::RotateLedgeMarker(RE::TESObjectREFR *ledgeMarker, RE::NiPoint3 playerDirFlat) {
-//    ledgeMarker->data.angle = RE::NiPoint3(0, 0, atan2(playerDirFlat.x, playerDirFlat.y));
-//}
