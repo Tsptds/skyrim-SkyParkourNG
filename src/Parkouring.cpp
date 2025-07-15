@@ -576,6 +576,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     //logger::info("Dist: {}", dist);
 
     player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
+    player->NotifyAnimationGraph("moveStop");
 
     bool success = player->NotifyAnimationGraph("SkyParkour");
     if (success) {
