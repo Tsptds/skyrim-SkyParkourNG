@@ -116,7 +116,6 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
 
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
-    auto playerCamera = RE::PlayerCamera::GetSingleton();
     auto controller = player->GetCharController();
 
     /* Reset Fall Damage */
