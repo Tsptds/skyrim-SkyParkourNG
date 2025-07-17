@@ -5,13 +5,13 @@
 
 namespace SkyParkour_Papyrus {
 
-    extern void AddFuncsToVm(RE::BSScript::IVirtualMachine *vm);
+    class Internal {
+        public:
+            static void Read_All_MCM_From_INI_and_Cache_Settings();
+            static void RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm);
 
-    extern void RegisterCustomParkourKey(RE::StaticFunctionTag *, int32_t dxcode);
-    extern void RegisterPresetParkourKey(RE::StaticFunctionTag *, int32_t presetKey);
-    extern void RegisterParkourDelay(RE::StaticFunctionTag *, float delay);
-    extern void RegisterStaminaDamage(RE::StaticFunctionTag *, bool enabled, bool staminaBlocks, float damage);
-    extern void RegisterParkourSettings(RE::StaticFunctionTag *, bool _usePresetKey, bool _enableMod, bool _smartParkour,
-                                        bool _useIndicators);
+        private:
+            static void AlertPlayerLoaded(RE::StaticFunctionTag *);
+    };
 
-};  // namespace SkyParkour_PapyrusInterface
+};  // namespace SkyParkour_Papyrus

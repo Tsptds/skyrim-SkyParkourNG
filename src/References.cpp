@@ -56,7 +56,7 @@ namespace RuntimeMethods {
         return ini;
     }
 
-    void ReadIniStartup() {
+    void ReadPluginConfigFromINI() {
         auto ini = GetIniHandle();
         const char *name = ini->GetValue("ESP", "sEspName");
         if (!name) {
@@ -190,5 +190,6 @@ namespace GameReferences {
 
 namespace IniSettings {
     std::string ESP_NAME = "SkyParkourV2.esp";
+    const char *INIPath = "./Data/SKSE/Plugins/SkyParkourNG.ini";
     bool IgnoreRequirements = false;
 }  // namespace IniSettings

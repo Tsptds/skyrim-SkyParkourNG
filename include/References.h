@@ -19,7 +19,7 @@ namespace RuntimeMethods {
     extern void ResetRuntimeVariables();
     extern bool CheckESPLoaded();
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
-    extern void ReadIniStartup();
+    extern void ReadPluginConfigFromINI();
     extern void CheckRequirements();
 }  // namespace RuntimeMethods
 
@@ -125,5 +125,6 @@ namespace GameReferences {
 
 namespace IniSettings {
     extern std::string ESP_NAME;
+    extern const char *INIPath;
     extern bool IgnoreRequirements;
 }  // namespace IniSettings
