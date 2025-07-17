@@ -80,7 +80,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         return ParkourType::NoLedge;
     }
 
-    float ledgePlayerDiff = ledgePoint.z - playerPos.z;
+    const float ledgePlayerDiff = ledgePoint.z - playerPos.z;
     if (PlayerIsGroundedOrSliding() || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
@@ -131,10 +131,9 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             }
         }
     }
-    else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > -35 && ledgePlayerDiff <= 100 * RuntimeVariables::PlayerScale) {
-        if (!PlayerIsOnStairs()) {
-            return ParkourType::Grab;
-        }
+    else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > HardCodedVariables::grabPlayerAboveLedgeMaxDiff &&
+             ledgePlayerDiff <= HardCodedVariables::grabPlayerBelowLedgeMaxDiff * RuntimeVariables::PlayerScale) {
+        return ParkourType::Grab;
     }
     return ParkourType::NoLedge;
 }

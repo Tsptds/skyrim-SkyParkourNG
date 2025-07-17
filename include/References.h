@@ -28,11 +28,20 @@ namespace Compatibility {
 }  // namespace Compatibility
 
 namespace HardCodedVariables {
+    // 250
     extern const float climbMaxHeight;
+    // 20
     extern const float climbMinHeight;
 
+    // 115
     extern const float vaultMaxHeight;
+    // 40
     extern const float vaultMinHeight;
+
+    // 100
+    extern const float grabPlayerBelowLedgeMaxDiff;
+    // -35
+    extern const float grabPlayerAboveLedgeMaxDiff;
 
     // 220
     extern const float highestLedgeLimit;

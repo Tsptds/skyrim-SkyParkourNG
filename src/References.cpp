@@ -107,12 +107,15 @@ namespace Compatibility {
 }  // namespace Compatibility
 
 namespace HardCodedVariables {
-    // Lower - upper limits for ledge - vault detection.
+    // Lower - upper limits for ledge - vault - grab detection.
     const float climbMaxHeight = 250.0f;
     const float climbMinHeight = 20.0f;
 
     const float vaultMaxHeight = 115.0f;
     const float vaultMinHeight = 40.5f;
+
+    const float grabPlayerBelowLedgeMaxDiff = 100.0f;
+    const float grabPlayerAboveLedgeMaxDiff = -35.0f;
 
     // These are the height ranges for parkour type selection, represent low limits.
     const float highestLedgeLimit = 220.0f;
