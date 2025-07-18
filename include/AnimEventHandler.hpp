@@ -76,22 +76,26 @@
                     float x, y, z, sec;
             };
 
-            /* TODO: UNSAFE, fix this */
+            static float parse_next(const char*& ptr, char delim) {
+                char* end;
+                float v = std::strtof(ptr, &end);
+                if (end == ptr) {
+                    return 0;
+                }
+                ptr = end;
+                if (*ptr == delim)
+                    ++ptr;
+                return v;
+            }
+
             ParsedPayload ParsePayload(const char* payload) {
                 /* Expected anim event - payload format: SkyParkour_Move.x|y|z@s */
-                /* Separators are actually just non numeric chars, but for clarity this one seems fine */
                 const char* ptr = payload;
 
-                float x = std::strtof(ptr, const_cast<char**>(&ptr));
-                ++ptr;  // Skip '|'
-
-                float y = std::strtof(ptr, const_cast<char**>(&ptr));
-                ++ptr;  // Skip '|'
-
-                float z = std::strtof(ptr, const_cast<char**>(&ptr));
-                ++ptr;  // Skip '@'
-
-                float sec = std::strtof(ptr, const_cast<char**>(&ptr));
+                float x = parse_next(ptr, '|');
+                float y = parse_next(ptr, '|');
+                float z = parse_next(ptr, '@');
+                float sec = parse_next(ptr, '\0');
 
                 return {x, y, z, sec};
             }
