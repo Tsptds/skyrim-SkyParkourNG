@@ -26,6 +26,4 @@ namespace ParkourUtility {
     bool IsParkourActive();
     bool PlayerIsOnStairs();
     float magnitudeXY(float x, float y);
-    //void MoveMarkerToLedge(RE::TESObjectREFR *ledgeMarker, RE::NiPoint3 ledgePoint, RE::NiPoint3 backwardAdjustment, float zAdjust);
-    //void RotateLedgeMarker(RE::TESObjectREFR *ledgeMarker, RE::NiPoint3 playerDirFlat);
 }  // namespace ParkourUtility

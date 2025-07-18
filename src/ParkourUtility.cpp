@@ -1,46 +1,5 @@
 ﻿#include "ParkourUtility.h"
 
-//class NodeOverride {
-//    public:
-//        NodeOverride(RE::NiNode *node, float scale)
-//            : node(node) {
-//            old_scale = node->local.scale;
-//            node->local.scale = scale;
-//        }
-//        ~NodeOverride() {
-//            node->local.scale = old_scale;
-//        }
-//
-//    private:
-//        RE::NiNode *node;
-//        float old_scale;
-//};
-//static std::vector<std::unique_ptr<NodeOverride>> headOverride;
-//static std::vector<std::unique_ptr<NodeOverride>> bodyOverride;
-
-//void ToggleHeadNode(RE::PlayerCharacter *player, bool show) {
-//    // Get3D gets false, we need the THIRD PERSON NODE
-//    //auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
-//    auto *headNode = player->Get3D(0)->GetObjectByName("NPC Head [Head]")->AsNode();
-//    auto *bodyNode = player->Get3D(0)->GetObjectByName("NPC Spine [Spn0]")->AsNode();
-//
-//    //auto cam = RE::PlayerCamera::GetSingleton();
-//
-//    if (show) {
-//        headOverride.clear();
-//        bodyOverride.clear();
-//    } else {
-//        // To hide the head, shrink it. Lol.
-//        headOverride.push_back(std::make_unique<NodeOverride>(headNode, 0.001f));
-//        bodyOverride.push_back(std::make_unique<NodeOverride>(bodyNode, 0.001f));
-//    }
-//    RE::NiUpdateData upd{0.0f, RE::NiUpdateData::Flag::kDirty};
-//
-//    // Push it through the node
-//    headNode->UpdateControllers(upd);
-//    headNode->UpdateDownwardPass(upd, /* arg2 = */ 0);
-//}
-
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
         return false;
