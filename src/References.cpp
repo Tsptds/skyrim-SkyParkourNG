@@ -110,7 +110,7 @@ namespace Compatibility {
 namespace HardCodedVariables {
     // Lower - upper limits for ledge - vault - grab detection.
     const float climbMaxHeight = 250.0f;
-    const float climbMinHeight = 20.0f;
+    const float climbMinHeight = 35.0f;
 
     const float vaultMaxHeight = 115.0f;
     const float vaultMinHeight = 40.5f;
@@ -123,7 +123,7 @@ namespace HardCodedVariables {
     const float highLedgeLimit = 170.0f;
     const float medLedgeLimit = 123.0f;
     const float lowLedgeLimit = 80.0f;
-    const float highStepLimit = 40.0f;
+    const float highStepLimit = 60.0f;
 
     // These are the ending heights for each animation, they are dependent on animmotion data.
     const float highestLedgeElevation = 250.0f;
