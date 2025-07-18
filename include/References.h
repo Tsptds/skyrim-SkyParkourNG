@@ -98,7 +98,6 @@ namespace ParkourType {
 
 namespace RuntimeVariables {
     extern bool IsParkourActive;
-    extern RE::COL_LAYER lastHitObject;
     extern float PlayerScale;
     extern int selectedLedgeType;
     extern RE::NiPoint3 ledgePoint;

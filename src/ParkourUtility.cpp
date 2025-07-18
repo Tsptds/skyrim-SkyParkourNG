@@ -118,26 +118,22 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     return playerDirFlat;
 }
 
-void ParkourUtility::UpdateLastObjectHitType(RE::COL_LAYER obj) {
-    RuntimeVariables::lastHitObject = obj;
-}
-
-float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::hkVector4 &normalOut,
-                              RE::COL_LAYER layerMask) {
+RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::COL_LAYER layerMask) {
     const auto player = RE::PlayerCharacter::GetSingleton();
+
+    RayCastResult result{};
+    result.distance = maxDist;
+
     if (!player) {
-        normalOut = RE::hkVector4(0.0f, 0.0f, 0.0f, 0.0f);
-        return maxDist;  // Return maxDist if player is null
+        return result;
     }
     const auto cell = player->GetParentCell();
     if (!cell) {
-        normalOut = RE::hkVector4(0.0f, 0.0f, 0.0f, 0.0f);
-        return maxDist;  // Return maxDist if cell is unavailable
+        return result;
     }
     const auto bhkWorld = cell->GetbhkWorld();
     if (!bhkWorld) {
-        normalOut = RE::hkVector4(0.0f, 0.0f, 0.0f, 0.0f);
-        return maxDist;  // Return maxDist if Havok world is unavailable
+        return result;
     }
 
     RE::bhkPickData pickData;
@@ -154,20 +150,16 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
 
     // Perform the raycast
     if (bhkWorld->PickObject(pickData) && pickData.rayOutput.HasHit()) {
-        normalOut = pickData.rayOutput.normal;
+        result.normalOut = pickData.rayOutput.normal;
 
-        const uint32_t layerIndex = pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F;
-        UpdateLastObjectHitType(static_cast<RE::COL_LAYER>(layerIndex));
+        const RE::COL_LAYER layer =
+            static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F);
 
-        if (layerIndex == 0) {
-            return -1.0f;  // Invalid layer hit
-        }
+        result.layer = layer;
 
-        // Optionally log the layer hit
-        // if (logLayer) logger::info("\nLayer hit: {}", layerIndex);
-
+        /* TODO: only detection for ledge should use LOS mask, otherwise it should detect invisible walls as well */
         // Check for useful collision layers
-        switch (RuntimeVariables::lastHitObject) {
+        switch (layer) {
             case RE::COL_LAYER::kStatic:
             case RE::COL_LAYER::kCollisionBox:
             case RE::COL_LAYER::kTerrain:
@@ -178,19 +170,12 @@ float ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float 
             case RE::COL_LAYER::kClutterLarge:
             case RE::COL_LAYER::kAnimStatic:
             case RE::COL_LAYER::kDebrisLarge:
-                // Update last hit object type
-                return maxDist * pickData.rayOutput.hitFraction;
-
-            default:
-                return -1.0f;  // Ignore unwanted layers
+                result.distance = maxDist * pickData.rayOutput.hitFraction;
+                result.isValid = true;
         }
     }
 
-    // No hit
-    normalOut = RE::hkVector4(0.0f, 0.0f, 0.0f, 0.0f);
-    // if (logLayer) logger::info("Nothing hit");
-
-    return maxDist;
+    return result;
 }
 
 bool ParkourUtility::IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player) {

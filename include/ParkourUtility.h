@@ -6,8 +6,7 @@ namespace ParkourUtility {
     void StopInteractions(RE::Actor &actor);
     bool ToggleControlsForParkour(bool enable);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
-    void UpdateLastObjectHitType(RE::COL_LAYER obj);
-    float RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::hkVector4 &normalOut, RE::COL_LAYER layerMask);
+    RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::COL_LAYER layerMask);
     bool IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player);
     bool IsPlayerUsingFurniture(RE::PlayerCharacter *);
     bool IsPlayerInCharGen(RE::PlayerCharacter *);

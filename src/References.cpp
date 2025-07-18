@@ -160,8 +160,6 @@ namespace ParkourType {
 namespace RuntimeVariables {
     bool IsParkourActive = true;
 
-    RE::COL_LAYER lastHitObject;
-
     float PlayerScale = 1.0f;
 
     int selectedLedgeType = -1;
