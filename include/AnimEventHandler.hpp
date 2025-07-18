@@ -3,10 +3,6 @@
     template <class T>
     class AnimationEventHook : public T {
         public:
-            struct ParsedPayload {
-                    float x, y, z, sec;
-            };
-
             using Fn_t = decltype(&T::ProcessEvent);
             static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
@@ -28,12 +24,13 @@
                                     if (!a_event->payload.empty()) {
                                         const auto player = RE::PlayerCharacter::GetSingleton();
                                         player->GetCharController()->SetLinearVelocityImpl(RE::hkVector4(0, 0, 0, 0));
+
                                         const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
 
                                         const auto relativePos = RE::NiPoint3{parsed.x, parsed.y, parsed.z};
                                         const auto seconds = parsed.sec;
-
                                         constexpr bool isRelative = true;
+
                                         Parkouring::InterpolateRefToPosition(player, relativePos, seconds, isRelative);
                                     }
                                 }
@@ -65,6 +62,7 @@
                 }
                 return _ProcessEvent(this, a_event, a_eventSource);
             }
+
             static void InstallAnimEventHook() {
                 // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
                 auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
@@ -74,6 +72,10 @@
             }
 
         private:
+            struct ParsedPayload {
+                    float x, y, z, sec;
+            };
+
             /* TODO: UNSAFE, fix this */
             ParsedPayload ParsePayload(const char* payload) {
                 /* Expected anim event - payload format: SkyParkour_Move.x|y|z@s */

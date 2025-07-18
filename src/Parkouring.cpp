@@ -321,14 +321,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
 
     return selectedLedgeType;
 }
-void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPoint3 position, float seconds, bool isRelative) {
+void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
     }
-
-    // 1) Get the TESObjectREFR pointer to move:
-    RE::TESObjectREFR *movingRef = RE::PlayerCharacter::GetSingleton();
 
     /* Calculate speed from cur pos to target dist / time. BUT Read annotations relative to start position. */
     auto curPos = movingRef->GetPosition();
@@ -339,9 +336,6 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
         // playerDirFlat = forward vector (x,y,0), normalized
         const float rightX = facing.y;
         const float rightY = -facing.x;
-
-        // parsed.x = left-right offset (right positive)
-        // parsed.y = forward-back offset (forward positive)
 
         const auto startPos = RuntimeVariables::PlayerStartPosition;
 
@@ -355,16 +349,16 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     }
 
     const auto diff = relativeTranslatedToWorld - curPos;
-    auto speed = seconds <= 0 ? 5000 : diff.Length() / seconds;  // Snap to pos if negative seconds
+    auto speed = seconds <= 0 ? 5000 : diff.Length() / seconds;  // Snap to pos if 0 or negative seconds
 
-    // 2) Wrap movingRef in a Papyrus handle
+    // Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
     RE::VMHandle handle = policy->GetHandleForObject(movingRef->GetFormType(), movingRef);
     if (handle == policy->EmptyHandle()) {
         return;
     }
 
-    // 3) Lookup the Papyrus-bound "ObjectReference" instance
+    // Lookup the Papyrus-bound "ObjectReference" instance
     RE::BSFixedString scriptName = "ObjectReference";
     RE::BSFixedString functionName =
         "TranslateTo";  // For SplineTranslateTo, add std::move(float) between rz and speed. Does an overshoot, and pullback. Sometimes too strong.
@@ -377,12 +371,12 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
     float px = relativeTranslatedToWorld.x;
     float py = relativeTranslatedToWorld.y;
     float pz = relativeTranslatedToWorld.z;
-    float rx = obj->data.angle.x;
-    float ry = obj->data.angle.y;
-    float rz = obj->data.angle.z;
+    float rx = movingRef->data.angle.x;
+    float ry = movingRef->data.angle.y;
+    float rz = movingRef->data.angle.z;
     float maxRotSpeed = 0.0f;
 
-    // 4) Build the IFunctionArguments with those locals:
+    // Build the IFunctionArguments with those locals:
     auto args = RE::MakeFunctionArguments(std::move(px),  // afX
                                           std::move(py),  // afY
                                           std::move(pz),  // afZ
@@ -392,7 +386,7 @@ void Parkouring::InterpolateRefToPosition(const RE::TESObjectREFR *obj, RE::NiPo
                                           //std::move(100.0f),
                                           std::move(speed), std::move(maxRotSpeed));
 
-    // 5) Call the Papyrus method
+    // Call the Papyrus method
     RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
     vm->DispatchMethodCall1(object,        // the Papyrus ObjectReference instance
                             functionName,  // "TranslateTo"
