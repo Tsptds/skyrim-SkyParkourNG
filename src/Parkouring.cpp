@@ -12,9 +12,9 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float minUpCheck = 100 * RuntimeVariables::PlayerScale;
     const float maxUpCheck = (maxLedgeHeight - startZOffset) + 20 * RuntimeVariables::PlayerScale;
     const float fwdCheckStep = 8 * RuntimeVariables::PlayerScale;
-    const int fwdCheckIterations = 10;   // 15
-    const float minLedgeFlatness = 0.5;  //0.5
-    const float ledgeHypotenuse = 1.0;   // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
+    const int fwdCheckIterations = 10;           // 15
+    const float minLedgeFlatness = 0.5;          //0.5
+    const float playerToLedgeHypotenuse = 0.8f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
 
     RE::hkVector4 normalOut(0, 0, 0, 0);
 
@@ -113,7 +113,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
             double verticalDistance = abs(ledgePlayerDiff);
 
-            if (horizontalDistance < verticalDistance * ledgeHypotenuse) {
+            if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
                 return ParkourType::StepHigh;  // High Step
             }
         }
@@ -126,7 +126,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
             double verticalDistance = abs(ledgePlayerDiff);
 
-            if (!PlayerIsOnStairs() && horizontalDistance < verticalDistance * ledgeHypotenuse) {
+            if (!PlayerIsOnStairs() && horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
                 return ParkourType::StepLow;  // Low Step
             }
         }
@@ -289,8 +289,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     int selectedLedgeType = ParkourType::NoLedge;
     RE::NiPoint3 ledgePoint;
 
+    constexpr int vaultLength = 85;
+    constexpr int maxElevationIncrease = 80;
+
     if (isMoving || !ModSettings::Smart_Parkour_Enabled) {
-        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, 85, 80 * RuntimeVariables::PlayerScale,
+        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
     }
@@ -307,11 +310,11 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
     float waterLevel;
     player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
 
-    if (ledgePoint.z < waterLevel - 10) {
+    constexpr int validWaterDepth = 10;
+
+    if (ledgePoint.z < waterLevel - validWaterDepth) {
         return ParkourType::NoLedge;
     }
-
-    // RE::NiPoint3 cameraDirFlat = GetCameraDirFlat();
 
     RE::NiPoint3 backwardAdjustment = playerDirFlat * backwardOffset * RuntimeVariables::PlayerScale;
 
