@@ -110,7 +110,7 @@ namespace Compatibility {
 namespace HardCodedVariables {
     // Lower - upper limits for ledge - vault - grab detection.
     const float climbMaxHeight = 250.0f;
-    const float climbMinHeight = 35.0f;
+    const float climbMinHeight = 30.0f;
 
     const float vaultMaxHeight = 115.0f;
     const float vaultMinHeight = 40.5f;

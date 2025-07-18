@@ -31,7 +31,7 @@ namespace Compatibility {
 namespace HardCodedVariables {
     // 250
     extern const float climbMaxHeight;
-    // 35
+    // 30
     extern const float climbMinHeight;
 
     // 115
