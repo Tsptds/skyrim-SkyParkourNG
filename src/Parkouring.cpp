@@ -478,9 +478,6 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
     RuntimeVariables::PlayerStartPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - backwardAdjustment.x, RuntimeVariables::ledgePoint.y - backwardAdjustment.y,
                      ledgeType == ParkourType::Failed ? player->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
-
-    //Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
-    //player->SetPosition(RuntimeVariables::PlayerStartPosition, true);
 }
 
 void Parkouring::UpdateParkourPoint() {
