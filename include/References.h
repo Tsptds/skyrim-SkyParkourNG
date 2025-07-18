@@ -103,7 +103,6 @@ namespace RuntimeVariables {
     extern int selectedLedgeType;
     extern RE::NiPoint3 ledgePoint;
     extern RE::NiPoint3 playerDirFlat;
-    extern RE::NiPoint3 backwardAdjustment;
 
     extern RE::NiPoint3 PlayerStartPosition;
 

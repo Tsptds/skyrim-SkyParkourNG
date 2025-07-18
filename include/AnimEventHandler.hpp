@@ -50,10 +50,9 @@
                                                                                                         ParkourType::NoLedge);
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControlsForParkour(true);
-
+                                    RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
-
                                     RuntimeVariables::ParkourActivatedOnce = false;
                                 }
                             }
@@ -180,12 +179,12 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         Parkouring::StopInterpolationToPosition();
 
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+
         /* Reenable controls */
         ParkourUtility::ToggleControlsForParkour(true);
-
+        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
-
         RuntimeVariables::ParkourActivatedOnce = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);

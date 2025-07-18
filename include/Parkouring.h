@@ -10,7 +10,7 @@ namespace Parkouring {
     int VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease, float minVaultHeight,
                    float maxVaultHeight);
     bool PlaceAndShowIndicator();
-    int GetLedgePoint(float backwardOffset);
+    int GetLedgePoint();
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative = false);
     void StopInterpolationToPosition();
     void CalculateStartingPosition(int ledgeType);

@@ -275,7 +275,7 @@ bool Parkouring::PlaceAndShowIndicator() {
     return true;
 }
 
-int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
+int Parkouring::GetLedgePoint() {
     using namespace GameReferences;
     using namespace ModSettings;
 
@@ -316,9 +316,6 @@ int Parkouring::GetLedgePoint(float backwardOffset = 55.0f) {
         return ParkourType::NoLedge;
     }
 
-    RE::NiPoint3 backwardAdjustment = playerDirFlat * backwardOffset * RuntimeVariables::PlayerScale;
-
-    RuntimeVariables::backwardAdjustment = backwardAdjustment;
     RuntimeVariables::ledgePoint = ledgePoint;
     RuntimeVariables::playerDirFlat = playerDirFlat;
 
@@ -429,6 +426,8 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     float zAdjust = 0;
     float z = 0;
+    float backOffset = 55.0f;
+    RE::NiPoint3 backwardAdjustment;
 
     switch (ledgeType) {
         case 8:  // Highest Ledge
@@ -454,15 +453,13 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
         case 4:  // Step High
             z = HardCodedVariables::stepHighElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 15 * RuntimeVariables::PlayerScale;  // Override backward offset
+            backOffset = 15;  // Override backward offset
             break;
 
         case 3:  // Step Low
             z = HardCodedVariables::stepLowElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 15 * RuntimeVariables::PlayerScale;  // Override backward offset
+            backOffset = 15;  // Override backward offset
             break;
 
         case 2:  // Vault
@@ -473,21 +470,20 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
         case 1:  // Grab (Midair or Out of Water)
             z = HardCodedVariables::grabElevation - 5;
             zAdjust = -z * RuntimeVariables::PlayerScale;
-            RuntimeVariables::backwardAdjustment =
-                RuntimeVariables::playerDirFlat * 40 * RuntimeVariables::PlayerScale;  // Override backward offset
+            backOffset = 40;  // Override backward offset
             break;
 
         case 0:  // Failed (Low Stamina Animation)
             break;
         default:
-            logger::info("!!WARNING!! POSITION WAS NOT ADJUSTED, INVALID LEDGE TYPE {}", ledgeType);
+            logger::error(" >> START POSITION NOT SET, INVALID LEDGE TYPE {} <<", ledgeType);
             return;
     }
 
-    //const auto newPosition =
+    backwardAdjustment = RuntimeVariables::PlayerScale * RuntimeVariables::playerDirFlat * backOffset;
+
     RuntimeVariables::PlayerStartPosition =
-        RE::NiPoint3{RuntimeVariables::ledgePoint.x - RuntimeVariables::backwardAdjustment.x,
-                     RuntimeVariables::ledgePoint.y - RuntimeVariables::backwardAdjustment.y,
+        RE::NiPoint3{RuntimeVariables::ledgePoint.x - backwardAdjustment.x, RuntimeVariables::ledgePoint.y - backwardAdjustment.y,
                      ledgeType == ParkourType::Failed ? player->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
 
     //Parkouring::InterpolateRefToPosition(player, newPosition, 0.1f);
