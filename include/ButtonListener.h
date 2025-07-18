@@ -4,8 +4,6 @@
 
 namespace ButtonStates {
 
-    extern int32_t DXCODE;
-
     extern std::unordered_map<int32_t, int32_t> xinputToCKMap;
     extern std::unordered_set<std::string_view> DirectionalMoveInputs;
 

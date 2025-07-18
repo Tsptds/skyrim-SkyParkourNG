@@ -33,7 +33,7 @@ namespace SkyParkour_Papyrus {
             }
 
             static int32_t GetCustomParkourKey(RE::StaticFunctionTag *) {
-                return ButtonStates::DXCODE;
+                return CustomParkourKey;
             }
 
             static int32_t GetPresetParkourKey(RE::StaticFunctionTag *) {
@@ -111,8 +111,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetDoubleValue("MCM", "iCustomKeybind", static_cast<double>(value));
                 save(ini);
 
-                /* TODO: Move this mod settings and rename to custom key */
-                ButtonStates::DXCODE = value;
+                CustomParkourKey = value;
             }
 
             static void SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value) {
@@ -143,29 +142,31 @@ namespace SkyParkour_Papyrus {
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
+        using namespace ModSettings;
+
         auto ini = RuntimeMethods::GetIniHandle();
 
         /* Parkour Settings */
-        ModSettings::ModEnabled = ini->GetBoolValue("MCM", "bEnableMod");
-        ModSettings::Smart_Parkour_Enabled = ini->GetBoolValue("MCM", "bSmartParkour");
-        ModSettings::UseIndicators = ini->GetBoolValue("MCM", "bShowIndicators");
+        ModEnabled = ini->GetBoolValue("MCM", "bEnableMod");
+        Smart_Parkour_Enabled = ini->GetBoolValue("MCM", "bSmartParkour");
+        UseIndicators = ini->GetBoolValue("MCM", "bShowIndicators");
 
         /* Stamina Settings */
-        ModSettings::Enable_Stamina_Consumption = ini->GetBoolValue("MCM", "bEnableStaminaSystem");
-        ModSettings::Is_Stamina_Required = ini->GetBoolValue("MCM", "bMustHaveStamina");
-        ModSettings::Stamina_Damage = static_cast<float>(ini->GetDoubleValue("MCM", "iBaseStaminaDamage"));
+        Enable_Stamina_Consumption = ini->GetBoolValue("MCM", "bEnableStaminaSystem");
+        Is_Stamina_Required = ini->GetBoolValue("MCM", "bMustHaveStamina");
+        Stamina_Damage = static_cast<float>(ini->GetDoubleValue("MCM", "iBaseStaminaDamage"));
 
         /* Input Settings */
-        ModSettings::UsePresetParkourKey = ini->GetBoolValue("MCM", "bUsePresetKey");
-        ModSettings::PresetParkourKey = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iPresetKeyIndex"));
-        ButtonStates::DXCODE = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iCustomKeybind"));
-        ModSettings::parkourDelay = static_cast<float>(ini->GetDoubleValue("MCM", "fInputDelay"));
+        UsePresetParkourKey = ini->GetBoolValue("MCM", "bUsePresetKey");
+        PresetParkourKey = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iPresetKeyIndex"));
+        CustomParkourKey = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iCustomKeybind"));
+        parkourDelay = static_cast<float>(ini->GetDoubleValue("MCM", "fInputDelay"));
     }
     void Internal::RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm) {
-        // Maintenance Calls this to starts polling updates
+        // Maintenance calls this to start polling updates
         vm->RegisterFunction("AlertPlayerLoaded", "SkyParkourPapyrus", Internal::AlertPlayerLoaded);
 
-        // Read functions
+        // Getter functions
         vm->RegisterFunction("GetEnableMod", "SkyParkourPapyrus", Getters::GetEnableMod);
         vm->RegisterFunction("GetSmartParkour", "SkyParkourPapyrus", Getters::GetSmartParkour);
         vm->RegisterFunction("GetShowIndicators", "SkyParkourPapyrus", Getters::GetShowIndicators);
@@ -177,7 +178,7 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("GetPresetParkourKey", "SkyParkourPapyrus", Getters::GetPresetParkourKey);
         vm->RegisterFunction("GetParkourDelay", "SkyParkourPapyrus", Getters::GetParkourDelay);
 
-        // Write functions
+        // Setter functions
         vm->RegisterFunction("SetEnableMod", "SkyParkourPapyrus", Setters::SetEnableMod);
         vm->RegisterFunction("SetSmartParkour", "SkyParkourPapyrus", Setters::SetSmartParkour);
         vm->RegisterFunction("SetShowIndicators", "SkyParkourPapyrus", Setters::SetShowIndicators);

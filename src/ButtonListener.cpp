@@ -1,8 +1,6 @@
 ﻿#include "ButtonListener.h"
 #include "InputHandler.hpp"
 
-int32_t ButtonStates::DXCODE = 0;
-
 std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     // Mouse
     {2, 258},  // Mouse middle
@@ -134,7 +132,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 }
             }
             else {
-                if (dxScanCode == ButtonStates::DXCODE) {
+                if (dxScanCode == ModSettings::CustomParkourKey) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
