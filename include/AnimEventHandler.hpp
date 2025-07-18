@@ -41,6 +41,11 @@
                                 }
                                 else if (a_event->tag == "SkyParkour_Recovery") {
                                     RuntimeVariables::RecoveryFramesActive = true;
+                                    const auto player = RE::PlayerCharacter::GetSingleton();
+
+                                    if (player->IsInMidair()) {
+                                        player->NotifyAnimationGraph("SkyParkour_Stop");
+                                    }
                                 }
                                 else if (a_event->tag == "SkyParkour_Stop") {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
