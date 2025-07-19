@@ -55,9 +55,9 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check for obstructions behind the vaultable surface
         RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
         const float maxObstructionDistance = 15.0f * RuntimeVariables::PlayerScale;
-        RayCastResult backwardRay = RayCast(obstructionCheckStart, checkDir, maxObstructionDistance, RE::COL_LAYER::kLOS);
+        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, maxObstructionDistance, RE::COL_LAYER::kLOS);
 
-        if (backwardRay.distance > 0 && backwardRay.distance < maxObstructionDistance) {
+        if (obsRay.isValid && obsRay.distance < maxObstructionDistance) {
             continue;  // Obstruction behind the vaultable surface
         }
 
@@ -163,7 +163,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float maxObstructionDistance = 120.0f * RuntimeVariables::PlayerScale;
     RayCastResult obstructionCheckRay = RayCast(obstructionCheckStart, checkDir, maxObstructionDistance, RE::COL_LAYER::kLOS);
 
-    if (obstructionCheckRay.distance > 0 && obstructionCheckRay.distance < maxObstructionDistance) {
+    if (obstructionCheckRay.isValid && obstructionCheckRay.distance < maxObstructionDistance) {
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
