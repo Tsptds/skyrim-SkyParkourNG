@@ -12,8 +12,6 @@
                         auto actor = a_event->holder;
                         if (actor && actor->IsPlayerRef()) {
                             if (a_event->tag == "GetUpExit") {
-                                /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
-                                //RuntimeVariables::IsInRagdollOrGettingUp = false;
                                 RuntimeMethods::ResetRuntimeVariables();
                             }
 
@@ -164,8 +162,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
     }
 
     if (a_eventName == "Ragdoll") {
-        /*player->IsInRagdoll() does not fully cover the getting up animation, which I also can't allow at all. Set this to false on GetUpExit anim event*/
-        RuntimeVariables::IsInRagdollOrGettingUp = true;
         if (RuntimeVariables::ParkourInProgress) {
             /*Unlock controls on ragdoll*/
             RuntimeVariables::ParkourActivatedOnce = false;

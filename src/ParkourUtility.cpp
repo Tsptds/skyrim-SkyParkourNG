@@ -5,13 +5,13 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (RuntimeVariables::IsInRagdollOrGettingUp) {
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    if (ChargenHandsBound(player)) {
+        //logger::info("PLAYER HANDS BOUND");
         return false;
     }
 
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    if (IsPlayerInCharGen(player)) {
-        //logger::info("PLAYER HANDS BOUND");
+    if (IsKnockedOut(player)) {
         return false;
     }
 
@@ -23,23 +23,18 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (IsOnMount()) {
-        return false;
-    }
-
     if (IsBeastForm()) {
         return false;
     }
 
-    if (IsPlayerUsingFurniture(player) /*|| !IsActorWeaponSheathed(player)*/) {
-        //logger::info("USING FURNITURE");
+    if (IsSitting(player)) {
         return false;
     }
 
-    if (PlayerWantsToDrawSheath()) {
-        //logger::info("WILL DRAW/SHEATHE");
-        return false;
-    }
+    //if (PlayerWantsToDrawSheath()) {
+    //    //logger::info("WILL DRAW/SHEATHE");
+    //    return false;
+    //}
 
     // Check if the game is paused
     //auto ui = RE::UI::GetSingleton();
@@ -177,20 +172,20 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
     return result;
 }
 
+bool ParkourUtility::IsKnockedOut(RE::Actor *actor) {
+    return actor->AsActorState()->GetKnockState() != RE::KNOCK_STATE_ENUM::kNormal;
+}
+
 bool ParkourUtility::IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player) {
     bool out;
     return player->GetGraphVariableBool("bAnimationDriven", out) && out;
 }
 
-bool ParkourUtility::IsPlayerUsingFurniture(RE::PlayerCharacter *player) {
-    auto ref = player->GetOccupiedFurniture();
-    if (ref) {
-        return true;
-    }
-    return false;
+bool ParkourUtility::IsSitting(RE::PlayerCharacter *player) {
+    return player->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
 }
 
-bool ParkourUtility::IsPlayerInCharGen(RE::PlayerCharacter *player) {
+bool ParkourUtility::ChargenHandsBound(RE::PlayerCharacter *player) {
     // Check if player has chargen flag hands bound
     const auto &gs = player->GetGameStatsData();
     if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {

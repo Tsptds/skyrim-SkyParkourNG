@@ -7,9 +7,12 @@ namespace ParkourUtility {
     bool ToggleControlsForParkour(bool enable);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::COL_LAYER layerMask);
+    // Ragdoll & Get Up Sequence
+    bool IsKnockedOut(RE::Actor *actor);
     bool IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player);
-    bool IsPlayerUsingFurniture(RE::PlayerCharacter *);
-    bool IsPlayerInCharGen(RE::PlayerCharacter *);
+    // Also includes mounts
+    bool IsSitting(RE::PlayerCharacter *);
+    bool ChargenHandsBound(RE::PlayerCharacter *);
     bool IsBeastForm();
     bool IsOnMount();
     bool IsPlayerInSyncedAnimation(RE::PlayerCharacter *);

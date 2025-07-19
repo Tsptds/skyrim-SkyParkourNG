@@ -110,7 +110,6 @@ namespace RuntimeVariables {
     extern bool RecoveryFramesActive;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;
-    extern bool IsInRagdollOrGettingUp;
 
     extern bool shouldUseRightStep;
 }  // namespace RuntimeVariables

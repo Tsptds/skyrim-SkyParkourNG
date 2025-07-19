@@ -32,7 +32,6 @@ namespace RuntimeMethods {
         RuntimeVariables::ParkourInProgress = false;
         RuntimeVariables::ParkourActivatedOnce = false;
         RuntimeVariables::RecoveryFramesActive = false;
-        RuntimeVariables::IsInRagdollOrGettingUp = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player) {
@@ -173,7 +172,6 @@ namespace RuntimeVariables {
     bool RecoveryFramesActive = false;
     bool IsMenuOpen = false;
     bool IsInMainMenu = true;
-    bool IsInRagdollOrGettingUp = false;
 
     bool shouldUseRightStep = true;
 }  // namespace RuntimeVariables
