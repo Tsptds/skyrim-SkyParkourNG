@@ -378,7 +378,7 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
     float rx = movingRef->data.angle.x;
     float ry = movingRef->data.angle.y;
     float rz = movingRef->data.angle.z;
-    float maxRotSpeed = 0.0f;
+    float maxRotSpeed = 1.0f;
 
     // Build the IFunctionArguments with those locals:
     auto args = RE::MakeFunctionArguments(std::move(px),  // afX
@@ -563,26 +563,33 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
     player->NotifyAnimationGraph("moveStop");
 
-    bool success = player->NotifyAnimationGraph("SkyParkour");
-    if (success) {
-        RuntimeVariables::ParkourActivatedOnce = true;
-        /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */
-        Parkouring::CalculateStartingPosition(ledgeType);
-        /* Swap last leg (Step animations) */
-        if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
-            RuntimeMethods::SwapLegs();
-        }
-        /* Steps don't consume stamina anymore */
-        else {
-            const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
-            Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
-        }
-    }
-    else {
-        /* Parkour Failed for whatever reason */
-        ParkourUtility::ToggleControlsForParkour(true);
-        RuntimeVariables::ParkourInProgress = false;
-    }
+    Parkouring::CalculateStartingPosition(ledgeType);
+    InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
+    _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+        SKSE::GetTaskInterface()->AddTask([player, ledgeType, isSwimming] {
+            bool success = player->NotifyAnimationGraph("SkyParkour");
+            if (success) {
+                RuntimeVariables::ParkourActivatedOnce = true;
+                /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */
+                /* Swap last leg (Step animations) */
+                if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
+                    RuntimeMethods::SwapLegs();
+                }
+                /* Steps don't consume stamina anymore */
+                else {
+                    const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
+                    Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
+                }
+            }
+            else {
+                /* Parkour Failed for whatever reason */
+                ParkourUtility::ToggleControlsForParkour(true);
+                RuntimeVariables::ParkourInProgress = false;
+            }
+        });
+    });
 }
 void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault, bool isSwimming) {
     if (ModSettings::Enable_Stamina_Consumption) {
