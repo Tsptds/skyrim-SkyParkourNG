@@ -161,7 +161,6 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
         // Check for useful collision layers
         switch (layer) {
             case RE::COL_LAYER::kStatic:
-            case RE::COL_LAYER::kCollisionBox:
             case RE::COL_LAYER::kTerrain:
             case RE::COL_LAYER::kGround:
             case RE::COL_LAYER::kProps:

@@ -62,7 +62,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
         foundLedge = true;
-        logger::info("Ledge: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
+        //logger::info("Ledge: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
         break;
     }
 
@@ -151,12 +151,11 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Forward raycast to check for a vaultable surface
     RE::NiPoint3 fwdRayStart = playerPos + RE::NiPoint3(0, 0, headHeight);
-    RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, vaultLength, RE::COL_LAYER::kLOS);
+    RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, vaultLength, RE::COL_LAYER::kUnidentified);
+    //logger::info("Vault FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
 
-    logger::info("Vault: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
-
-    if (fwdRay.layer == RE::COL_LAYER::kGround || fwdRay.layer == RE::COL_LAYER::kTerrain || fwdRay.distance < vaultLength) {
-        return ParkourType::NoLedge;  // Not vaultable if ground or insufficient distance
+    if (fwdRay.layer != RE::COL_LAYER::kUnidentified || fwdRay.distance < vaultLength) { /* There should be no hits head level */
+        return ParkourType::NoLedge;
     }
 
     // Check for obstructions behind the vaultable surface
@@ -185,7 +184,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RE::NiPoint3 downRayStart = playerPos + checkDir * iDist;
         downRayStart.z = fwdRayStart.z;
 
-        downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kLOS);
+        downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kUnidentified);
 
         float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 
@@ -199,6 +198,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 foundLanding = false;
             }
             ledgePoint = downRayStart + downRayDir * downRay.distance;
+            //logger::info("Vault Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
             foundVaulter = true;
         }
         else if (foundVaulter && hitHeight < minVaultHeight) {
