@@ -150,6 +150,8 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
 
     // Perform the raycast
     if (bhkWorld->PickObject(pickData) && pickData.rayOutput.HasHit()) {
+        result.didHit = true;
+        result.distance = maxDist * pickData.rayOutput.hitFraction;
         result.normalOut = pickData.rayOutput.normal;
 
         const RE::COL_LAYER layer =
@@ -157,7 +159,6 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
 
         result.layer = layer;
 
-        /* TODO: only detection for ledge should use LOS mask, otherwise it should detect invisible walls as well */
         // Check for useful collision layers
         switch (layer) {
             case RE::COL_LAYER::kStatic:
@@ -169,7 +170,6 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
             case RE::COL_LAYER::kClutterLarge:
             case RE::COL_LAYER::kAnimStatic:
             case RE::COL_LAYER::kDebrisLarge:
-                result.distance = maxDist * pickData.rayOutput.hitFraction;
                 result.isValid = true;
         }
     }
