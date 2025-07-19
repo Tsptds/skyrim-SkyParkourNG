@@ -293,8 +293,8 @@ bool ParkourUtility::PlayerIsSwimming() {
 
 bool ParkourUtility::PlayerWantsToDrawSheath() {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    return player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToDraw ||
-           player->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kWantToSheathe;
+    return player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kDrawn &&
+           player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kSheathed;
 }
 
 bool ParkourUtility::PlayerIsOnStairs() {
