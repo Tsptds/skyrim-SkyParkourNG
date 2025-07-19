@@ -54,10 +54,10 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Check for obstructions behind the vaultable surface
         RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
-        const float maxObstructionDistance = 15.0f * RuntimeVariables::PlayerScale;
-        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, maxObstructionDistance, RE::COL_LAYER::kUnidentified);
+        const float minSpaceRequired = 15.0f * RuntimeVariables::PlayerScale;
+        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kUnidentified);
 
-        if (obsRay.didHit && obsRay.distance < maxObstructionDistance) {
+        if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
             continue;  // Obstruction behind the vaultable surface
         }
 
@@ -99,14 +99,14 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
         else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
-                return ParkourType::Grab;  // Grab ledge out of water, don't jump out like a frog
+                return ParkourType::Grab;  // Grab ledge out of water
             }
 
             return ParkourType::Low;  // Low ledge
         }
         else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
             if (PlayerIsSwimming()) {
-                return ParkourType::Grab;  // Grab ledge out of water, don't step out
+                return ParkourType::Grab;  // Grab ledge out of water
             }
 
             // Additional horizontal and vertical checks for low ledge
@@ -160,10 +160,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Check for obstructions behind the vaultable surface
     RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
-    const float maxObstructionDistance = 120.0f * RuntimeVariables::PlayerScale;
-    RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, maxObstructionDistance, RE::COL_LAYER::kUnidentified);
+    const float minSpaceRequired = 120.0f * RuntimeVariables::PlayerScale;
+    RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kUnidentified);
 
-    if (obsRay.didHit && obsRay.distance < maxObstructionDistance) {
+    if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
