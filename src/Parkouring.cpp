@@ -227,8 +227,7 @@ bool Parkouring::PlaceAndShowIndicator() {
     const bool hasStamina = PlayerHasEnoughStamina();
     const auto ledgeType = RuntimeVariables::selectedLedgeType;
 
-    // Indicators cause crashes, only
-    const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckIsVaultActionFromType(ledgeType);
+    const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckActionRequiresLowEffort(ledgeType);
 
     SKSE::GetTaskInterface()->AddTask([useRed]() {
         auto blueRef = GameReferences::indicatorRef_Blue;
@@ -518,7 +517,7 @@ bool Parkouring::TryActivateParkour() {
     }
 
     const bool isMoving = player->IsMoving();
-    const bool isVaultAction = CheckIsVaultActionFromType(LedgeTypeToProcess);
+    const bool lowEffort = CheckActionRequiresLowEffort(LedgeTypeToProcess);
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
@@ -540,7 +539,7 @@ bool Parkouring::TryActivateParkour() {
 
     /* Cancel if moving, but allow during swimming */
     if (Smart_Parkour_Enabled && isMoving && !isSwimming) {
-        if (!isVaultAction) {
+        if (!lowEffort) {
             player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
             return false;
         }
@@ -572,8 +571,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         }
         /* Steps don't consume stamina anymore */
         else {
-            const bool isVaultAction = ParkourUtility::CheckIsVaultActionFromType(ledgeType);
-            Parkouring::PostParkourStaminaDamage(player, isVaultAction, isSwimming);
+            const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
+            Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
         }
     }
     else {

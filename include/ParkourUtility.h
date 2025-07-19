@@ -17,7 +17,7 @@ namespace ParkourUtility {
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);
     bool ShouldReplaceMarkerWithFailed();
-    bool CheckIsVaultActionFromType(int32_t selectedLedgeType);
+    bool CheckActionRequiresLowEffort(int32_t selectedLedgeType);
     bool PlayerIsGroundedOrSliding();
     bool PlayerIsMidairAndNotSliding();
     bool PlayerIsSwimming();

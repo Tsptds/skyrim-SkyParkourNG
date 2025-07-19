@@ -250,8 +250,8 @@ bool ParkourUtility::ShouldReplaceMarkerWithFailed() {
     return false;
 }
 
-// Return true if action is vaulting, and not a climbing, low grab is also considered vault
-bool ParkourUtility::CheckIsVaultActionFromType(int32_t ledge) {
+// Return true if action should consume half the stamina cost
+bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
     return ledge == ParkourType::Vault || ledge == ParkourType::Grab || ledge == ParkourType::StepHigh || ledge == ParkourType::StepLow ||
            ledge == ParkourType::Low || ledge == ParkourType::Medium;
 }
