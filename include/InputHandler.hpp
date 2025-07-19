@@ -21,16 +21,20 @@ namespace Hooks {
             static inline REL::Relocation<CanProcess_t> _CanProcessJump;
             static inline REL::Relocation<ProcessButton_t> _ProcessButtonJump;
             static inline REL::Relocation<CanProcess_t> _CanProcessSneak;
+            static inline REL::Relocation<CanProcess_t> _CanProcessMovement;
 
             bool CanProcess_Jump(RE::InputEvent* a_event);
             void ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data);
             bool CanProcess_Sneak(RE::InputEvent* a_event);
+            bool CanProcess_Movement(RE::InputEvent* a_event);
 
             static void InstallJumpHook();
             static void InstallProcessJumpHook();
             static void InstallSneakHook();
+            static void InstallMovementHook();
     };
 
+    /* Hooks */
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Jump(RE::InputEvent* a_event) {
         if (ModSettings::ModEnabled) {
@@ -104,6 +108,18 @@ namespace Hooks {
     }
 
     template <class T>
+    inline bool InputHandlerEx<T>::CanProcess_Movement(RE::InputEvent* a_event) {
+        if (ModSettings::ModEnabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return _CanProcessMovement(this, a_event);
+    }
+
+    /* Install */
+    template <class T>
     inline void InputHandlerEx<T>::InstallJumpHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
         std::uint64_t a_offset = 0x1;
@@ -125,5 +141,13 @@ namespace Hooks {
         std::uint64_t a_offset = 0x1;
         _CanProcessSneak = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Sneak);
         logger::info(">> Sneak Hook Installed");
+    }
+
+    template <class T>
+    inline void InputHandlerEx<T>::InstallMovementHook() {
+        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_MovementHandler[0]);
+        std::uint64_t a_offset = 0x1;
+        _CanProcessMovement = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Movement);
+        logger::info(">> Movement Hook Installed");
     }
 }  // namespace Hooks
