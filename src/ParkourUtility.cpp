@@ -31,10 +31,10 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    //if (PlayerWantsToDrawSheath()) {
-    //    //logger::info("WILL DRAW/SHEATHE");
-    //    return false;
-    //}
+    if (PlayerWantsToDrawSheath()) {
+        //logger::info("WILL DRAW/SHEATHE");
+        return false;
+    }
 
     // Check if the game is paused
     //auto ui = RE::UI::GetSingleton();
