@@ -9,7 +9,7 @@
 using namespace ParkourUtility;
 using namespace Parkouring;
 
-bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
+bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);
     return true;
 }
@@ -27,10 +27,35 @@ void Install_Hooks_And_Listeners() {
 }
 
 bool RegisterIndicators() {
+    auto ini = RuntimeMethods::GetIniHandle();
+    int blueForm = 0x000014;
+    int redForm = 0x00000C;
+
+    if (ini) {
+        const char* blueStr = ini->GetValue("ESP", "iBlueMarkerRefID");
+        const char* redStr = ini->GetValue("ESP", "iRedMarkerRefID");
+
+        char* endBlue = nullptr;
+        char* endRed = nullptr;
+
+        const int blueParse = std::strtol(blueStr, &endBlue, 16);
+        const int redParse = std::strtol(redStr, &endRed, 16);
+
+        if (!blueStr || endBlue == blueStr || *endBlue != '\0' || !redStr || endRed == redStr || *endRed != '\0' || !blueParse ||
+            !redParse) {
+            logger::error("Indicator refs in INI are corrupt: Blue='{}', Red='{}'", blueStr, redStr);
+            logger::warn("Using Default Indicator Refs");
+        }
+        else {
+            blueForm = blueParse;
+            redForm = redParse;
+        }
+    }
+
     GameReferences::indicatorRef_Blue =
-        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x000014, IniSettings::ESP_NAME));
+        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(blueForm, IniSettings::ESP_NAME));
     GameReferences::indicatorRef_Red =
-        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(0x00000C, IniSettings::ESP_NAME));
+        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(redForm, IniSettings::ESP_NAME));
 
     if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
         logger::error("!Indicator Refs Are Null!");
@@ -38,10 +63,11 @@ bool RegisterIndicators() {
     }
 
     GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
+    logger::info("Successfully Registered Indicators");
     return true;
 }
 
-void MessageEvent(SKSE::MessagingInterface::Message *message) {
+void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::ReadPluginConfigFromINI();
 
@@ -144,7 +170,7 @@ namespace plugin {
     }
 }  // namespace plugin
 
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
     plugin::InitializeLogging();
 
     Init(skse, false);
