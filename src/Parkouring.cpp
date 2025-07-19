@@ -185,6 +185,9 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         downRayStart.z = fwdRayStart.z;
 
         downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kUnidentified);
+        if (downRay.layer == RE::COL_LAYER::kNonCollidable) {
+            continue;
+        }
 
         float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 
