@@ -123,5 +123,4 @@ namespace GameReferences {
 namespace IniSettings {
     extern std::string ESP_NAME;
     extern const char *INIPath;
-    extern bool IgnoreRequirements;
 }  // namespace IniSettings

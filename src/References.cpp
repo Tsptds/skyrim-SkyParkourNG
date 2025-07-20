@@ -66,11 +66,6 @@ namespace RuntimeMethods {
             logger::info("sEspName: {}", name);
             IniSettings::ESP_NAME = name;
         }
-
-        const bool devMode = ini->GetBoolValue("DEV", "bIgnoreRequirements");
-        if (devMode) {
-            IniSettings::IgnoreRequirements = true;
-        }
     }
 
     void SetupModCompatibility() {
@@ -167,5 +162,4 @@ namespace GameReferences {
 namespace IniSettings {
     std::string ESP_NAME = "SkyParkourV2.esp";
     const char *INIPath = "./Data/SKSE/Plugins/SkyParkourNG.ini";
-    bool IgnoreRequirements = false;
 }  // namespace IniSettings
