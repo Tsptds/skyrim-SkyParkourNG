@@ -36,12 +36,6 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    // Check if the game is paused
-    //auto ui = RE::UI::GetSingleton();
-    /*if (ui && ui->GameIsPaused()) {
-        return false;
-    }*/
-
     if (RuntimeVariables::IsMenuOpen) {
         return false;
     }
@@ -77,48 +71,50 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     /* Set gravity on off */
     controller->gravity = enable;
 
-    //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
+    //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
 
     // Toggle common controls
+    //auto handlers = RE::PlayerControls::GetSingleton();
     auto controlMap = RE::ControlMap::GetSingleton();
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
 
-    auto handlers = RE::PlayerControls::GetSingleton();
-    handlers->togglePOVHandler->SetInputEventHandlingEnabled(enable);
-
     if (!enable) {
         if (cam->IsInThirdPerson()) {
             _THREAD_POOL.enqueue([player] {
                 const auto rot = player->data.angle.z;
                 while (RuntimeVariables::ParkourInProgress) {
-                    if (player->data.angle.z != rot) {
-                        player->data.angle.z = rot;
+                    if (!ParkourUtility::IsGamePaused()) {
+                        if (player->data.angle.z != rot) {
+                            player->data.angle.z = rot;
+                        }
                     }
 
                     auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
-                    std::this_thread::sleep_for(std::chrono::milliseconds(lastSec));
+                    std::this_thread::sleep_for(std::chrono::seconds(lastSec));
                 }
-                logger::info("TPP facing correction stopped");
+                //logger::info("TPP facing correction stopped");
             });
         }
         else if (cam->IsInFirstPerson()) {
             _THREAD_POOL.enqueue([player] {
                 while (RuntimeVariables::ParkourInProgress) {
-                    const auto vertAngle = player->data.angle.x;
-                    if (vertAngle > 0.9f) {
-                        player->data.angle.x = 0.9f;
-                    }
-                    else if (vertAngle < -0.7f) {
-                        player->data.angle.x = -0.8f;
+                    if (!ParkourUtility::IsGamePaused()) {
+                        const auto vertAngle = player->data.angle.x;
+                        if (vertAngle > 0.9f) {
+                            player->data.angle.x = 0.9f;
+                        }
+                        else if (vertAngle < -0.9f) {
+                            player->data.angle.x = -0.9f;
+                        }
                     }
 
                     auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
-                    std::this_thread::sleep_for(std::chrono::milliseconds(lastSec));
+                    std::this_thread::sleep_for(std::chrono::seconds(lastSec));
                 }
-                logger::info("FPP vert angle clamping stopped");
+                //logger::info("FPP vert angle clamping stopped");
             });
         }
     }
@@ -225,6 +221,11 @@ bool ParkourUtility::IsBeastForm() {
 
 bool ParkourUtility::IsOnMount() {
     return RE::PlayerCharacter::GetSingleton()->IsOnMount();
+}
+
+bool ParkourUtility::IsGamePaused() {
+    auto ui = RE::UI::GetSingleton();
+    return ui && ui->GameIsPaused();
 }
 
 bool ParkourUtility::IsPlayerInSyncedAnimation(RE::PlayerCharacter *player) {

@@ -15,6 +15,7 @@ namespace ParkourUtility {
     bool ChargenHandsBound(RE::PlayerCharacter *);
     bool IsBeastForm();
     bool IsOnMount();
+    bool IsGamePaused();
     bool IsPlayerInSyncedAnimation(RE::PlayerCharacter *);
     float CalculateParkourStamina();
     bool PlayerHasEnoughStamina();
