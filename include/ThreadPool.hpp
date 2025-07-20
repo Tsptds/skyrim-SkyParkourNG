@@ -32,13 +32,21 @@ class ThreadPool {
 
         ~ThreadPool() = default;
 
-        template <typename F>
-        void enqueue(F&& f) {
+        template <typename F, typename... Args>
+        auto enqueue(F&& f, Args&&... args) -> std::future<std::invoke_result_t<F, Args...>> {
+            using R = std::invoke_result_t<F, Args...>;
+
+            auto task = std::make_shared<std::packaged_task<R()>>(std::bind(std::forward<F>(f), std::forward<Args>(args)...));
+
+            std::future<R> result = task->get_future();
+
             {
                 std::scoped_lock lk{mtx};
-                tasks.emplace(std::forward<F>(f));
+                tasks.emplace([task]() { (*task)(); });
             }
             cv.notify_one();
+
+            return result;
         }
 
     private:
