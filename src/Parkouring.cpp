@@ -515,7 +515,7 @@ bool Parkouring::TryActivateParkour() {
     const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
     // Check Is Parkour Active again, make sure condition is still valid during activation
     if (!IsParkourActive() || RuntimeVariables::ParkourInProgress || LedgeTypeToProcess == ParkourType::NoLedge) {
-        player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         return false;
     }
 
@@ -540,10 +540,10 @@ bool Parkouring::TryActivateParkour() {
         }
     }
 
-    /* Cancel if moving, but allow during swimming */
+    /* Cancel if moving, but allow movement during swimming */
     if (Smart_Parkour_Enabled && isMoving && !isSwimming) {
         if (!lowEffort) {
-            player->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+            player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
             return false;
         }
     }
@@ -560,7 +560,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
 
-    player->SetGraphVariableInt("SkyParkourLedge", ledgeType);
+    player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
     player->NotifyAnimationGraph("moveStop");
 
     Parkouring::CalculateStartingPosition(ledgeType);
@@ -569,7 +569,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         SKSE::GetTaskInterface()->AddTask([player, ledgeType, isSwimming] {
-            bool success = player->NotifyAnimationGraph("SkyParkour");
+            player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
+            bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             if (success) {
                 RuntimeVariables::ParkourActivatedOnce = true;
                 /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */

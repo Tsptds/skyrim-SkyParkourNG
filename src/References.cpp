@@ -22,7 +22,7 @@ namespace RuntimeMethods {
 
     void SwapLegs() {
         RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
-        RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool("SkyParkourStepLeg", RuntimeVariables::shouldUseRightStep);
+        RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
 
         //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
     }
@@ -35,7 +35,7 @@ namespace RuntimeMethods {
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
         auto player = RE::PlayerCharacter::GetSingleton();
         if (player) {
-            player->SetGraphVariableInt("SkyParkourLedge", -1);
+            player->SetGraphVariableInt(SPPF_Ledge, -1);
         }
     }
     bool CheckESPLoaded() {

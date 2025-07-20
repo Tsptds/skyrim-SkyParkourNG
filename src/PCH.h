@@ -159,9 +159,6 @@
 #include <SimpleIni.h>
 #include "ThreadPool.hpp"
 
-static ThreadPool SKYPARKOUR_THREAD_POOL;
-#define _THREAD_POOL SKYPARKOUR_THREAD_POOL
-
 #undef cdecl  // Workaround for Clang 14 CMake configure error.
 
 #define DLLEXPORT __declspec(dllexport)
@@ -224,6 +221,9 @@ namespace SkyParkourUtil {
         return it != colLayerToStr.end() ? it->second : "Unknown";
     }
 
+    static ThreadPool threads;
+    static RE::hkVector4 zeroVector{0, 0, 0, 0};
+
 }  // namespace SkyParkourUtil
 
 struct RayCastResult {
@@ -238,3 +238,17 @@ struct RayCastResult {
         RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool v, bool h)
             : distance(d), layer(l), normalOut(n), isValid(v), didHit(h) {}
 };
+
+#define _THREAD_POOL SkyParkourUtil::threads
+#define ZERO_VECTOR SkyParkourUtil::zeroVector
+
+/* Anim Events */
+#define SPPF_NOTIFY "SkyParkour"
+#define SPPF_START "SkyParkour_Start"
+#define SPPF_STOP "SkyParkour_Stop"
+#define SPPF_MOVE "SkyParkour_Move"
+#define SPPF_RECOVERY "SkyParkour_Recovery"
+
+/* Graph Variables */
+#define SPPF_Ledge "SkyParkourLedge"
+#define SPPF_Leg "SkyParkourStepLeg"

@@ -12,16 +12,17 @@
                         auto actor = a_event->holder;
                         if (actor && actor->IsPlayerRef()) {
                             if (a_event->tag == "GetUpExit") {
+                                /* Reset vars on ragdoll exit */
                                 RuntimeMethods::ResetRuntimeVariables();
                             }
 
                             if (RuntimeVariables::ParkourInProgress) {
                                 //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
 
-                                if (a_event->tag == "SkyParkour_Move") {
+                                if (a_event->tag == SPPF_MOVE) {
                                     if (!a_event->payload.empty()) {
                                         const auto player = RE::PlayerCharacter::GetSingleton();
-                                        player->GetCharController()->SetLinearVelocityImpl(RE::hkVector4(0, 0, 0, 0));
+                                        player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
 
                                         const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
 
@@ -32,25 +33,24 @@
                                         Parkouring::InterpolateRefToPosition(player, relativePos, seconds, isRelative);
                                     }
                                 }
-                                else if (a_event->tag == "SkyParkour_Start") {
+                                else if (a_event->tag == SPPF_START) {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
                                     ParkourUtility::ToggleControlsForParkour(false);
                                     ParkourUtility::StopInteractions(*player);
                                 }
-                                else if (a_event->tag == "SkyParkour_Recovery") {
+                                else if (a_event->tag == SPPF_RECOVERY) {
                                     RuntimeVariables::RecoveryFramesActive = true;
                                     const auto player = RE::PlayerCharacter::GetSingleton();
 
                                     if (player->IsInMidair()) {
-                                        player->NotifyAnimationGraph("SkyParkour_Stop");
+                                        player->NotifyAnimationGraph(SPPF_STOP);
                                     }
                                 }
-                                else if (a_event->tag == "SkyParkour_Stop") {
+                                else if (a_event->tag == SPPF_STOP) {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
                                     Parkouring::StopInterpolationToPosition();
 
-                                    player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge",
-                                                                                                        ParkourType::NoLedge);
+                                    player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControlsForParkour(true);
                                     RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
@@ -152,12 +152,12 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (RuntimeVariables::ParkourActivatedOnce && RuntimeVariables::ParkourInProgress && a_eventName == "SkyParkour") {
+    if (RuntimeVariables::ParkourActivatedOnce && RuntimeVariables::ParkourInProgress && a_eventName == SPPF_NOTIFY) {
         /* Don't send event during parkour. TODO: Move this into behavior patch later by disabling self transition. */
         return false;
     }
 
-    if (a_eventName == "SkyParkour" && !RuntimeVariables::IsParkourActive) {
+    if (a_eventName == SPPF_NOTIFY && !RuntimeVariables::IsParkourActive) {
         return false;
     }
 
@@ -175,11 +175,11 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             return didRagdoll;
         }
     }
-    else if (a_eventName == "SkyParkour_Stop") {
+    else if (a_eventName == SPPF_STOP) {
         const auto player = RE::PlayerCharacter::GetSingleton();
         Parkouring::StopInterpolationToPosition();
 
-        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt("SkyParkourLedge", ParkourType::NoLedge);
+        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
 
         /* Reenable controls */
         ParkourUtility::ToggleControlsForParkour(true);
