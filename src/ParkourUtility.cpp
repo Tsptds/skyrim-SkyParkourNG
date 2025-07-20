@@ -71,7 +71,7 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
 bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto controller = player->GetCharController();
-
+    auto cam = RE::PlayerCamera::GetSingleton();
     /* Reset Fall Damage */
     controller->fallStartHeight = player->GetPositionZ();
     /* Set gravity on off */
@@ -84,20 +84,44 @@ bool ParkourUtility::ToggleControlsForParkour(bool enable) {
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
+    controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
 
-    // TDM swim pitch workaround. Player goes into object if presses the sneak key.
-    // If disable and swimming, toggle sneak off. If enable, toggle sneak on. Otherwise don't disable sneaking.
-    if (Compatibility::TrueDirectionalMovement == true) {
-        if (enable || player->AsActorState()->IsSwimming()) {
-            // Pitch changes cause incorrect angles
-            player->GetCharController()->pitchAngle = 0;
+    auto handlers = RE::PlayerControls::GetSingleton();
+    handlers->togglePOVHandler->SetInputEventHandlingEnabled(enable);
+
+    if (!enable) {
+        if (cam->IsInThirdPerson()) {
+            _THREAD_POOL.enqueue([player] {
+                const auto rot = player->data.angle.z;
+                while (RuntimeVariables::ParkourInProgress) {
+                    if (player->data.angle.z != rot) {
+                        player->data.angle.z = rot;
+                    }
+
+                    auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
+                    std::this_thread::sleep_for(std::chrono::milliseconds(lastSec));
+                }
+                logger::info("TPP facing correction stopped");
+            });
+        }
+        else if (cam->IsInFirstPerson()) {
+            _THREAD_POOL.enqueue([player] {
+                while (RuntimeVariables::ParkourInProgress) {
+                    const auto vertAngle = player->data.angle.x;
+                    if (vertAngle > 0.9f) {
+                        player->data.angle.x = 0.9f;
+                    }
+                    else if (vertAngle < -0.7f) {
+                        player->data.angle.x = -0.8f;
+                    }
+
+                    auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
+                    std::this_thread::sleep_for(std::chrono::milliseconds(lastSec));
+                }
+                logger::info("FPP vert angle clamping stopped");
+            });
         }
     }
-    else {
-        // Block camera movement for Vanilla Skyrim, changes direction mid parkour otherwise. Even Starfield ledge grab does this.
-        controlMap->ToggleControls(RE::ControlMap::UEFlag::kLooking, enable);
-    }
-
     return true;
 }
 
