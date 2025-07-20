@@ -72,27 +72,7 @@ namespace RuntimeMethods {
             IniSettings::IgnoreRequirements = true;
         }
     }
-    void CheckRequirements() {
-        struct Requirements {
-                const char *BDI = "BehaviorDataInjector.dll";
 
-                static Requirements *Get() {
-                    static Requirements req;
-                    return &req;
-                }
-        };
-
-        auto BDI = GetModuleHandleA(Requirements::Get()->BDI);
-
-        if (!BDI) {
-            std::string msg = "\nSkyParkourV2: Loading aborted, required mods not found:\n\n";
-
-            if (!BDI)
-                msg += Requirements::Get()->BDI + std::string("\n");
-
-            SKSE::stl::report_and_fail(msg);
-        }
-    }
     void SetupModCompatibility() {
         auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
         if (TDM) {

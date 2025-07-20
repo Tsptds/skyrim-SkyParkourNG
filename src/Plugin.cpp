@@ -71,14 +71,7 @@ bool RegisterIndicators() {
 void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::ReadPluginConfigFromINI();
-
-        if (IniSettings::IgnoreRequirements) {
-            logger::warn(">>> Requirement Checks Skipped <<<");
-            return;
-        }
-
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
-        //RuntimeMethods::CheckRequirements();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         // Check for ESP
