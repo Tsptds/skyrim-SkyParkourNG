@@ -85,7 +85,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
 
         RegisterIndicators();
         Install_Hooks_And_Listeners();
-        RuntimeMethods::SetupModCompatibility();
+        //RuntimeMethods::SetupModCompatibility();
 
         logger::info(">> SkyParkour Loaded <<");
     }

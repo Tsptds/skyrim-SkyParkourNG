@@ -72,7 +72,7 @@ namespace RuntimeMethods {
         auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
         if (TDM) {
             Compatibility::TrueDirectionalMovement = true;
-            logger::info("** TDM Found, 360 Parkour Enabled");
+            //logger::info("** Compatibility: TDM Found");
         }
     }
 }  // namespace RuntimeMethods
