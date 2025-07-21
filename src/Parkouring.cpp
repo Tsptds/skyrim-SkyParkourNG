@@ -564,6 +564,12 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
 
+    /* Another guard for multiple activations */
+    if (RuntimeVariables::EnableNotifyWindow) {
+        return;
+    }
+
+    RuntimeVariables::EnableNotifyWindow = true;
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
     player->NotifyAnimationGraph("moveStop");
 
@@ -576,7 +582,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
         SKSE::GetTaskInterface()->AddTask([player, ledgeType, isSwimming] {
             player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
-            RuntimeVariables::EnableNotifyWindow = true;
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
             if (success) {
@@ -589,11 +594,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
                     const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
                     Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
                 }
-            }
-            else {
-                /* Parkour Failed for whatever reason */
-                ParkourUtility::ToggleControls(true);
-                RuntimeVariables::ParkourInProgress = false;
             }
         });
     });
