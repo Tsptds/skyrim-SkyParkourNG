@@ -43,6 +43,10 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RE::NiPoint3 downRayStart = fwdRayStart + checkDir * fwdRay.distance;
         RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, RE::COL_LAYER::kLOS);
 
+        if (LEDGE_EXCLUDE_LAYERS.contains(downRay.layer)) {
+            continue;
+        }
+
         ledgePoint = downRayStart + downRayDir * downRay.distance;
         normalZ = downRay.normalOut.quad.m128_f32[2];
 
@@ -185,7 +189,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         downRayStart.z = fwdRayStart.z;
 
         downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kUnidentified);
-        if (downRay.layer == RE::COL_LAYER::kNonCollidable) {
+        if (VAULT_EXCLUDE_LAYERS.contains(downRay.layer)) {
             continue;
         }
 
