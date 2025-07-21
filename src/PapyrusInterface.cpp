@@ -92,7 +92,7 @@ namespace SkyParkour_Papyrus {
 
             static void SetBaseStaminaDamage(RE::StaticFunctionTag *, float value) {
                 auto ini = RuntimeMethods::GetIniHandle();
-                ini->SetDoubleValue("MCM", "iBaseStaminaDamage", static_cast<double>(value));
+                ini->SetValue("MCM", "iBaseStaminaDamage", std::to_string(value).c_str());
                 save(ini);
 
                 Stamina_Damage = value;
@@ -108,7 +108,7 @@ namespace SkyParkour_Papyrus {
 
             static void SetCustomParkourKey(RE::StaticFunctionTag *, int32_t value) {
                 auto ini = RuntimeMethods::GetIniHandle();
-                ini->SetDoubleValue("MCM", "iCustomKeybind", static_cast<double>(value));
+                ini->SetValue("MCM", "iCustomKeybind", std::to_string(value).c_str());
                 save(ini);
 
                 CustomParkourKey = value;
@@ -116,7 +116,7 @@ namespace SkyParkour_Papyrus {
 
             static void SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value) {
                 auto ini = RuntimeMethods::GetIniHandle();
-                ini->SetDoubleValue("MCM", "iPresetKeyIndex", static_cast<double>(value));
+                ini->SetValue("MCM", "iPresetKeyIndex", std::to_string(value).c_str());
                 save(ini);
 
                 PresetParkourKey = value;
@@ -124,7 +124,7 @@ namespace SkyParkour_Papyrus {
 
             static void SetParkourDelay(RE::StaticFunctionTag *, float value) {
                 auto ini = RuntimeMethods::GetIniHandle();
-                ini->SetDoubleValue("MCM", "fInputDelay", static_cast<double>(value));
+                ini->SetValue("MCM", "fInputDelay", std::to_string(value).c_str());
                 save(ini);
 
                 parkourDelay = value;

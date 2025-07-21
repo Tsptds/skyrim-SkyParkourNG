@@ -70,7 +70,11 @@ bool RegisterIndicators() {
 
 void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
-        RuntimeMethods::ReadPluginConfigFromINI();
+        if (!RuntimeMethods::ReadPluginConfigFromINI()) {
+            /* Ini does not exist and failed to create */
+            return;
+        }
+
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {

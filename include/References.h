@@ -20,7 +20,7 @@ namespace RuntimeMethods {
     extern void ResetRuntimeVariables();
     extern bool CheckESPLoaded();
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
-    extern void ReadPluginConfigFromINI();
+    extern bool ReadPluginConfigFromINI();
 }  // namespace RuntimeMethods
 
 namespace Compatibility {

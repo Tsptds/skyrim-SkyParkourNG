@@ -44,28 +44,57 @@ namespace RuntimeMethods {
                       dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
     }
     std::unique_ptr<CSimpleIniA> GetIniHandle() {
+        constexpr const char *path = "./Data/SKSE/Plugins/SkyParkourNG.ini";
+
         auto ini = std::make_unique<CSimpleIniA>();
         ini->SetUnicode();
 
-        SI_Error rc = ini->LoadFile("./Data/SKSE/Plugins/SkyParkourNG.ini");
+        SI_Error rc = ini->LoadFile(path);
         if (rc < 0) {
-            logger::error("** SkyParkourNG.ini not found > Using default configs");
-            return nullptr;
+            logger::warn("SkyParkourNG.ini not found, creating with default values");
+
+            // Set default values here
+            ini->SetValue("ESP", "sEspName", "SkyParkourV2.esp");
+            ini->SetValue("ESP", "iBlueMarkerRefID", "0x000014");
+            ini->SetValue("ESP", "iRedMarkerRefID", "0x00000C");
+
+            ini->SetValue("MCM", "bEnableMod", "true");
+            ini->SetValue("MCM", "bSmartParkour", "true");
+            ini->SetValue("MCM", "bShowIndicators", "true");
+
+            ini->SetValue("MCM", "bEnableStaminaSystem", "true");
+            ini->SetValue("MCM", "bMustHaveStamina", "true");
+            ini->SetValue("MCM", "iBaseStaminaDamage", "20");
+
+            ini->SetValue("MCM", "bUsePresetKey", "true");
+            ini->SetValue("MCM", "iPresetKeyIndex", "0");
+            ini->SetValue("MCM", "iCustomKeybind", "0");
+            ini->SetValue("MCM", "fInputDelay", "0.0");
+
+            if (ini->SaveFile(path) < 0) {
+                logger::error("Failed to create default SkyParkourNG.ini");
+                return nullptr;
+            }
         }
 
         return ini;
     }
 
-    void ReadPluginConfigFromINI() {
+    bool ReadPluginConfigFromINI() {
         auto ini = GetIniHandle();
+        if (!ini) {
+            logger::error("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
+            return false;
+        }
+
         const char *name = ini->GetValue("ESP", "sEspName");
         if (!name) {
-            logger::error("SkyParkour: sEspName reading failed, using default config: SkyParkourV2");
+            logger::error("EspName not found, using default name");
         }
-        else {
-            logger::info("sEspName: {}", name);
-            IniSettings::ESP_NAME = name;
-        }
+
+        logger::info("sEspName: {}", name);
+        IniSettings::ESP_NAME = name;
+        return true;
     }
 
     void SetupModCompatibility() {
