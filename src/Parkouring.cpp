@@ -574,7 +574,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
             if (success) {
-                /* Always call this, it no longer does an adjustment but sets a reference point to use annotations as offset to it. */
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
                     RuntimeMethods::SwapLegs();
