@@ -72,6 +72,7 @@ bool ParkourUtility::ToggleControls(bool enable) {
     controller->gravity = enable;
 
     //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
+    //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
     // Toggle common controls
     //auto handlers = RE::PlayerControls::GetSingleton();

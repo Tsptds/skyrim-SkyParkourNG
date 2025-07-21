@@ -563,6 +563,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
     player->NotifyAnimationGraph("moveStop");
 
+    player->GetCharController()->wantState = RE::hkpCharacterStateType::kInAir;
+
     Parkouring::CalculateStartingPosition(ledgeType);
     InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
