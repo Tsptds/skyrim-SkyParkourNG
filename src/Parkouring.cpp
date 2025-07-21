@@ -20,7 +20,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
     RE::NiPoint3 upRayDir(0, 0, 1);
 
-    RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, RE::COL_LAYER::kLOS);
+    RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, RE::COL_LAYER::kTransparentWall);
     if (upRay.distance < minUpCheck) {
         return ParkourType::NoLedge;
     }
@@ -34,14 +34,14 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Incremental forward raycast to find a ledge
     for (int i = 0; i < fwdCheckIterations; i++) {
-        RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, RE::COL_LAYER::kLOS);
+        RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, RE::COL_LAYER::kTransparentWall);
         if (fwdRay.distance < fwdCheckStep * i) {
             continue;
         }
 
         // Downward raycast to detect ledge point
         RE::NiPoint3 downRayStart = fwdRayStart + checkDir * fwdRay.distance;
-        RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, RE::COL_LAYER::kLOS);
+        RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, RE::COL_LAYER::kTransparentWall);
 
         if (LEDGE_EXCLUDE_LAYERS.contains(downRay.layer)) {
             continue;
@@ -59,7 +59,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check for obstructions behind the vaultable surface
         RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
         const float minSpaceRequired = 15.0f * RuntimeVariables::PlayerScale;
-        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kUnidentified);
+        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kLOS);
 
         if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
             continue;  // Obstruction behind the vaultable surface
@@ -78,7 +78,7 @@ int Parkouring::LedgeCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
     const float headroomPlayerDiff = playerHeight - headroomBuffer;
     RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
-    RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, RE::COL_LAYER::kLOS);
+    RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, RE::COL_LAYER::kTransparentWall);
 
     if (headroomRay.distance < headroomPlayerDiff) {
         return ParkourType::NoLedge;
@@ -165,9 +165,9 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     // Check for obstructions behind the vaultable surface
     RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
     const float minSpaceRequired = 120.0f * RuntimeVariables::PlayerScale;
-    RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kUnidentified);
+    RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kTransparentWall);
 
-    if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
+    if (obsRay.didHit && obsRay.distance < minSpaceRequired && VAULT_EXCLUDE_LAYERS.contains(obsRay.layer)) {
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
@@ -188,10 +188,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RE::NiPoint3 downRayStart = playerPos + checkDir * iDist;
         downRayStart.z = fwdRayStart.z;
 
-        downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kUnidentified);
-        if (VAULT_EXCLUDE_LAYERS.contains(downRay.layer)) {
-            continue;
-        }
+        downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kTransparentWall);
 
         float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 

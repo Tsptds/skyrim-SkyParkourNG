@@ -216,9 +216,10 @@ namespace SkyParkourUtil {
                                                                           {COL_LAYER::kSpellExplosion, "SpellExplosion"},
                                                                           {COL_LAYER::kDroppingPick, "DroppingPick"}};
 
-    static const std::unordered_set<RE::COL_LAYER> LedgeLayerExclusionList{RE::COL_LAYER::kNonCollidable, RE::COL_LAYER::kCharController};
-    static const std::unordered_set<RE::COL_LAYER> VaultLayerExclusionList{RE::COL_LAYER::kNonCollidable, RE::COL_LAYER::kCharController,
-                                                                           RE::COL_LAYER::kGround, RE::COL_LAYER::kTerrain};
+    // Obstruction, but should not raycast through
+    static const std::unordered_set<COL_LAYER> LedgeLayerExclusionList{COL_LAYER::kNonCollidable, COL_LAYER::kCharController};
+    // Obstruction, but should not raycast through
+    static const std::unordered_set<COL_LAYER> VaultLayerExclusionList{COL_LAYER::kGround, COL_LAYER::kTerrain, COL_LAYER::kTransparent};
 
     inline std::string ColLayerToString(COL_LAYER layer) {
         auto it = colLayerToStr.find(layer);
@@ -245,7 +246,10 @@ struct RayCastResult {
 
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
+
+// Obstruction, but should not raycast through
 #define LEDGE_EXCLUDE_LAYERS SkyParkourUtil::LedgeLayerExclusionList
+// Obstruction, but should not raycast through
 #define VAULT_EXCLUDE_LAYERS SkyParkourUtil::VaultLayerExclusionList
 
 /* Anim Events */
