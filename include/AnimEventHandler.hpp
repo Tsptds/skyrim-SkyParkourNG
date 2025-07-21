@@ -48,7 +48,7 @@
                                 }
                                 else if (a_event->tag == SPPF_STOP) {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
-                                    Parkouring::StopInterpolationToPosition();
+                                    Parkouring::StopInterpolatingRef(player);
 
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
                                     /* Reenable controls */
@@ -170,16 +170,17 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
 
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
-                Parkouring::StopInterpolationToPosition();
+                const auto player = RE::PlayerCharacter::GetSingleton();
+                Parkouring::StopInterpolatingRef(player);
                 ParkourUtility::ToggleControls(true);
                 RuntimeVariables::ParkourInProgress = false;
             }
             return didRagdoll;
         }
     }
-    else if (a_eventName == SPPF_STOP) {
+    if (a_eventName == SPPF_STOP) {
         const auto player = RE::PlayerCharacter::GetSingleton();
-        Parkouring::StopInterpolationToPosition();
+        Parkouring::StopInterpolatingRef(player);
 
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
 
@@ -188,6 +189,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
+
+        return true;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }

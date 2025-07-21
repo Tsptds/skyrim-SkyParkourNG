@@ -12,7 +12,7 @@ namespace Parkouring {
     bool PlaceAndShowIndicator();
     int GetLedgePoint();
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative = false);
-    void StopInterpolationToPosition();
+    void StopInterpolatingRef(RE::Actor *actor);
     void CalculateStartingPosition(int ledgeType);
 
     bool TryActivateParkour();

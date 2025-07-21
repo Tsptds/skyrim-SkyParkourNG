@@ -401,8 +401,8 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
                             args,          // packed arguments
                             result);
 }
-void Parkouring::StopInterpolationToPosition() {
-    auto movingRef = RE::PlayerCharacter::GetSingleton();
+void Parkouring::StopInterpolatingRef(RE::Actor *actor) {
+    auto movingRef = actor;
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
