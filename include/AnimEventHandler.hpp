@@ -64,12 +64,17 @@
                 return _ProcessEvent(this, a_event, a_eventSource);
             }
 
-            static void InstallAnimEventHook() {
+            static bool InstallAnimEventHook() {
                 // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
                 auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
                 constexpr std::size_t idx = 0x1;
                 _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
-                logger::info(">> AnimEvent Hook Installed");
+
+                if (!_ProcessEvent.address()) {
+                    logger::critical("AnimEvent Hook Not Installed");
+                    return false;
+                }
+                return true;
             }
 
         private:
@@ -101,11 +106,10 @@
                 return {x, y, z, sec};
             }
     };
-}  // namespace Hooks
-namespace Hooks {
+
     class NotifyGraphHandler {
         public:
-            static void InstallGraphNotifyHook();
+            static bool InstallGraphNotifyHook();
 
         private:
             // Our hook callbacks
@@ -120,7 +124,7 @@ namespace Hooks {
     };
 }  // namespace Hooks
 
-void Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
+bool Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
     // TESObjectREFR
     //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
     //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
@@ -133,7 +137,11 @@ void Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
     REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_PlayerCharacter[3]};
     _origPlayerCharacter = vtblPlayer.write_vfunc(0x1, OnPlayerCharacter);
 
-    logger::info(">> Notify Graph Hook Installed");
+    if (!_origPlayerCharacter.address()) {
+        logger::critical("Notify Hook Not Installed");
+        return false;
+    }
+    return true;
 }
 
 bool Hooks::NotifyGraphHandler::OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
