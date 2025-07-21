@@ -592,7 +592,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         });
     });
 }
-void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault, bool isSwimming) {
+void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLowEffort, bool isSwimming) {
     if (ModSettings::Enable_Stamina_Consumption) {
         if (player->IsGodMode()) {
             return;
@@ -600,8 +600,8 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
 
         float cost = ParkourUtility::CalculateParkourStamina();
 
-        /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like vault. */
-        if (isVault || isSwimming) {
+        /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like low effort. */
+        if (isLowEffort || isSwimming) {
             // logger::info("cost{}", cost / 2);
             DamageActorStamina(player, cost / 2);
         }
@@ -611,8 +611,8 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVa
         }
         else {
             RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
-            player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
         }
+        player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
     }
 }
 

@@ -18,7 +18,7 @@ namespace Parkouring {
     bool TryActivateParkour();
     void UpdateParkourPoint();
     void ParkourReadyRun(int32_t ledgeType, bool isSwimming);
-    void PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isVault, bool isSwimming);
+    void PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLowEffort, bool isSwimming);
 
     void SetParkourOnOff(bool turnOn);
 }  // namespace Parkouring
