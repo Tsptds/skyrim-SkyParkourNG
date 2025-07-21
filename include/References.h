@@ -105,7 +105,7 @@ namespace RuntimeVariables {
     extern RE::NiPoint3 PlayerStartPosition;
 
     extern bool ParkourInProgress;
-    extern bool ParkourActivatedOnce;
+    extern bool EnableNotifyWindow;
     extern bool RecoveryFramesActive;
     extern bool IsMenuOpen;
     extern bool IsInMainMenu;

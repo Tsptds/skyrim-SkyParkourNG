@@ -56,7 +56,6 @@
                                     RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
-                                    RuntimeVariables::ParkourActivatedOnce = false;
                                 }
                             }
                         }
@@ -152,19 +151,14 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (RuntimeVariables::ParkourActivatedOnce && RuntimeVariables::ParkourInProgress && a_eventName == SPPF_NOTIFY) {
-        /* Don't send event during parkour. TODO: Move this into behavior patch later by disabling self transition. */
-        return false;
-    }
-
-    if (a_eventName == SPPF_NOTIFY && !RuntimeVariables::IsParkourActive) {
+    if (a_eventName == SPPF_NOTIFY &&
+        (!RuntimeVariables::IsParkourActive || (RuntimeVariables::ParkourInProgress && !RuntimeVariables::EnableNotifyWindow))) {
         return false;
     }
 
     if (a_eventName == "Ragdoll") {
         if (RuntimeVariables::ParkourInProgress) {
             /*Unlock controls on ragdoll*/
-            RuntimeVariables::ParkourActivatedOnce = false;
 
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
@@ -186,7 +180,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
-        RuntimeVariables::ParkourActivatedOnce = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }
