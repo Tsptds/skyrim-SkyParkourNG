@@ -17,7 +17,8 @@ namespace Hooks {
 
             using CanProcess_t = decltype(&T::CanProcess);
             using ProcessButton_t = decltype(&T::ProcessButton);
-            // Separate static variables for each hook type.
+
+            // Separate static variables for each hook type. Default value is 0.
             static inline REL::Relocation<CanProcess_t> _CanProcessJump;
             static inline REL::Relocation<ProcessButton_t> _ProcessButtonJump;
             static inline REL::Relocation<CanProcess_t> _CanProcessSneak;
@@ -28,10 +29,10 @@ namespace Hooks {
             bool CanProcess_Sneak(RE::InputEvent* a_event);
             bool CanProcess_Movement(RE::InputEvent* a_event);
 
-            static void InstallJumpHook();
-            static void InstallProcessJumpHook();
-            static void InstallSneakHook();
-            static void InstallMovementHook();
+            static bool InstallJumpHook();
+            static bool InstallProcessJumpHook();
+            static bool InstallSneakHook();
+            static bool InstallMovementHook();
     };
 
     /* Hooks */
@@ -120,34 +121,59 @@ namespace Hooks {
 
     /* Install */
     template <class T>
-    inline void InputHandlerEx<T>::InstallJumpHook() {
+    inline bool InputHandlerEx<T>::InstallJumpHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
         std::uint64_t a_offset = 0x1;
+
         _CanProcessJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Jump);
-        logger::info(">> Jump Hook Installed");
+
+        if (!_CanProcessJump.address()) {
+            logger::critical("Jump Hook Not Installed");
+            return false;
+        }
+
+        return true;
     }
 
     template <class T>
-    inline void InputHandlerEx<T>::InstallProcessJumpHook() {
+    inline bool InputHandlerEx<T>::InstallProcessJumpHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
         std::uint64_t a_offset = 0x4;
+
         _ProcessButtonJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::ProcessButton_Jump);
-        logger::info(">> Jump Process Hook Installed");
+
+        if (!_ProcessButtonJump.address()) {
+            logger::critical("Jump Process Hook Not Installed");
+            return false;
+        }
+        return true;
     }
 
     template <class T>
-    inline void InputHandlerEx<T>::InstallSneakHook() {
+    inline bool InputHandlerEx<T>::InstallSneakHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_SneakHandler[0]);
         std::uint64_t a_offset = 0x1;
+
         _CanProcessSneak = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Sneak);
-        logger::info(">> Sneak Hook Installed");
+
+        if (!_CanProcessSneak.address()) {
+            logger::critical("Sneak Hook Not Installed");
+            return false;
+        }
+        return true;
     }
 
     template <class T>
-    inline void InputHandlerEx<T>::InstallMovementHook() {
+    inline bool InputHandlerEx<T>::InstallMovementHook() {
         auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_MovementHandler[0]);
         std::uint64_t a_offset = 0x1;
+
         _CanProcessMovement = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Movement);
-        logger::info(">> Movement Hook Installed");
+
+        if (!_CanProcessMovement.address()) {
+            logger::critical("Movement Hook Not Installed");
+            return false;
+        }
+        return true;
     }
 }  // namespace Hooks
