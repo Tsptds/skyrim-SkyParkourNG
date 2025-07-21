@@ -28,5 +28,4 @@ namespace ParkourUtility {
     bool PlayerWantsToDrawSheath();
     bool IsParkourActive();
     bool PlayerIsOnStairs();
-    float magnitudeXY(float x, float y);
 }  // namespace ParkourUtility
