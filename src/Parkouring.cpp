@@ -141,7 +141,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                            float minVaultHeight, float maxVaultHeight) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    if (!PlayerIsGroundedOrSliding() || PlayerIsOnStairs()) {
+    if (!PlayerIsGroundedOrSliding()) {
         return ParkourType::NoLedge;
     }
 
