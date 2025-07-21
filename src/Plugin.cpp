@@ -99,7 +99,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         auto player = RE::PlayerCharacter::GetSingleton();
         int32_t out;
-        if (player->GetGraphVariableInt(SPPF_Ledge, out) && out && out != -1) {
+        if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
             logger::warn(">>SAVE LOADED WITH ONGOING PARKOUR, FIXING IT<<");
             player->NotifyAnimationGraph("SkyParkour_Stop");
         }
