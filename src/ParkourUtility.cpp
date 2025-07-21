@@ -62,7 +62,7 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.StopMoving(1.0f);
 }
 
-bool ParkourUtility::ToggleControlsForParkour(bool enable) {
+bool ParkourUtility::ToggleControls(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto controller = player->GetCharController();
     auto cam = RE::PlayerCamera::GetSingleton();

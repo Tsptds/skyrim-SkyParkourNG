@@ -35,7 +35,7 @@
                                 }
                                 else if (a_event->tag == SPPF_START) {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
-                                    ParkourUtility::ToggleControlsForParkour(false);
+                                    ParkourUtility::ToggleControls(false);
                                     ParkourUtility::StopInteractions(*player);
                                 }
                                 else if (a_event->tag == SPPF_RECOVERY) {
@@ -52,7 +52,7 @@
 
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
                                     /* Reenable controls */
-                                    ParkourUtility::ToggleControlsForParkour(true);
+                                    ParkourUtility::ToggleControls(true);
                                     RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
@@ -163,7 +163,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
                 Parkouring::StopInterpolationToPosition();
-                ParkourUtility::ToggleControlsForParkour(true);
+                ParkourUtility::ToggleControls(true);
                 RuntimeVariables::ParkourInProgress = false;
             }
             return didRagdoll;
@@ -176,7 +176,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
 
         /* Reenable controls */
-        ParkourUtility::ToggleControlsForParkour(true);
+        ParkourUtility::ToggleControls(true);
         RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;

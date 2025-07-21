@@ -586,7 +586,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             }
             else {
                 /* Parkour Failed for whatever reason */
-                ParkourUtility::ToggleControlsForParkour(true);
+                ParkourUtility::ToggleControls(true);
                 RuntimeVariables::ParkourInProgress = false;
             }
         });
@@ -625,7 +625,7 @@ void Parkouring::SetParkourOnOff(bool turnOn) {
         if (ButtonEventListener::GetSingleton()->SinkRegistered)
             ButtonEventListener::Unregister();
 
-        ParkourUtility::ToggleControlsForParkour(true);
+        ParkourUtility::ToggleControls(true);
         RuntimeMethods::ResetRuntimeVariables();
 
         if (GameReferences::currentIndicatorRef)
