@@ -38,7 +38,7 @@ namespace Menus {
 bool MenuListener::Register() {
     auto listener = MenuListener::GetSingleton();
     if (listener) {
-        RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(listener);  // :contentReference[oaicite:0]{index=0}
+        RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(listener);
         return true;
     }
     return false;
@@ -46,7 +46,7 @@ bool MenuListener::Register() {
 bool MenuListener::Unregister() {
     auto listener = MenuListener::GetSingleton();
     if (listener) {
-        RE::UI::GetSingleton()->RemoveEventSink<RE::MenuOpenCloseEvent>(listener);  // :contentReference[oaicite:0]{index=0}
+        RE::UI::GetSingleton()->RemoveEventSink<RE::MenuOpenCloseEvent>(listener);
         return true;
     }
     return false;
