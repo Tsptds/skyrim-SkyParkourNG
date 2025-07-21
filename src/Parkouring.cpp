@@ -618,17 +618,22 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLo
 
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
-        if (!ButtonEventListener::GetSingleton()->SinkRegistered)
+        if (!ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Register();
+            logger::info("Processing On");
+        }
     }
     else {
-        if (ButtonEventListener::GetSingleton()->SinkRegistered)
+        if (ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Unregister();
+            logger::info("Processing Off");
+        }
 
         ParkourUtility::ToggleControls(true);
         RuntimeMethods::ResetRuntimeVariables();
 
-        if (GameReferences::currentIndicatorRef)
+        if (GameReferences::currentIndicatorRef) {
             GameReferences::currentIndicatorRef->Disable();
+        }
     }
 }

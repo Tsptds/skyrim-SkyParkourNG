@@ -58,7 +58,7 @@ void ButtonEventListener::Register() {
     if (inputManager) {
         inputManager->AddEventSink(ButtonEventListener::GetSingleton());
         ButtonEventListener::GetSingleton()->SinkRegistered = true;
-        logger::info("Buttons - Listening");
+        //logger::info("Buttons - Listening");
     }
 }
 void ButtonEventListener::Unregister() {
@@ -66,7 +66,7 @@ void ButtonEventListener::Unregister() {
     if (inputManager) {
         inputManager->RemoveEventSink(ButtonEventListener::GetSingleton());
         ButtonEventListener::GetSingleton()->SinkRegistered = false;
-        logger::info("Buttons - Not Listening");
+        //logger::info("Buttons - Not Listening");
     }
 }
 
