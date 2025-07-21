@@ -216,9 +216,17 @@ namespace SkyParkourUtil {
                                                                           {COL_LAYER::kSpellExplosion, "SpellExplosion"},
                                                                           {COL_LAYER::kDroppingPick, "DroppingPick"}};
 
-    static const std::unordered_set<RE::COL_LAYER> LedgeLayerExclusionList{RE::COL_LAYER::kNonCollidable, RE::COL_LAYER::kCharController};
-    static const std::unordered_set<RE::COL_LAYER> VaultLayerExclusionList{RE::COL_LAYER::kNonCollidable, RE::COL_LAYER::kCharController,
-                                                                           RE::COL_LAYER::kGround, RE::COL_LAYER::kTerrain};
+    static const std::unordered_set<COL_LAYER> LedgeLayerExclusionList{
+        COL_LAYER::kNonCollidable, COL_LAYER::kCharController, COL_LAYER::kClutter,       COL_LAYER::kWeapon,    COL_LAYER::kProjectile,
+        COL_LAYER::kSpell,         COL_LAYER::kSpellExplosion, COL_LAYER::kAcousticSpace, COL_LAYER::kActorZone, COL_LAYER::kProjectileZone,
+        COL_LAYER::kGasTrap,       COL_LAYER::kShellCasting,   COL_LAYER::kStairHelper,   COL_LAYER::kDeadBip,   COL_LAYER::kBipedNoCC,
+        COL_LAYER::kCamera,        COL_LAYER::kCameraSphere,   COL_LAYER::kConeProjectile};
+    static const std::unordered_set<COL_LAYER> VaultLayerExclusionList{
+        COL_LAYER::kNonCollidable, COL_LAYER::kCharController, COL_LAYER::kClutter,        COL_LAYER::kWeapon,
+        COL_LAYER::kProjectile,    COL_LAYER::kSpell,          COL_LAYER::kSpellExplosion, COL_LAYER::kAcousticSpace,
+        COL_LAYER::kActorZone,     COL_LAYER::kProjectileZone, COL_LAYER::kGasTrap,        COL_LAYER::kShellCasting,
+        COL_LAYER::kStairHelper,   COL_LAYER::kDeadBip,        COL_LAYER::kBipedNoCC,      COL_LAYER::kCamera,
+        COL_LAYER::kCameraSphere,  COL_LAYER::kConeProjectile, COL_LAYER::kGround,         COL_LAYER::kTerrain};
 
     inline std::string ColLayerToString(COL_LAYER layer) {
         auto it = colLayerToStr.find(layer);
