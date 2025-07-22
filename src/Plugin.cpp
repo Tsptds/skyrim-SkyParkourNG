@@ -164,7 +164,13 @@ namespace plugin {
         log->flush_on(spdlog::level::info);
 
         spdlog::set_default_logger(std::move(log));
-        spdlog::set_pattern(PLUGIN_LOGPATTERN_RELEASE);
+        spdlog::set_pattern(
+#ifdef _DEBUG
+            PLUGIN_LOGPATTERN_DEBUG
+#else
+            PLUGIN_LOGPATTERN_RELEASE
+#endif
+        );
     }
 }  // namespace plugin
 
