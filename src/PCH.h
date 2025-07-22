@@ -258,10 +258,10 @@ struct RayCastResult {
 };
 
 enum class COL_LAYER_EXTEND {
-    kClimbLedge = static_cast<RE::COL_LAYER>(RE::COL_LAYER::kLOS),
+    kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
     kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
     kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
-    kVaultForward = static_cast<RE::COL_LAYER>(RE::COL_LAYER::kTransparent),
+    kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
 };
 
 #define _THREAD_POOL SkyParkourUtil::threads
