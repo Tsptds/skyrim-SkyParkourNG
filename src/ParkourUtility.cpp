@@ -160,6 +160,7 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
     pickData.rayInput.to = (rayStart + rayDir * maxDist) * havokWorldScale;
 
     // Set the collision filter info to exclude the player
+    /* hkpCollidable.h, lower 4 bits: CollidesWith, higher 4 bits: BelongsTo */
     uint32_t collisionFilterInfo = 0;
     player->GetCollisionFilterInfo(collisionFilterInfo);
     pickData.rayInput.filterInfo = (collisionFilterInfo & 0xFFFF0000) | static_cast<uint32_t>(layerMask);
@@ -174,20 +175,6 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
             static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F);
 
         result.layer = layer;
-
-        // Check for useful collision layers
-        switch (layer) {
-            case RE::COL_LAYER::kStatic:
-            case RE::COL_LAYER::kTerrain:
-            case RE::COL_LAYER::kGround:
-            case RE::COL_LAYER::kProps:
-            case RE::COL_LAYER::kDoorDetection:
-            case RE::COL_LAYER::kTrees:
-            case RE::COL_LAYER::kClutterLarge:
-            case RE::COL_LAYER::kAnimStatic:
-            case RE::COL_LAYER::kDebrisLarge:
-                result.isValid = true;
-        }
     }
 
     return result;

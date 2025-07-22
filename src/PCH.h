@@ -168,63 +168,71 @@ namespace logger = SKSE::log;
 
 namespace SkyParkourUtil {
     using namespace RE;
-    static const std::unordered_map<COL_LAYER, std::string> colLayerToStr{{COL_LAYER::kUnidentified, "Unidentified"},
-                                                                          {COL_LAYER::kStatic, "Static"},
-                                                                          {COL_LAYER::kAnimStatic, "AnimStatic"},
-                                                                          {COL_LAYER::kTransparent, "Transparent"},
-                                                                          {COL_LAYER::kClutter, "Clutter"},
-                                                                          {COL_LAYER::kWeapon, "Weapon"},
-                                                                          {COL_LAYER::kProjectile, "Projectile"},
-                                                                          {COL_LAYER::kSpell, "Spell"},
-                                                                          {COL_LAYER::kBiped, "Biped"},
-                                                                          {COL_LAYER::kTrees, "Trees"},
-                                                                          {COL_LAYER::kProps, "Props"},
-                                                                          {COL_LAYER::kWater, "Water"},
-                                                                          {COL_LAYER::kTrigger, "Trigger"},
-                                                                          {COL_LAYER::kTerrain, "Terrain"},
-                                                                          {COL_LAYER::kTrap, "Trap"},
-                                                                          {COL_LAYER::kNonCollidable, "NonCollidable"},
-                                                                          {COL_LAYER::kCloudTrap, "CloudTrap"},
-                                                                          {COL_LAYER::kGround, "Ground"},
-                                                                          {COL_LAYER::kPortal, "Portal"},
-                                                                          {COL_LAYER::kDebrisSmall, "DebrisSmall"},
-                                                                          {COL_LAYER::kDebrisLarge, "DebrisLarge"},
-                                                                          {COL_LAYER::kAcousticSpace, "AcousticSpace"},
-                                                                          {COL_LAYER::kActorZone, "ActorZone"},
-                                                                          {COL_LAYER::kProjectileZone, "ProjectileZone"},
-                                                                          {COL_LAYER::kGasTrap, "GasTrap"},
-                                                                          {COL_LAYER::kShellCasting, "ShellCasting"},
-                                                                          {COL_LAYER::kTransparentWall, "TransparentWall"},
-                                                                          {COL_LAYER::kInvisibleWall, "InvisibleWall"},
-                                                                          {COL_LAYER::kTransparentSmallAnim, "TransparentSmallAnim"},
-                                                                          {COL_LAYER::kClutterLarge, "ClutterLarge"},
-                                                                          {COL_LAYER::kCharController, "CharController"},
-                                                                          {COL_LAYER::kStairHelper, "StairHelper"},
-                                                                          {COL_LAYER::kDeadBip, "DeadBip"},
-                                                                          {COL_LAYER::kBipedNoCC, "BipedNoCC"},
-                                                                          {COL_LAYER::kAvoidBox, "AvoidBox"},
-                                                                          {COL_LAYER::kCollisionBox, "CollisionBox"},
-                                                                          {COL_LAYER::kCameraSphere, "CameraSphere"},
-                                                                          {COL_LAYER::kDoorDetection, "DoorDetection"},
-                                                                          {COL_LAYER::kConeProjectile, "ConeProjectile"},
-                                                                          {COL_LAYER::kCamera, "Camera"},
-                                                                          {COL_LAYER::kItemPicker, "ItemPicker"},
-                                                                          {COL_LAYER::kLOS, "LOS"},
-                                                                          {COL_LAYER::kPathingPick, "PathingPick"},
-                                                                          {COL_LAYER::kUnused0, "Unused0"},
-                                                                          {COL_LAYER::kUnused1, "Unused1"},
-                                                                          {COL_LAYER::kSpellExplosion, "SpellExplosion"},
-                                                                          {COL_LAYER::kDroppingPick, "DroppingPick"}};
-
-    // Obstruction, but should not raycast through
-    static const std::unordered_set<COL_LAYER> LedgeLayerExclusionList{COL_LAYER::kNonCollidable, COL_LAYER::kCharController};
-    // Obstruction, but should not raycast through
-    static const std::unordered_set<COL_LAYER> VaultLayerExclusionList{COL_LAYER::kGround, COL_LAYER::kTerrain, COL_LAYER::kTransparent};
-
+    static const std::unordered_map<COL_LAYER, std::string> colLayerMap{{COL_LAYER::kUnidentified, "Unidentified"},
+                                                                        {COL_LAYER::kStatic, "Static"},
+                                                                        {COL_LAYER::kAnimStatic, "AnimStatic"},
+                                                                        {COL_LAYER::kTransparent, "Transparent"},
+                                                                        {COL_LAYER::kClutter, "Clutter"},
+                                                                        {COL_LAYER::kWeapon, "Weapon"},
+                                                                        {COL_LAYER::kProjectile, "Projectile"},
+                                                                        {COL_LAYER::kSpell, "Spell"},
+                                                                        {COL_LAYER::kBiped, "Biped"},
+                                                                        {COL_LAYER::kTrees, "Trees"},
+                                                                        {COL_LAYER::kProps, "Props"},
+                                                                        {COL_LAYER::kWater, "Water"},
+                                                                        {COL_LAYER::kTrigger, "Trigger"},
+                                                                        {COL_LAYER::kTerrain, "Terrain"},
+                                                                        {COL_LAYER::kTrap, "Trap"},
+                                                                        {COL_LAYER::kNonCollidable, "NonCollidable"},
+                                                                        {COL_LAYER::kCloudTrap, "CloudTrap"},
+                                                                        {COL_LAYER::kGround, "Ground"},
+                                                                        {COL_LAYER::kPortal, "Portal"},
+                                                                        {COL_LAYER::kDebrisSmall, "DebrisSmall"},
+                                                                        {COL_LAYER::kDebrisLarge, "DebrisLarge"},
+                                                                        {COL_LAYER::kAcousticSpace, "AcousticSpace"},
+                                                                        {COL_LAYER::kActorZone, "ActorZone"},
+                                                                        {COL_LAYER::kProjectileZone, "ProjectileZone"},
+                                                                        {COL_LAYER::kGasTrap, "GasTrap"},
+                                                                        {COL_LAYER::kShellCasting, "ShellCasting"},
+                                                                        {COL_LAYER::kTransparentWall, "TransparentWall"},
+                                                                        {COL_LAYER::kInvisibleWall, "InvisibleWall"},
+                                                                        {COL_LAYER::kTransparentSmallAnim, "TransparentSmallAnim"},
+                                                                        {COL_LAYER::kClutterLarge, "ClutterLarge"},
+                                                                        {COL_LAYER::kCharController, "CharController"},
+                                                                        {COL_LAYER::kStairHelper, "StairHelper"},
+                                                                        {COL_LAYER::kDeadBip, "DeadBip"},
+                                                                        {COL_LAYER::kBipedNoCC, "BipedNoCC"},
+                                                                        {COL_LAYER::kAvoidBox, "AvoidBox"},
+                                                                        {COL_LAYER::kCollisionBox, "CollisionBox"},
+                                                                        {COL_LAYER::kCameraSphere, "CameraSphere"},
+                                                                        {COL_LAYER::kDoorDetection, "DoorDetection"},
+                                                                        {COL_LAYER::kConeProjectile, "ConeProjectile"},
+                                                                        {COL_LAYER::kCamera, "Camera"},
+                                                                        {COL_LAYER::kItemPicker, "ItemPicker"},
+                                                                        {COL_LAYER::kLOS, "LOS"},
+                                                                        {COL_LAYER::kPathingPick, "PathingPick"},
+                                                                        {COL_LAYER::kUnused0, "Unused0"},
+                                                                        {COL_LAYER::kUnused1, "Unused1"},
+                                                                        {COL_LAYER::kSpellExplosion, "SpellExplosion"},
+                                                                        {COL_LAYER::kDroppingPick, "DroppingPick"}};
     inline std::string ColLayerToString(COL_LAYER layer) {
-        auto it = colLayerToStr.find(layer);
-        return it != colLayerToStr.end() ? it->second : "Unknown";
+        auto it = colLayerMap.find(layer);
+        return it != colLayerMap.end() ? it->second : "Unknown";
     }
+
+    /* Mark ledge point layers that are considered invalid for climbing */
+    static const std::unordered_set<COL_LAYER> ClimbLayerExclusionList{COL_LAYER::kNonCollidable, COL_LAYER::kCharController,
+                                                                       COL_LAYER::kAnimStatic, COL_LAYER::kWeapon, COL_LAYER::kProjectile};
+
+    /* Head Level Check Layers. If hit, consider vault has obstruction behind */
+    static const std::unordered_set<COL_LAYER> VaultForwardRayList{
+        COL_LAYER::kStatic, COL_LAYER::kTerrain,      COL_LAYER::kGround,     COL_LAYER::kProps,       COL_LAYER::kDoorDetection,
+        COL_LAYER::kTrees,  COL_LAYER::kClutterLarge, COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
+
+    /* Ledge Point Layers. If hit, */
+    static const std::unordered_set<COL_LAYER> VaultDownRayList{COL_LAYER::kGround,         COL_LAYER::kTerrain,
+                                                                COL_LAYER::kWeapon,         COL_LAYER::kProjectile,
+                                                                COL_LAYER::kCharController, COL_LAYER::kNonCollidable};
 
     static ThreadPool threads;
     static RE::hkVector4 zeroVector{0, 0, 0, 0};
@@ -235,22 +243,20 @@ struct RayCastResult {
         float distance = -1.0f;
         RE::COL_LAYER layer = RE::COL_LAYER::kUnidentified;
         RE::hkVector4 normalOut = RE::hkVector4(0, 0, 0, 0);
-        bool isValid = false;
         bool didHit = false;
 
         RayCastResult() = default;
 
-        RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool v, bool h)
-            : distance(d), layer(l), normalOut(n), isValid(v), didHit(h) {}
+        RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool h)
+            : distance(d), layer(l), normalOut(n), didHit(h) {}
 };
 
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 
-// Obstruction, but should not raycast through
-#define LEDGE_EXCLUDE_LAYERS SkyParkourUtil::LedgeLayerExclusionList
-// Obstruction, but should not raycast through
-#define VAULT_EXCLUDE_LAYERS SkyParkourUtil::VaultLayerExclusionList
+#define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
+#define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList
+#define LAYERS_VAULT_FORWARD_RAY SkyParkourUtil::VaultForwardRayList
 
 /* Anim Events */
 #define SPPF_NOTIFY "SkyParkour"
