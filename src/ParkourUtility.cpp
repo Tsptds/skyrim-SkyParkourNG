@@ -84,9 +84,9 @@ bool ParkourUtility::ToggleControls(bool enable) {
 
     if (!enable) {
         if (cam->IsInThirdPerson()) {
-            _THREAD_POOL.enqueue([player] {
+            _THREAD_POOL.enqueue([player, cam] {
                 const auto rot = player->data.angle.z;
-                while (RuntimeVariables::ParkourInProgress) {
+                while (RuntimeVariables::ParkourInProgress && cam->IsInThirdPerson()) {
                     if (!ParkourUtility::IsGamePaused()) {
                         if (player->data.angle.z != rot) {
                             player->data.angle.z = rot;
@@ -100,8 +100,8 @@ bool ParkourUtility::ToggleControls(bool enable) {
             });
         }
         else if (cam->IsInFirstPerson()) {
-            _THREAD_POOL.enqueue([player] {
-                while (RuntimeVariables::ParkourInProgress) {
+            _THREAD_POOL.enqueue([player, cam] {
+                while (RuntimeVariables::ParkourInProgress && cam->IsInFirstPerson()) {
                     if (!ParkourUtility::IsGamePaused()) {
                         const auto vertAngle = player->data.angle.x;
                         if (vertAngle > 0.9f) {
