@@ -16,11 +16,12 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float minLedgeFlatness = 0.5;          //0.5
     const float playerToLedgeHypotenuse = 0.8f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
 
-    // Upward raycast to check for headroom
+    // Raycast above player, is there enough room
     RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
     RE::NiPoint3 upRayDir(0, 0, 1);
 
-    RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, RE::COL_LAYER::kTransparentWall);
+    RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, COL_LAYER_EXTEND::kClimbObstruction);
+
     if (upRay.distance < minUpCheck) {
         return ParkourType::NoLedge;
     }
@@ -34,14 +35,23 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Incremental forward raycast to find a ledge
     for (int i = 0; i < fwdCheckIterations; i++) {
-        RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, RE::COL_LAYER::kTransparentWall);
+        RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, COL_LAYER_EXTEND::kClimbObstruction);
+
+#ifdef LOG_CLIMB
+        logger::info("Ledge FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
+#endif
+
         if (fwdRay.distance < fwdCheckStep * i) {
             continue;
         }
 
         // Downward raycast to detect ledge point
         RE::NiPoint3 downRayStart = fwdRayStart + checkDir * fwdRay.distance;
-        RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, RE::COL_LAYER::kTransparentWall);
+        RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
+
+#ifdef LOG_CLIMB
+        logger::info("Ledge Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
+#endif
 
         if (LAYERS_CLIMB_EXCLUDE.contains(downRay.layer)) {
             continue;
@@ -59,14 +69,13 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check for obstructions behind the Ledge point
         RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
         const float minSpaceRequired = 15.0f * RuntimeVariables::PlayerScale;
-        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, RE::COL_LAYER::kLOS);
+        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kClimbObstruction);
 
         if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
             continue;  // Obstruction behind the ledge point
         }
 
         foundLedge = true;
-        //logger::info("Ledge: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
         break;
     }
 
@@ -78,7 +87,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
     const float headroomPlayerDiff = playerHeight - headroomBuffer;
     RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
-    RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, RE::COL_LAYER::kTransparentWall);
+    RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, COL_LAYER_EXTEND::kClimbObstruction);
 
     if (headroomRay.distance < headroomPlayerDiff) {
         return ParkourType::NoLedge;
@@ -156,8 +165,11 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     RE::NiPoint3 fwdRayStart = playerPos + RE::NiPoint3(0, 0, headHeight);
     float minSpaceRequired = 2 * vaultLength * RuntimeVariables::PlayerScale;
-    RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, RE::COL_LAYER::kTransparentWall);
-    //logger::info("Vault FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
+
+    RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kVaultForward);
+#ifdef _DEBUG
+    logger::info("Vault FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
+#endif
 
     if (fwdRay.didHit && fwdRay.distance < minSpaceRequired && LAYERS_VAULT_FORWARD_RAY.contains(fwdRay.layer)) {
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
@@ -182,12 +194,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RE::NiPoint3 downRayStart = playerPos + checkDir * iDist;
         downRayStart.z = fwdRayStart.z;
 
-        downRay = RayCast(downRayStart, downRayDir, vaultableGap, RE::COL_LAYER::kTransparentWall);
-
-        /* Don't attempt to vault over these */
-        if (LAYERS_VAULT_DOWN_RAY.contains(downRay.layer)) {
-            continue;
-        }
+        downRay = RayCast(downRayStart, downRayDir, vaultableGap, COL_LAYER_EXTEND::kVaultDown);
 
         float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 
@@ -201,8 +208,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 foundLanding = false;
             }
             ledgePoint = downRayStart + downRayDir * downRay.distance;
-            //logger::info("Vault Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
             foundVaulter = true;
+#ifdef _DEBUG
+            logger::info("Vault Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
+#endif
         }
         else if (foundVaulter && hitHeight < minVaultHeight) {
             foundLandingHeight = std::min(hitHeight, foundLandingHeight);
@@ -378,7 +387,7 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
     float rx = movingRef->data.angle.x;
     float ry = movingRef->data.angle.y;
     float rz = movingRef->data.angle.z;
-    float maxRotSpeed = 1.0f;
+    float maxRotSpeed = 0.0f;
 
     // Build the IFunctionArguments with those locals:
     auto args = RE::MakeFunctionArguments(std::move(px),  // afX

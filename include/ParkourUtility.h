@@ -6,7 +6,7 @@ namespace ParkourUtility {
     void StopInteractions(RE::Actor &actor);
     bool ToggleControls(bool enable);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
-    RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::COL_LAYER layerMask);
+    RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask);
     // Ragdoll & Get Up Sequence
     bool IsKnockedOut(RE::Actor *actor);
     bool IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player);

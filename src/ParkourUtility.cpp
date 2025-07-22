@@ -79,7 +79,6 @@ bool ParkourUtility::ToggleControls(bool enable) {
     auto controlMap = RE::ControlMap::GetSingleton();
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
 
     if (!enable) {
@@ -134,7 +133,7 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     return playerDirFlat;
 }
 
-RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, RE::COL_LAYER layerMask) {
+RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     RayCastResult result{};
@@ -161,6 +160,10 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
 
     // Set the collision filter info to exclude the player
     /* hkpCollidable.h, lower 4 bits: CollidesWith, higher 4 bits: BelongsTo */
+
+    //static_cast<uint32_t>(COL_LAYER::kAnimStatic) & ~static_cast<uint32_t>(COL_LAYER::kDoorDetection)
+
+    /* TODO: Bitwise or layers, keep them as uint32_t as a custom mask for the layers valid */
     uint32_t collisionFilterInfo = 0;
     player->GetCollisionFilterInfo(collisionFilterInfo);
     pickData.rayInput.filterInfo = (collisionFilterInfo & 0xFFFF0000) | static_cast<uint32_t>(layerMask);

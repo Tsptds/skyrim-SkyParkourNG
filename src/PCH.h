@@ -166,6 +166,11 @@
 using namespace std::literals;
 namespace logger = SKSE::log;
 
+/* Macro func */
+#define Mask_OR(x, y) (static_cast<uint32_t>(x) | static_cast<uint32_t>(y))
+#define Mask_AND(x, y) (static_cast<uint32_t>(x) & static_cast<uint32_t>(y))
+#define Mask_DIFF(x, y) (static_cast<uint32_t>(x) & ~static_cast<uint32_t>(y))
+
 namespace SkyParkourUtil {
     using namespace RE;
     static const std::unordered_map<COL_LAYER, std::string> colLayerMap{{COL_LAYER::kUnidentified, "Unidentified"},
@@ -230,7 +235,7 @@ namespace SkyParkourUtil {
         COL_LAYER::kStatic, COL_LAYER::kTerrain,      COL_LAYER::kGround,     COL_LAYER::kProps,       COL_LAYER::kDoorDetection,
         COL_LAYER::kTrees,  COL_LAYER::kClutterLarge, COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
 
-    /* Ledge Point Layers. If hit, */
+    /* Ledge Point Layers. If hit, consider vault point invalid. */
     static const std::unordered_set<COL_LAYER> VaultDownRayList{COL_LAYER::kGround,         COL_LAYER::kTerrain,
                                                                 COL_LAYER::kWeapon,         COL_LAYER::kProjectile,
                                                                 COL_LAYER::kCharController, COL_LAYER::kNonCollidable};
@@ -252,6 +257,13 @@ struct RayCastResult {
             : distance(d), layer(l), normalOut(n), didHit(h) {}
 };
 
+enum class COL_LAYER_EXTEND {
+    kClimbLedge = static_cast<RE::COL_LAYER>(RE::COL_LAYER::kLOS),
+    kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
+    kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
+    kVaultForward = static_cast<RE::COL_LAYER>(RE::COL_LAYER::kTransparent),
+};
+
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 
@@ -269,3 +281,11 @@ struct RayCastResult {
 /* Graph Variables */
 #define SPPF_Ledge "SkyParkourLedge"
 #define SPPF_Leg "SkyParkourStepLeg"
+
+/* Log switch */
+#ifdef _DEBUG
+
+#define LOG_CLIMB
+#define LOG_VAULT
+
+#endif
