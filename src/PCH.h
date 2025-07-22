@@ -267,6 +267,8 @@ enum class COL_LAYER_EXTEND {
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 
+#define PRINT_LAYER(x) (SkyParkourUtil::ColLayerToString(x))
+
 #define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
 #define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList
 #define LAYERS_VAULT_FORWARD_RAY SkyParkourUtil::VaultForwardRayList

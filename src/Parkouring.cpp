@@ -38,7 +38,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, COL_LAYER_EXTEND::kClimbObstruction);
 
 #ifdef LOG_CLIMB
-        logger::info("Ledge FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
+        logger::info("Ledge FWD: {}", PRINT_LAYER(fwdRay.layer));
 #endif
 
         if (fwdRay.distance < fwdCheckStep * i) {
@@ -50,7 +50,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
 
 #ifdef LOG_CLIMB
-        logger::info("Ledge Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
+        logger::info("Ledge Down: {}", PRINT_LAYER(downRay.layer));
 #endif
 
         if (LAYERS_CLIMB_EXCLUDE.contains(downRay.layer)) {
@@ -167,8 +167,8 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     float minSpaceRequired = 2 * vaultLength * RuntimeVariables::PlayerScale;
 
     RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kVaultForward);
-#ifdef _DEBUG
-    logger::info("Vault FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
+#ifdef LOG_VAULT
+    logger::info("Vault FWD: {}", PRINT_LAYER(fwdRay.layer));
 #endif
 
     if (fwdRay.didHit && fwdRay.distance < minSpaceRequired && LAYERS_VAULT_FORWARD_RAY.contains(fwdRay.layer)) {
@@ -209,8 +209,8 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             }
             ledgePoint = downRayStart + downRayDir * downRay.distance;
             foundVaulter = true;
-#ifdef _DEBUG
-            logger::info("Vault Down: {}", SkyParkourUtil::ColLayerToString(downRay.layer));
+#ifdef LOG_VAULT
+            logger::info("Vault Down: {}", PRINT_LAYER(downRay.layer));
 #endif
         }
         else if (foundVaulter && hitHeight < minVaultHeight) {
