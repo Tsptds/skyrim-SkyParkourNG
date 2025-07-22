@@ -222,7 +222,8 @@ namespace SkyParkourUtil {
 
     /* Mark ledge point layers that are considered invalid for climbing */
     static const std::unordered_set<COL_LAYER> ClimbLayerExclusionList{COL_LAYER::kNonCollidable, COL_LAYER::kCharController,
-                                                                       COL_LAYER::kAnimStatic, COL_LAYER::kWeapon, COL_LAYER::kProjectile};
+                                                                       COL_LAYER::kAnimStatic,    COL_LAYER::kWeapon,
+                                                                       COL_LAYER::kProjectile,    COL_LAYER::kTransparent};
 
     /* Head Level Check Layers. If hit, consider vault has obstruction behind */
     static const std::unordered_set<COL_LAYER> VaultForwardRayList{

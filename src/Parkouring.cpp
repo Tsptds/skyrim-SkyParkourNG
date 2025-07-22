@@ -155,7 +155,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     /* Forward raycast to check if there is an obstruction at head level in vaultLength */
 
     RE::NiPoint3 fwdRayStart = playerPos + RE::NiPoint3(0, 0, headHeight);
-    float minSpaceRequired = vaultLength * RuntimeVariables::PlayerScale;
+    float minSpaceRequired = 2 * vaultLength * RuntimeVariables::PlayerScale;
     RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, RE::COL_LAYER::kTransparentWall);
     //logger::info("Vault FWD: {}", SkyParkourUtil::ColLayerToString(fwdRay.layer));
 
@@ -163,7 +163,9 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
-    // Downward raycast initialization
+    /* TODO: Raycast obstruction check from the validated ledge point, to ensure not vaulting into stuff. Account backward adjustment. */
+
+    /* Move forward by this steps, and RayCast downwards. If a valid layer is found, mark it. */
     int downIterations = 20;
     RE::NiPoint3 downRayDir(0, 0, -1);
     RayCastResult downRay;
