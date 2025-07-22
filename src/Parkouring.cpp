@@ -578,6 +578,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
     player->NotifyAnimationGraph("moveStop");
 
+    /* Reset ground support check, also fixes TDM pitch bug */
     player->GetCharController()->wantState = RE::hkpCharacterStateType::kInAir;
 
     Parkouring::CalculateStartingPosition(ledgeType);
