@@ -1,5 +1,9 @@
 ﻿#include "Parkouring.h"
-
+#include "References.h"
+#include "Util/ParkourUtility.h"
+#include "Listeners/ButtonListener.h"
+#include "Listeners/MenuListener.h"
+#include "Util/ScaleUtility.h"
 using namespace ParkourUtility;
 
 int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight) {

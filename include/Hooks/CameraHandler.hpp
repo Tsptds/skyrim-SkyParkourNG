@@ -1,3 +1,4 @@
+#include "References.h"
 #pragma once
 namespace Hooks {
 

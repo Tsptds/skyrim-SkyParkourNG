@@ -1,4 +1,6 @@
-﻿#include "ParkourUtility.h"
+﻿#include "Util/ParkourUtility.h"
+#include "References.h"
+#include "Util/ScaleUtility.h"
 
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {

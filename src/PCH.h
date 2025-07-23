@@ -155,9 +155,8 @@
 #endif
 
 //local
-#include "Util.h"
 #include <SimpleIni.h>
-#include "ThreadPool.hpp"
+#include "Util/ThreadPool.hpp"
 
 #undef cdecl  // Workaround for Clang 14 CMake configure error.
 

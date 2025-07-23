@@ -1,14 +1,12 @@
-#include "ParkourUtility.h"
-#include "RaceChangeListener.h"
+#include "Util/ParkourUtility.h"
+#include "Listeners/RaceChangeListener.h"
+#include "Listeners/MenuListener.h"
 #include "References.h"
-#include "PapyrusInterface.h"
+#include "Papyrus/PapyrusInterface.h"
 #include "PCH.h"
-#include "InputHandler.hpp"
-#include "AnimEventHandler.hpp"
-#include "CameraHandler.hpp"
-
-using namespace ParkourUtility;
-using namespace Parkouring;
+#include "Hooks/InputHandler.hpp"
+#include "Hooks/AnimEventHandler.hpp"
+#include "Hooks/CameraHandler.hpp"
 
 bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);

@@ -1,4 +1,4 @@
-#include "ScaleUtility.h"
+#include "Util/ScaleUtility.h"
 // From BingusEx's SkyClimb Fork
 
 namespace ScaleUtility {

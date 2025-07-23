@@ -1,8 +1,5 @@
 #pragma once
 
-#include "References.h"
-#include "Parkouring.h"
-
 struct MenuListener : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
     public:
         static MenuListener* GetSingleton() {

@@ -1,7 +1,4 @@
 #pragma once
-#include "PCH.h"
-#include "References.h"
-#include "Parkouring.h"
 
 namespace SkyParkour_Papyrus {
 

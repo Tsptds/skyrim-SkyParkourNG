@@ -1,5 +1,7 @@
-﻿#include "ButtonListener.h"
-#include "InputHandler.hpp"
+﻿#include "Listeners/ButtonListener.h"
+#include "Hooks/InputHandler.hpp"
+#include "Parkouring.h"
+#include "References.h"
 
 std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     // Mouse

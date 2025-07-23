@@ -1,6 +1,4 @@
 #pragma once
-#include "References.h"
-#include "ScaleUtility.h"
 
 namespace ParkourUtility {
     void StopInteractions(RE::Actor &actor);

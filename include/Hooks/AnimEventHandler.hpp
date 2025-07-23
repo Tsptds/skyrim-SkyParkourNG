@@ -1,4 +1,8 @@
-﻿namespace Hooks {
+﻿#include "References.h"
+#include "Parkouring.h"
+#include "Util/ParkourUtility.h"
+
+namespace Hooks {
 
     template <class T>
     class AnimationEventHook : public T {

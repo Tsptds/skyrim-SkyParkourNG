@@ -1,9 +1,4 @@
 #pragma once
-#include "References.h"
-#include "ParkourUtility.h"
-#include "ButtonListener.h"
-#include "MenuListener.h"
-#include "ScaleUtility.h"
 
 namespace Parkouring {
     int ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight);

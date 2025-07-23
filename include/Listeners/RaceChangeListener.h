@@ -1,6 +1,4 @@
 #pragma once
-#include "ButtonListener.h"
-#include "Parkouring.h"
 
 struct RaceChangeListener : RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
     public:
