@@ -65,7 +65,6 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
 bool ParkourUtility::ToggleControls(bool enable) {
     auto player = RE::PlayerCharacter::GetSingleton();
     auto controller = player->GetCharController();
-    auto cam = RE::PlayerCamera::GetSingleton();
     /* Reset Fall Damage */
     controller->fallStartHeight = player->GetPositionZ();
     /* Set gravity on off */
@@ -75,36 +74,9 @@ bool ParkourUtility::ToggleControls(bool enable) {
     //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
     // Toggle common controls
-    //auto handlers = RE::PlayerControls::GetSingleton();
-    auto ctrlMap = RE::ControlMap::GetSingleton();
+    //auto ctrlMap = RE::ControlMap::GetSingleton();
+    //ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
 
-    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
-
-    if (enable) {
-        RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
-        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
-    }
-    else {
-        if (cam->IsInFirstPerson()) {
-            _THREAD_POOL.enqueue([player, cam] {
-                while (RuntimeVariables::ParkourInProgress && cam->IsInFirstPerson()) {
-                    if (!ParkourUtility::IsGamePaused()) {
-                        const auto vertAngle = player->data.angle.x;
-                        if (vertAngle > 0.9f) {
-                            player->data.angle.x = 0.9f;
-                        }
-                        else if (vertAngle < -0.9f) {
-                            player->data.angle.x = -0.9f;
-                        }
-                    }
-
-                    auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
-                    std::this_thread::sleep_for(std::chrono::seconds(lastSec));
-                }
-                //logger::info("FPP vert angle clamping stopped");
-            });
-        }
-    }
     return true;
 }
 

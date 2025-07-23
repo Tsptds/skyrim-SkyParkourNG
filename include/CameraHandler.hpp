@@ -68,6 +68,15 @@ bool Hooks::CameraHandler::CanProcess_TPP(RE::ThirdPersonState *a_this, RE::Inpu
 bool Hooks::CameraHandler::CanProcess_FPP(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
     if (ModSettings::ModEnabled) {
         if (RuntimeVariables::ParkourInProgress) {
+            /* Clamp Player looking angle to prevent weird visuals */
+            auto player = RE::PlayerCharacter::GetSingleton();
+            const auto vertAngle = player->data.angle.x;
+            if (vertAngle > 0.9f) {
+                player->data.angle.x = 0.9f;
+            }
+            else if (vertAngle < -0.9f) {
+                player->data.angle.x = -0.9f;
+            }
             return false;
         }
     }
