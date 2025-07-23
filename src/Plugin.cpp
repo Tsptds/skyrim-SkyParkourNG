@@ -27,7 +27,10 @@ void Install_Hooks_And_Listeners() {
     Hooks::InputHandlerEx<RE::ActivateHandler>::InstallActivateHook();
     Hooks::InputHandlerEx<RE::TogglePOVHandler>::InstallPOVHook();
     Hooks::InputHandlerEx<RE::ReadyWeaponHandler>::InstallWeaponHook();
-    //Hooks::InputHandlerEx<RE::LookHandler>::InstallLookHook();    /* Rotate camera, use for compatibility */
+
+    if (!Compatibility::TrueDirectionalMovement) {
+        Hooks::InputHandlerEx<RE::LookHandler>::InstallLookHook(); /* Rotate camera, use for compatibility */
+    }
 
     Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
@@ -72,12 +75,14 @@ bool RegisterIndicators() {
     }
 
     GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
-    logger::info("Successfully Registered Indicators");
+    logger::info("Indicators: Registered");
     return true;
 }
 
 void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
+        RuntimeMethods::SetupModCompatibility();
+
         if (!RuntimeMethods::ReadPluginConfigFromINI()) {
             /* Ini does not exist and failed to create */
             return;
@@ -86,10 +91,9 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-        // Check for ESP
         if (!RuntimeMethods::CheckESPLoaded()) {
             logger::error("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
-            std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod will not work.";
+            std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod is disabled.";
 
             RE::DebugMessageBox(err.c_str());
             return;
@@ -97,9 +101,8 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
 
         RegisterIndicators();
         Install_Hooks_And_Listeners();
-        //RuntimeMethods::SetupModCompatibility();
 
-        logger::info(">> SkyParkour Loaded <<");
+        logger::info("|>_SkyParkour Loaded_<|");
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
@@ -108,8 +111,8 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         auto player = RE::PlayerCharacter::GetSingleton();
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
-            logger::warn(">>SAVE LOADED WITH ONGOING PARKOUR, FIXING IT<<");
-            player->NotifyAnimationGraph("SkyParkour_Stop");
+            logger::warn("Fix: Save with ongoing parkour");
+            player->NotifyAnimationGraph(SPPF_STOP);
         }
 
         RuntimeMethods::ResetRuntimeVariables();

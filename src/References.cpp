@@ -92,7 +92,7 @@ namespace RuntimeMethods {
             logger::error("EspName not found, using default name");
         }
 
-        logger::info("sEspName: {}", name);
+        logger::info("ESP Name: '{}'", name);
         IniSettings::ESP_NAME = name;
         return true;
     }
@@ -101,7 +101,7 @@ namespace RuntimeMethods {
         auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
         if (TDM) {
             Compatibility::TrueDirectionalMovement = true;
-            //logger::info("** Compatibility: TDM Found");
+            logger::info("Patch: True Directional Movement |360|Swim Pitch|");
         }
     }
 }  // namespace RuntimeMethods
