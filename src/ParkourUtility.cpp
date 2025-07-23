@@ -76,10 +76,7 @@ bool ParkourUtility::ToggleControls(bool enable) {
 
     // Toggle common controls
     //auto handlers = RE::PlayerControls::GetSingleton();
-    auto controlMap = RE::ControlMap::GetSingleton();
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
-    controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
+    auto ctrlMap = RE::ControlMap::GetSingleton();
 
     ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
 

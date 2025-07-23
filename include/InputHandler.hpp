@@ -23,16 +23,19 @@ namespace Hooks {
             static inline REL::Relocation<ProcessButton_t> _ProcessButtonJump;
             static inline REL::Relocation<CanProcess_t> _CanProcessSneak;
             static inline REL::Relocation<CanProcess_t> _CanProcessMovement;
+            static inline REL::Relocation<CanProcess_t> _CanProcessActivate;
 
             bool CanProcess_Jump(RE::InputEvent* a_event);
             void ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data);
             bool CanProcess_Sneak(RE::InputEvent* a_event);
             bool CanProcess_Movement(RE::InputEvent* a_event);
+            bool CanProcess_Activate(RE::InputEvent* a_event);
 
             static bool InstallJumpHook();
             static bool InstallProcessJumpHook();
             static bool InstallSneakHook();
             static bool InstallMovementHook();
+            static bool InstallActivateHook();
     };
 
     /* Hooks */
@@ -119,6 +122,17 @@ namespace Hooks {
         return _CanProcessMovement(this, a_event);
     }
 
+    template <class T>
+    inline bool InputHandlerEx<T>::CanProcess_Activate(RE::InputEvent* a_event) {
+        if (ModSettings::ModEnabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return _CanProcessActivate(this, a_event);
+    }
+
     /* Install */
     template <class T>
     inline bool InputHandlerEx<T>::InstallJumpHook() {
@@ -171,6 +185,20 @@ namespace Hooks {
         _CanProcessMovement = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Movement);
 
         if (!_CanProcessMovement.address()) {
+            logger::critical("Movement Hook Not Installed");
+            return false;
+        }
+        return true;
+    }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::InstallActivateHook() {
+        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_ActivateHandler[0]);
+        std::uint64_t a_offset = 0x1;
+
+        _CanProcessActivate = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Activate);
+
+        if (!_CanProcessActivate.address()) {
             logger::critical("Movement Hook Not Installed");
             return false;
         }

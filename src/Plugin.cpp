@@ -23,6 +23,7 @@ void Install_Hooks_And_Listeners() {
     Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
     Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
     Hooks::InputHandlerEx<RE::MovementHandler>::InstallMovementHook();
+    Hooks::InputHandlerEx<RE::ActivateHandler>::InstallActivateHook();
     Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 }
