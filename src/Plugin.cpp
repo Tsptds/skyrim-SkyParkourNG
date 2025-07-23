@@ -24,6 +24,10 @@ void Install_Hooks_And_Listeners() {
     Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
     Hooks::InputHandlerEx<RE::MovementHandler>::InstallMovementHook();
     Hooks::InputHandlerEx<RE::ActivateHandler>::InstallActivateHook();
+    Hooks::InputHandlerEx<RE::TogglePOVHandler>::InstallPOVHook();
+    Hooks::InputHandlerEx<RE::ReadyWeaponHandler>::InstallWeaponHook();
+    //Hooks::InputHandlerEx<RE::LookHandler>::InstallLookHook();    /* Rotate camera, use for compatibility */
+
     Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 }

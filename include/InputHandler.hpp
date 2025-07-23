@@ -24,18 +24,27 @@ namespace Hooks {
             static inline REL::Relocation<CanProcess_t> _CanProcessSneak;
             static inline REL::Relocation<CanProcess_t> _CanProcessMovement;
             static inline REL::Relocation<CanProcess_t> _CanProcessActivate;
+            static inline REL::Relocation<CanProcess_t> _CanProcessPOV;
+            static inline REL::Relocation<CanProcess_t> _CanProcessWeapon;
+            static inline REL::Relocation<CanProcess_t> _CanProcessLook;
 
             bool CanProcess_Jump(RE::InputEvent* a_event);
             void ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data);
             bool CanProcess_Sneak(RE::InputEvent* a_event);
             bool CanProcess_Movement(RE::InputEvent* a_event);
             bool CanProcess_Activate(RE::InputEvent* a_event);
+            bool CanProcess_POV(RE::InputEvent* a_event);
+            bool CanProcess_Weapon(RE::InputEvent* a_event);
+            bool CanProcess_Look(RE::InputEvent* a_event);
 
             static bool InstallJumpHook();
             static bool InstallProcessJumpHook();
             static bool InstallSneakHook();
             static bool InstallMovementHook();
             static bool InstallActivateHook();
+            static bool InstallPOVHook();
+            static bool InstallWeaponHook();
+            static bool InstallLookHook();
     };
 
     /* Hooks */
@@ -133,6 +142,41 @@ namespace Hooks {
         return _CanProcessActivate(this, a_event);
     }
 
+    template <class T>
+    inline bool InputHandlerEx<T>::CanProcess_POV(RE::InputEvent* a_event) {
+        /* This disables holding F and setting the zoom thing */
+        if (ModSettings::ModEnabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return _CanProcessPOV(this, a_event);
+    }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::CanProcess_Weapon(RE::InputEvent* a_event) {
+        /* Stops Weapon Ready button process, mostly fixes weapon state getting stuck and redrawn */
+        if (ModSettings::ModEnabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return _CanProcessWeapon(this, a_event);
+    }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::CanProcess_Look(RE::InputEvent* a_event) {
+        if (ModSettings::ModEnabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return _CanProcessLook(this, a_event);
+    }
+
     /* Install */
     template <class T>
     inline bool InputHandlerEx<T>::InstallJumpHook() {
@@ -204,4 +248,47 @@ namespace Hooks {
         }
         return true;
     }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::InstallPOVHook() {
+        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_TogglePOVHandler[0]);
+        std::uint64_t a_offset = 0x1;
+
+        _CanProcessPOV = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_POV);
+
+        if (!_CanProcessPOV.address()) {
+            logger::critical("POV Hook Not Installed");
+            return false;
+        }
+        return true;
+    }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::InstallWeaponHook() {
+        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_ReadyWeaponHandler[0]);
+        std::uint64_t a_offset = 0x1;
+
+        _CanProcessWeapon = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Weapon);
+
+        if (!_CanProcessWeapon.address()) {
+            logger::critical("Weapon Hook Not Installed");
+            return false;
+        }
+        return true;
+    }
+
+    template <class T>
+    inline bool InputHandlerEx<T>::InstallLookHook() {
+        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_LookHandler[0]);
+        std::uint64_t a_offset = 0x1;
+
+        _CanProcessLook = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Look);
+
+        if (!_CanProcessLook.address()) {
+            logger::critical("Look Hook Not Installed");
+            return false;
+        }
+        return true;
+    }
+
 }  // namespace Hooks
