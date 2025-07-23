@@ -81,24 +81,14 @@ bool ParkourUtility::ToggleControls(bool enable) {
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kActivate, enable);
     controlMap->ToggleControls(RE::ControlMap::UEFlag::kPOVSwitch, enable);
 
-    if (!enable) {
-        if (cam->IsInThirdPerson()) {
-            _THREAD_POOL.enqueue([player, cam] {
-                const auto rot = player->data.angle.z;
-                while (RuntimeVariables::ParkourInProgress && cam->IsInThirdPerson()) {
-                    if (!ParkourUtility::IsGamePaused()) {
-                        if (player->data.angle.z != rot) {
-                            player->data.angle.z = rot;
-                        }
-                    }
+    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
 
-                    auto lastSec = static_cast<long>(RE::GetSecondsSinceLastFrame());
-                    std::this_thread::sleep_for(std::chrono::seconds(lastSec));
-                }
-                //logger::info("TPP facing correction stopped");
-            });
-        }
-        else if (cam->IsInFirstPerson()) {
+    if (enable) {
+        RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
+        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+    }
+    else {
+        if (cam->IsInFirstPerson()) {
             _THREAD_POOL.enqueue([player, cam] {
                 while (RuntimeVariables::ParkourInProgress && cam->IsInFirstPerson()) {
                     if (!ParkourUtility::IsGamePaused()) {
