@@ -5,6 +5,7 @@
 #include "PCH.h"
 #include "InputHandler.hpp"
 #include "AnimEventHandler.hpp"
+#include "CameraHandler.hpp"
 
 using namespace ParkourUtility;
 using namespace Parkouring;
@@ -30,6 +31,8 @@ void Install_Hooks_And_Listeners() {
 
     Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
+
+    Hooks::CameraHandler::InstallCamStateHook();
 }
 
 bool RegisterIndicators() {

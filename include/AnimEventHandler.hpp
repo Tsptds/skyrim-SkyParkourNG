@@ -53,6 +53,7 @@
                                     player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControls(true);
+                                    Parkouring::GetLedgePoint(); /* Update the ledge point once */
                                     RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
@@ -186,6 +187,7 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
 
         /* Reenable controls */
         ParkourUtility::ToggleControls(true);
+        Parkouring::GetLedgePoint(); /* Update the ledge point once */
         RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
