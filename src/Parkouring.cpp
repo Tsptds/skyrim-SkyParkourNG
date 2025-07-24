@@ -307,8 +307,8 @@ void Parkouring::OnStartStop(bool isStop) {
     //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
     // Toggle common controls
-    //auto ctrlMap = RE::ControlMap::GetSingleton();
-    //ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
+    auto ctrlMap = RE::ControlMap::GetSingleton();
+    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip
 }
 
 bool Parkouring::PlaceAndShowIndicator() {
