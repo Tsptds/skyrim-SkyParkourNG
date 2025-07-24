@@ -83,7 +83,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         // Racemenu closed, reset some stuff
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            Parkouring::SetParkourOnOff(true);
+            RuntimeMethods::ResetRuntimeVariables();
         }
 
         if (!Menus::CheckMenuOpen()) {
@@ -95,7 +95,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
             RuntimeVariables::IsInMainMenu = false;
 
-            logger::info(">> Closed Main Menu");
+            //logger::info(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;
