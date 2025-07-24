@@ -11,7 +11,6 @@ namespace Hooks {
                     struct Install {
                             static bool CanProcess();
                             static bool Update();
-                            static bool Begin();
                     };
 
                     struct Callback {
@@ -29,7 +28,6 @@ namespace Hooks {
                     struct Install {
                             static bool CanProcess();
                             static bool Update();
-                            static bool Begin();
                     };
 
                     struct Callback {
