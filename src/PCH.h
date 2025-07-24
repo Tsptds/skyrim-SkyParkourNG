@@ -283,10 +283,12 @@ enum class COL_LAYER_EXTEND {
 #define SPPF_Ledge "SkyParkourLedge"
 #define SPPF_Leg "SkyParkourStepLeg"
 
-/* Log switch */
+/* Log switches */
 #ifdef _DEBUG
 
-#define LOG_CLIMB
-#define LOG_VAULT
+//#define LOG_CLIMB
+//#define LOG_VAULT
+//#define LOG_STEPS
+#define LOG_LEDGE_UPDATES
 
 #endif

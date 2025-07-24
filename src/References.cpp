@@ -23,8 +23,9 @@ namespace RuntimeMethods {
     void SwapLegs() {
         RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
         RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
-
-        //logger::info("Right Step Next: {}", RuntimeVariables::shouldUseRightStep);
+#ifdef LOG_STEPS
+        logger::info("Next Step: {}", RuntimeVariables::shouldUseRightStep ? "Right" : "Left");
+#endif  // LOG_STEPS
     }
 
     // Things that are not handled by MCM and persistent throughout saves without being reset on game load
