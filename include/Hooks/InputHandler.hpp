@@ -124,7 +124,19 @@ namespace Hooks {
     inline bool InputHandlerEx<T>::CanProcess_Movement(RE::InputEvent* a_event) {
         if (ModSettings::ModEnabled) {
             if (RuntimeVariables::ParkourInProgress) {
-                return false;
+                /**/
+                /* Recovery Frame Early Exit Logic */
+                if (RuntimeVariables::RecoveryFramesActive) {
+                    bool res = _CanProcessMovement(this, a_event);
+                    if (res) {
+                        RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph(SPPF_STOP);
+                    }
+                    return res;
+                }
+                /**/
+                else {
+                    return false;
+                }
             }
         }
 

@@ -34,8 +34,6 @@ std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     //{0x8000, 279}   // Y
 };
 
-std::unordered_set<std::string_view> ButtonStates::DirectionalMoveInputs = {"Forward", "Back", "Strafe Right", "Strafe Left"};
-
 int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
     auto it = xinputToCKMap.find(dxcode);
     if (it != xinputToCKMap.end()) {
@@ -83,15 +81,6 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
-            /**/
-            /* Recovery Frame Early Exit Logic */
-            if (RuntimeVariables::RecoveryFramesActive) {
-                auto ue_name = event->QUserEvent();
-                if (ButtonStates::DirectionalMoveInputs.contains(ue_name)) {
-                    RE::PlayerCharacter::GetSingleton()->NotifyAnimationGraph("SkyParkour_Stop");
-                }
-            }
-            /**/
             auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
             // logger::info("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
 

@@ -46,7 +46,9 @@ namespace Hooks {
                                     RuntimeVariables::RecoveryFramesActive = true;
                                     const auto player = RE::PlayerCharacter::GetSingleton();
 
-                                    if (player->IsInMidair()) {
+                                    if (!ParkourUtility::RayCast(player->GetPosition(), RE::NiPoint3(0, 0, -1), 50,
+                                                                 COL_LAYER_EXTEND::kClimbLedge)
+                                             .didHit) {
                                         player->NotifyAnimationGraph(SPPF_STOP);
                                     }
                                 }
@@ -195,8 +197,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
         Parkouring::UpdateParkourPoint(); /* Update the ledge point once */
-
-        return true;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }
