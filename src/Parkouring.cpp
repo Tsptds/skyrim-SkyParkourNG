@@ -522,15 +522,18 @@ void Parkouring::UpdateParkourPoint() {
 }
 
 bool Parkouring::TryActivateParkour() {
-    using namespace GameReferences;
-    using namespace ModSettings;
     const auto player = RE::PlayerCharacter::GetSingleton();
-    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
-    // Check Is Parkour Active again, make sure condition is still valid during activation
-    if (!IsParkourActive() || RuntimeVariables::ParkourInProgress || LedgeTypeToProcess == ParkourType::NoLedge) {
+
+    bool Ongoing;
+    if (player->GetGraphVariableBool(SPPF_ONGOING, Ongoing) && Ongoing) {
+        return false;
+    }
+
+    if (!IsParkourActive()) {
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         return false;
     }
+    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
 
     const bool isMoving = player->IsMoving();
     const bool lowEffort = CheckActionRequiresLowEffort(LedgeTypeToProcess);
@@ -554,7 +557,7 @@ bool Parkouring::TryActivateParkour() {
     }
 
     /* Cancel if moving, but allow movement during swimming */
-    if (Smart_Parkour_Enabled && isMoving && !isSwimming) {
+    if (ModSettings::Smart_Parkour_Enabled && isMoving && !isSwimming) {
         if (!lowEffort) {
             player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
             return false;

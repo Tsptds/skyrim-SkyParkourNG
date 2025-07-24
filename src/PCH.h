@@ -282,6 +282,7 @@ enum class COL_LAYER_EXTEND {
 /* Graph Variables */
 #define SPPF_Ledge "SkyParkourLedge"
 #define SPPF_Leg "SkyParkourStepLeg"
+#define SPPF_ONGOING "SkyparkourOngoing"
 
 /* Log switches */
 #ifdef _DEBUG
