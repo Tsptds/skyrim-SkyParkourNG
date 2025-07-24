@@ -46,9 +46,12 @@ namespace Hooks {
                                     RuntimeVariables::RecoveryFramesActive = true;
                                     const auto player = RE::PlayerCharacter::GetSingleton();
 
-                                    if (!ParkourUtility::RayCast(player->GetPosition(), RE::NiPoint3(0, 0, -1), 50,
-                                                                 COL_LAYER_EXTEND::kClimbLedge)
-                                             .didHit) {
+                                    const RE::NiPoint3 start{player->GetPosition()};
+                                    constexpr RE::NiPoint3 dir{0, 0, -1};
+                                    constexpr float dist = 50.0f;
+                                    constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
+
+                                    if (!ParkourUtility::RayCast(start, dir, dist, mask).didHit) {
                                         player->NotifyAnimationGraph(SPPF_STOP);
                                     }
                                 }
@@ -62,7 +65,6 @@ namespace Hooks {
                                     RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
                                     RuntimeVariables::RecoveryFramesActive = false;
                                     RuntimeVariables::ParkourInProgress = false;
-                                    Parkouring::UpdateParkourPoint(); /* Update the ledge point once */
                                 }
                             }
                         }
@@ -196,7 +198,6 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
-        Parkouring::UpdateParkourPoint(); /* Update the ledge point once */
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }
