@@ -33,7 +33,7 @@ void Install_Hooks_And_Listeners() {
     Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 
-    Hooks::CameraHandler::InstallCamStateHook();
+    Hooks::CameraHandler::InstallCamStateHooks();
 }
 
 bool RegisterIndicators() {
