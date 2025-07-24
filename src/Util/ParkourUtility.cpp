@@ -1,6 +1,5 @@
 ﻿#include "Util/ParkourUtility.h"
 #include "References.h"
-#include "Util/ScaleUtility.h"
 
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
@@ -71,6 +70,13 @@ bool ParkourUtility::ToggleControls(bool enable) {
     controller->fallStartHeight = player->GetPositionZ();
     /* Set gravity on off */
     controller->gravity = enable;
+
+    if (enable) {
+        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
+        RuntimeVariables::RecoveryFramesActive = false;
+        RuntimeVariables::ParkourInProgress = false;
+    }
 
     //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
     //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;

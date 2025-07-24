@@ -59,12 +59,8 @@ namespace Hooks {
                                     const auto player = RE::PlayerCharacter::GetSingleton();
                                     Parkouring::StopInterpolatingRef(player);
 
-                                    player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
                                     /* Reenable controls */
                                     ParkourUtility::ToggleControls(true);
-                                    RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
-                                    RuntimeVariables::RecoveryFramesActive = false;
-                                    RuntimeVariables::ParkourInProgress = false;
                                 }
                             }
                         }
@@ -191,13 +187,8 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         const auto player = RE::PlayerCharacter::GetSingleton();
         Parkouring::StopInterpolatingRef(player);
 
-        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
-
         /* Reenable controls */
         ParkourUtility::ToggleControls(true);
-        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
-        RuntimeVariables::RecoveryFramesActive = false;
-        RuntimeVariables::ParkourInProgress = false;
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }
