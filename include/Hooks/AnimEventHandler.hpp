@@ -11,59 +11,55 @@ namespace Hooks {
             static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
-                if (ModSettings::ModEnabled) {
-                    if (a_event) {
-                        auto actor = a_event->holder;
-                        if (actor && actor->IsPlayerRef()) {
-                            if (a_event->tag == "GetUpExit") {
-                                /* Reset vars on ragdoll exit */
-                                RuntimeMethods::ResetRuntimeVariables();
-                            }
+                if (!a_event || !ModSettings::ModEnabled) {
+                    return _ProcessEvent(this, a_event, a_eventSource);
+                }
 
-                            if (RuntimeVariables::ParkourInProgress) {
-                                //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
+                auto actor = a_event->holder;
+                if (!actor || !actor->IsPlayerRef()) {
+                    return _ProcessEvent(this, a_event, a_eventSource);
+                }
 
-                                if (a_event->tag == SPPF_MOVE) {
-                                    if (!a_event->payload.empty()) {
-                                        const auto player = RE::PlayerCharacter::GetSingleton();
-                                        player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
+                if (a_event->tag == "GetUpExit") {
+                    /* Reset vars on ragdoll exit */
+                    RuntimeMethods::ResetRuntimeVariables();
+                }
 
-                                        const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
+                if (RuntimeVariables::ParkourInProgress) {
+                    //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
 
-                                        const auto relativePos = RE::NiPoint3{parsed.x, parsed.y, parsed.z};
-                                        const auto seconds = parsed.sec;
-                                        constexpr bool isRelative = true;
+                    if (a_event->tag == SPPF_MOVE) {
+                        if (!a_event->payload.empty()) {
+                            const auto player = RE::PlayerCharacter::GetSingleton();
+                            player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
 
-                                        Parkouring::InterpolateRefToPosition(player, relativePos, seconds, isRelative);
-                                    }
-                                }
-                                else if (a_event->tag == SPPF_START) {
-                                    const auto player = RE::PlayerCharacter::GetSingleton();
-                                    ParkourUtility::ToggleControls(false);
-                                    ParkourUtility::StopInteractions(*player);
-                                }
-                                else if (a_event->tag == SPPF_RECOVERY) {
-                                    RuntimeVariables::RecoveryFramesActive = true;
-                                    const auto player = RE::PlayerCharacter::GetSingleton();
+                            const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
 
-                                    const RE::NiPoint3 start{player->GetPosition()};
-                                    constexpr RE::NiPoint3 dir{0, 0, -1};
-                                    constexpr float dist = 50.0f;
-                                    constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
-
-                                    if (!ParkourUtility::RayCast(start, dir, dist, mask).didHit) {
-                                        player->NotifyAnimationGraph(SPPF_STOP);
-                                    }
-                                }
-                                else if (a_event->tag == SPPF_STOP) {
-                                    const auto player = RE::PlayerCharacter::GetSingleton();
-                                    Parkouring::StopInterpolatingRef(player);
-
-                                    /* Reenable controls */
-                                    ParkourUtility::ToggleControls(true);
-                                }
-                            }
+                            constexpr bool isRelative = true;
+                            Parkouring::InterpolateRefToPosition(player, parsed.position, parsed.sec, isRelative);
                         }
+                    }
+                    if (a_event->tag == SPPF_START) {
+                        Parkouring::OnStartStop(IS_START);
+                    }
+                    if (a_event->tag == SPPF_RECOVERY) {
+                        RuntimeVariables::RecoveryFramesActive = true;
+
+                        /* If not close to ground on recovery window, end early */
+                        /* TODO: Maybe move this to graph, check dist and fire stop event */
+                        const auto player = RE::PlayerCharacter::GetSingleton();
+
+                        const RE::NiPoint3 start{player->GetPosition()};
+                        constexpr RE::NiPoint3 dir{0, 0, -1};
+                        constexpr float dist = 50.0f;
+                        constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
+
+                        if (!ParkourUtility::RayCast(start, dir, dist, mask).didHit) {
+                            player->NotifyAnimationGraph(SPPF_STOP);
+                        }
+                    }
+                    else if (a_event->tag == SPPF_STOP) {
+                        Parkouring::OnStartStop(IS_STOP);
                     }
                 }
                 return _ProcessEvent(this, a_event, a_eventSource);
@@ -84,7 +80,8 @@ namespace Hooks {
 
         private:
             struct ParsedPayload {
-                    float x, y, z, sec;
+                    RE::NiPoint3 position;
+                    float sec;
             };
 
             static float parse_next(const char*& ptr, char delim) {
@@ -108,7 +105,7 @@ namespace Hooks {
                 float z = parse_next(ptr, '@');
                 float sec = parse_next(ptr, '\0');
 
-                return {x, y, z, sec};
+                return ParsedPayload(RE::NiPoint3(x, y, z), sec);
             }
     };
 
@@ -169,26 +166,19 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
         return false;
     }
 
-    if (a_eventName == "Ragdoll") {
+    else if (a_eventName == "Ragdoll") {
         if (RuntimeVariables::ParkourInProgress) {
             /*Unlock controls on ragdoll*/
 
             bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
             if (didRagdoll) {
-                const auto player = RE::PlayerCharacter::GetSingleton();
-                Parkouring::StopInterpolatingRef(player);
-                ParkourUtility::ToggleControls(true);
-                RuntimeVariables::ParkourInProgress = false;
+                Parkouring::OnStartStop(IS_STOP);
             }
             return didRagdoll;
         }
     }
-    if (a_eventName == SPPF_STOP) {
-        const auto player = RE::PlayerCharacter::GetSingleton();
-        Parkouring::StopInterpolatingRef(player);
-
-        /* Reenable controls */
-        ParkourUtility::ToggleControls(true);
+    else if (a_eventName == SPPF_STOP) {
+        Parkouring::OnStartStop(IS_STOP);
     }
     return _origPlayerCharacter(a_this, a_eventName);
 }

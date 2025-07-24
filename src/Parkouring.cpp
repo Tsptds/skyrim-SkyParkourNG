@@ -6,6 +6,53 @@
 #include "Util/ScaleUtility.h"
 using namespace ParkourUtility;
 
+int Parkouring::GetLedgePoint() {
+    using namespace GameReferences;
+    using namespace ModSettings;
+
+    const auto player = RE::PlayerCharacter::GetSingleton();
+    //const auto playerPos = player->GetPosition();
+    const bool isMoving = player->IsMoving();
+
+    RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
+
+    // Perform ledge or vault checks
+    int selectedLedgeType = ParkourType::NoLedge;
+    RE::NiPoint3 ledgePoint;
+
+    constexpr int vaultLength = 120;
+    constexpr int maxElevationIncrease = 80;
+
+    if (isMoving || !ModSettings::Smart_Parkour_Enabled) {
+        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
+                                       HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
+                                       HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
+    }
+
+    if (selectedLedgeType == ParkourType::NoLedge) {
+        selectedLedgeType = ClimbCheck(ledgePoint, playerDirFlat, HardCodedVariables::climbMinHeight * RuntimeVariables::PlayerScale,
+                                       HardCodedVariables::climbMaxHeight * RuntimeVariables::PlayerScale);
+    }
+    if (selectedLedgeType == ParkourType::NoLedge) {
+        return ParkourType::NoLedge;
+    }
+
+    // Don't ever parkour into water, last check before saying this ledge is valid
+    float waterLevel;
+    player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
+
+    constexpr int validWaterDepth = 10;
+
+    if (ledgePoint.z < waterLevel - validWaterDepth) {
+        return ParkourType::NoLedge;
+    }
+
+    RuntimeVariables::ledgePoint = ledgePoint;
+    RuntimeVariables::playerDirFlat = playerDirFlat;
+
+    return selectedLedgeType;
+}
+
 int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight) {
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto playerPos = player->GetPosition();
@@ -233,6 +280,37 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     return ParkourType::NoLedge;  // Vault failed
 }
 
+void Parkouring::OnStartStop(bool isStop) {
+    // IS_START true / IS_STOP false
+
+    auto player = RE::PlayerCharacter::GetSingleton();
+    auto controller = player->GetCharController();
+
+    /* Set gravity on off */
+    controller->gravity = isStop;
+
+    if (isStop) {
+        StopInterpolatingRef(player);
+        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
+        RuntimeVariables::RecoveryFramesActive = false;
+        RuntimeVariables::ParkourInProgress = false;
+    }
+    else {
+        /* Reset Fall Damage */
+        controller->fallStartHeight = player->GetPositionZ();
+
+        ParkourUtility::StopInteractions(*player);
+    }
+
+    //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
+    //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
+
+    // Toggle common controls
+    //auto ctrlMap = RE::ControlMap::GetSingleton();
+    //ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
+}
+
 bool Parkouring::PlaceAndShowIndicator() {
     const bool useIndicators = ModSettings::UseIndicators;
     if (!useIndicators) {
@@ -292,52 +370,6 @@ bool Parkouring::PlaceAndShowIndicator() {
     return true;
 }
 
-int Parkouring::GetLedgePoint() {
-    using namespace GameReferences;
-    using namespace ModSettings;
-
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    //const auto playerPos = player->GetPosition();
-    const bool isMoving = player->IsMoving();
-
-    RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
-
-    // Perform ledge or vault checks
-    int selectedLedgeType = ParkourType::NoLedge;
-    RE::NiPoint3 ledgePoint;
-
-    constexpr int vaultLength = 120;
-    constexpr int maxElevationIncrease = 80;
-
-    if (isMoving || !ModSettings::Smart_Parkour_Enabled) {
-        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
-                                       HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
-                                       HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
-    }
-
-    if (selectedLedgeType == ParkourType::NoLedge) {
-        selectedLedgeType = ClimbCheck(ledgePoint, playerDirFlat, HardCodedVariables::climbMinHeight * RuntimeVariables::PlayerScale,
-                                       HardCodedVariables::climbMaxHeight * RuntimeVariables::PlayerScale);
-    }
-    if (selectedLedgeType == ParkourType::NoLedge) {
-        return ParkourType::NoLedge;
-    }
-
-    // Don't ever parkour into water, last check before saying this ledge is valid
-    float waterLevel;
-    player->GetParentCell()->GetWaterHeight(player->GetPosition(), waterLevel);  //Relative to player
-
-    constexpr int validWaterDepth = 10;
-
-    if (ledgePoint.z < waterLevel - validWaterDepth) {
-        return ParkourType::NoLedge;
-    }
-
-    RuntimeVariables::ledgePoint = ledgePoint;
-    RuntimeVariables::playerDirFlat = playerDirFlat;
-
-    return selectedLedgeType;
-}
 void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
@@ -647,7 +679,6 @@ void Parkouring::SetParkourOnOff(bool turnOn) {
             logger::info("Processing Off");
         }
 
-        ParkourUtility::ToggleControls(true);
         RuntimeMethods::ResetRuntimeVariables();
 
         if (GameReferences::currentIndicatorRef) {

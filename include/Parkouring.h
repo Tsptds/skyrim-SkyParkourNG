@@ -1,11 +1,12 @@
 #pragma once
 
 namespace Parkouring {
+    int GetLedgePoint();
     int ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight);
     int VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease, float minVaultHeight,
                    float maxVaultHeight);
+    void OnStartStop(bool isStop);
     bool PlaceAndShowIndicator();
-    int GetLedgePoint();
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative = false);
     void StopInterpolatingRef(RE::Actor *actor);
     void CalculateStartingPosition(int ledgeType);

@@ -154,11 +154,11 @@
 #include <detours/detours.h>
 #endif
 
+#undef cdecl  // Workaround for Clang 14 CMake configure error.
+
 //local
 #include <SimpleIni.h>
 #include "Util/ThreadPool.hpp"
-
-#undef cdecl  // Workaround for Clang 14 CMake configure error.
 
 #define DLLEXPORT __declspec(dllexport)
 
@@ -242,29 +242,30 @@ namespace SkyParkourUtil {
     static ThreadPool threads;
     static RE::hkVector4 zeroVector{0, 0, 0, 0};
 
+    struct RayCastResult {
+            float distance = -1.0f;
+            RE::COL_LAYER layer = RE::COL_LAYER::kUnidentified;
+            RE::hkVector4 normalOut = RE::hkVector4(0, 0, 0, 0);
+            bool didHit = false;
+
+            RayCastResult() = default;
+
+            RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool h)
+                : distance(d), layer(l), normalOut(n), didHit(h) {}
+    };
+
+    enum class COL_LAYER_EXTEND {
+        kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
+        kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
+        kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
+        kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
+    };
 }  // namespace SkyParkourUtil
-
-struct RayCastResult {
-        float distance = -1.0f;
-        RE::COL_LAYER layer = RE::COL_LAYER::kUnidentified;
-        RE::hkVector4 normalOut = RE::hkVector4(0, 0, 0, 0);
-        bool didHit = false;
-
-        RayCastResult() = default;
-
-        RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool h)
-            : distance(d), layer(l), normalOut(n), didHit(h) {}
-};
-
-enum class COL_LAYER_EXTEND {
-    kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
-    kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
-    kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
-    kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
-};
 
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
+#define RayCastResult SkyParkourUtil::RayCastResult
+#define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
 
 #define PRINT_LAYER(x) (SkyParkourUtil::ColLayerToString(x))
 
@@ -284,12 +285,16 @@ enum class COL_LAYER_EXTEND {
 #define SPPF_Leg "SkyParkourStepLeg"
 #define SPPF_ONGOING "SkyparkourOngoing"
 
+/* Bool def for func */
+#define IS_STOP true
+#define IS_START false
+
 /* Log switches */
 #ifdef _DEBUG
 
 //#define LOG_CLIMB
 //#define LOG_VAULT
 //#define LOG_STEPS
-#define LOG_LEDGE_UPDATES
+//#define LOG_LEDGE_UPDATES
 
 #endif

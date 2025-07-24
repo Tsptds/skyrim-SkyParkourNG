@@ -63,31 +63,6 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.StopMoving(0.0f);
 }
 
-bool ParkourUtility::ToggleControls(bool enable) {
-    auto player = RE::PlayerCharacter::GetSingleton();
-    auto controller = player->GetCharController();
-    /* Reset Fall Damage */
-    controller->fallStartHeight = player->GetPositionZ();
-    /* Set gravity on off */
-    controller->gravity = enable;
-
-    if (enable) {
-        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
-        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
-        RuntimeVariables::RecoveryFramesActive = false;
-        RuntimeVariables::ParkourInProgress = false;
-    }
-
-    //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
-    //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
-
-    // Toggle common controls
-    //auto ctrlMap = RE::ControlMap::GetSingleton();
-    //ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, enable);  // Player tab menu
-
-    return true;
-}
-
 RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
     // Calculate player forward direction (normalized)
     const float playerYaw = player->data.angle.z;  // Player's yaw
