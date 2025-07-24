@@ -8,7 +8,7 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     const auto player = RE::PlayerCharacter::GetSingleton();
-    if (ChargenHandsBound(player)) {
+    if (IsChargenHandsBound(player)) {
         //logger::info("PLAYER HANDS BOUND");
         return false;
     }
@@ -157,7 +157,7 @@ bool ParkourUtility::IsSitting(RE::PlayerCharacter *player) {
     return player->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
 }
 
-bool ParkourUtility::ChargenHandsBound(RE::PlayerCharacter *player) {
+bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {
     // Check if player has chargen flag hands bound
     const auto &gs = player->GetGameStatsData();
     if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
