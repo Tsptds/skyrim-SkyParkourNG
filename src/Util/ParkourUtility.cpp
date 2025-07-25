@@ -76,8 +76,13 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
 
     RE::NiPoint3 playerDirFlat{std::sin(playerYaw), std::cos(playerYaw), 0};
     const float dirMagnitude = std::hypot(playerDirFlat.x, playerDirFlat.y);
-    playerDirFlat.x /= dirMagnitude;
-    playerDirFlat.y /= dirMagnitude;
+    if (dirMagnitude == 0) {
+        playerDirFlat.x = playerDirFlat.y = 0;
+    }
+    else {
+        playerDirFlat.x /= dirMagnitude;
+        playerDirFlat.y /= dirMagnitude;
+    }
 
     return playerDirFlat;
 }

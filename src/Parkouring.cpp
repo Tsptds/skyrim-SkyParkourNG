@@ -173,6 +173,16 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
+            /* Velocity threshold */
+            RE::hkVector4 vel;
+            auto ctrl = player->GetCharController();
+            ctrl->GetLinearVelocityImpl(vel);
+            auto speed = vel.Length3();
+
+            if (speed > 1) {
+                return ParkourType::NoLedge;
+            }
+
             // Additional horizontal and vertical checks for low ledge
             double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
             double verticalDistance = abs(ledgePlayerDiff);
@@ -184,6 +194,16 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         else {
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
+            }
+
+            /* Velocity Threshold */
+            RE::hkVector4 vel;
+            auto ctrl = player->GetCharController();
+            ctrl->GetLinearVelocityImpl(vel);
+            auto speed = vel.Length3();
+
+            if (speed > 1) {
+                return ParkourType::NoLedge;
             }
 
             // Additional horizontal and vertical checks for low ledge
