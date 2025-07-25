@@ -9,6 +9,7 @@ namespace ParkourUtility {
     bool IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player);
     // Also includes mounts
     bool IsSitting(RE::PlayerCharacter *);
+    bool IsCrosshairRefActivator();
     bool IsChargenHandsBound(RE::PlayerCharacter *);
     bool IsBeastForm();
     bool IsOnMount();

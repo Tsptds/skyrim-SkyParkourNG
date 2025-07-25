@@ -41,6 +41,13 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
+    /* Invalid if activate key selected & crosshair prompt available */
+    if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kActivate) {
+        if (IsCrosshairRefActivator()) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -136,6 +143,21 @@ bool ParkourUtility::IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player)
 
 bool ParkourUtility::IsSitting(RE::PlayerCharacter *player) {
     return player->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
+}
+
+bool ParkourUtility::IsCrosshairRefActivator() {
+    //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
+    auto ref = RE::CrosshairPickData::GetSingleton()->target.get();
+    if (ref) {
+        /* Something activatable in crosshair */
+#ifdef LOG_CROSSHAIR
+        auto layer = ref->Get3D()->GetCollisionLayer();
+        logger::info("Layer: {}", PRINT_LAYER(layer));
+#endif
+
+        return true;
+    }
+    return false;
 }
 
 bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {

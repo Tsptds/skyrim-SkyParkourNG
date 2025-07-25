@@ -300,5 +300,6 @@ namespace SkyParkourUtil {
 //#define LOG_VAULT
 //#define LOG_STEPS
 //#define LOG_LEDGE_UPDATES
+//#define LOG_CROSSHAIR
 
 #endif
