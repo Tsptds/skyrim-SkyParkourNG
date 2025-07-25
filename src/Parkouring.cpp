@@ -65,7 +65,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float fwdCheckStep = 8 * RuntimeVariables::PlayerScale;
     const int fwdCheckIterations = 10;           // 15
     const float minLedgeFlatness = 0.5;          //0.5
-    const float playerToLedgeHypotenuse = 0.8f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
+    const float playerToLedgeHypotenuse = 0.85f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
 
     // Raycast above player, is there enough room
     RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
@@ -173,21 +173,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
-            /* Velocity threshold */
-            RE::hkVector4 vel;
-            auto ctrl = player->GetCharController();
-            ctrl->GetLinearVelocityImpl(vel);
-            auto speed = vel.Length3();
-
-            if (speed > 1) {
-                return ParkourType::NoLedge;
-            }
-
-            // Additional horizontal and vertical checks for low ledge
-            double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
-            double verticalDistance = abs(ledgePlayerDiff);
-
-            if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
+            if (StepsExtraChecks(player, ledgePoint, playerPos, ledgePlayerDiff, playerToLedgeHypotenuse)) {
                 return ParkourType::StepHigh;  // High Step
             }
         }
@@ -196,21 +182,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
 
-            /* Velocity Threshold */
-            RE::hkVector4 vel;
-            auto ctrl = player->GetCharController();
-            ctrl->GetLinearVelocityImpl(vel);
-            auto speed = vel.Length3();
-
-            if (speed > 1) {
-                return ParkourType::NoLedge;
-            }
-
-            // Additional horizontal and vertical checks for low ledge
-            double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
-            double verticalDistance = abs(ledgePlayerDiff);
-
-            if (!PlayerIsOnStairs() && horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
+            if (!PlayerIsOnStairs() && StepsExtraChecks(player, ledgePoint, playerPos, ledgePlayerDiff, playerToLedgeHypotenuse)) {
                 return ParkourType::StepLow;  // Low Step
             }
         }

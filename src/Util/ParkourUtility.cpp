@@ -51,6 +51,29 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
+bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3 ledgePoint, RE::NiPoint3 playerPos, float ledgePlayerDiff,
+                                      float playerToLedgeHypotenuse) {
+    /* Velocity threshold */
+    RE::hkVector4 vel;
+    auto ctrl = player->GetCharController();
+    ctrl->GetLinearVelocityImpl(vel);
+    auto speed = vel.Length3();
+
+    if (speed > 1) {
+        return false;
+    }
+
+    // Additional horizontal and vertical checks for low ledge
+    double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
+    double verticalDistance = abs(ledgePlayerDiff);
+
+    if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
+        return true;
+    }
+
+    return false;
+}
+
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.PauseCurrentDialogue();
     a_actor.InterruptCast(false);
