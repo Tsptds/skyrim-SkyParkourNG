@@ -260,12 +260,16 @@ namespace SkyParkourUtil {
         kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
         kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
     };
+
+    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
+
 }  // namespace SkyParkourUtil
 
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 #define RayCastResult SkyParkourUtil::RayCastResult
 #define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
+#define PARKOUR_PRESET_KEYS SkyParkourUtil::ParkourKeyOptions
 
 #define PRINT_LAYER(x) (SkyParkourUtil::ColLayerToString(x))
 

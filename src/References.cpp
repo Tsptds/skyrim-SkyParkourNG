@@ -3,7 +3,7 @@
 namespace ModSettings {
 
     bool UsePresetParkourKey = true;
-    int PresetParkourKey = ParkourKeyOptions::kJump;
+    int PresetParkourKey = PARKOUR_PRESET_KEYS::kJump;
     int32_t CustomParkourKey = 0;
 
     bool ModEnabled = true;

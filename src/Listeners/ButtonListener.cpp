@@ -97,15 +97,14 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
-                if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
-                    userEventName == RE::UserEvents::GetSingleton()->jump) {
+                if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump && userEventName == RE::UserEvents::GetSingleton()->jump) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(event);
                 }
-                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kSprint &&
+                else if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kSprint &&
                          userEventName == RE::UserEvents::GetSingleton()->sprint) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
@@ -113,7 +112,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
                     ButtonStates::RegisterActivation(event);
                 }
-                else if (ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kActivate &&
+                else if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kActivate &&
                          userEventName == RE::UserEvents::GetSingleton()->activate) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;

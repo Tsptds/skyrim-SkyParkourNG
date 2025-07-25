@@ -3,7 +3,6 @@
 namespace ModSettings {
     extern bool UsePresetParkourKey;
     extern int PresetParkourKey;
-    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
     extern int32_t CustomParkourKey;
     extern bool ModEnabled;
     extern bool UseIndicators;

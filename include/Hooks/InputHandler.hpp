@@ -51,7 +51,7 @@ namespace Hooks {
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Jump(RE::InputEvent* a_event) {
         if (ModSettings::ModEnabled) {
-            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump &&
+            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump &&
                 ModSettings::parkourDelay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
                 //logger::info("Prevented Jump");
 
@@ -69,7 +69,7 @@ namespace Hooks {
     template <class T>
     void InputHandlerEx<T>::ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data) {
         if (ModSettings::ModEnabled && !ParkourUtility::IsOnMount()) {
-            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == ModSettings::ParkourKeyOptions::kJump) {
+            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump) {
                 auto btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::parkourDelay != 0.0f) {
                     if (btn->IsDown()) {
