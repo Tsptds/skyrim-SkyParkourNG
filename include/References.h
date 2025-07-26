@@ -37,7 +37,7 @@ namespace HardCodedVariables {
     // 40
     extern const float vaultMinHeight;
 
-    // 100
+    // 120
     extern const float grabPlayerBelowLedgeMaxDiff;
     // -35
     extern const float grabPlayerAboveLedgeMaxDiff;
@@ -46,7 +46,7 @@ namespace HardCodedVariables {
     extern const float highestLedgeLimit;
     // 170
     extern const float highLedgeLimit;
-    // 123
+    // 130
     extern const float medLedgeLimit;
     // 80
     extern const float lowLedgeLimit;
