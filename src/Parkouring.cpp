@@ -284,7 +284,7 @@ void Parkouring::OnStartStop(bool isStop) {
     if (isStop) {
         StopInterpolatingRef(player);
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
-        RuntimeVariables::PlayerStartPosition = RE::NiPoint3{0, 0, 0};
+        RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
     }
@@ -546,6 +546,11 @@ void Parkouring::UpdateParkourPoint() {
 
 bool Parkouring::TryActivateParkour() {
     const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
+
+    if (LedgeTypeToProcess == ParkourType::NoLedge) {
+        return false;
+    }
 
     bool Ongoing;
     if (player->GetGraphVariableBool(SPPF_ONGOING, Ongoing) && Ongoing) {
@@ -561,7 +566,6 @@ bool Parkouring::TryActivateParkour() {
     if (!RuntimeVariables::IsParkourActive) {
         return false;
     }
-    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
 
     const bool isMoving = player->IsMoving();
     const bool lowEffort = CheckActionRequiresLowEffort(LedgeTypeToProcess);
@@ -587,7 +591,6 @@ bool Parkouring::TryActivateParkour() {
     /* Cancel if moving, but allow movement during swimming */
     if (ModSettings::Smart_Parkour_Enabled && isMoving && !isSwimming) {
         if (!lowEffort) {
-            player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
             return false;
         }
     }
