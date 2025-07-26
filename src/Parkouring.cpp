@@ -63,8 +63,8 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float minUpCheck = 100 * RuntimeVariables::PlayerScale;
     const float maxUpCheck = (maxLedgeHeight - startZOffset) + 20 * RuntimeVariables::PlayerScale;
     const float fwdCheckStep = 8 * RuntimeVariables::PlayerScale;
-    const int fwdCheckIterations = 10;           // 15
-    const float minLedgeFlatness = 0.5;          //0.5
+    const int fwdCheckIterations = 10;            // 15
+    const float minLedgeFlatness = 0.5;           //0.5
     const float playerToLedgeHypotenuse = 0.85f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
 
     // Raycast above player, is there enough room
@@ -291,7 +291,6 @@ void Parkouring::OnStartStop(bool isStop) {
     else {
         /* Reset Fall Damage */
         controller->fallStartHeight = player->GetPositionZ();
-
         ParkourUtility::StopInteractions(*player);
     }
 
@@ -621,6 +620,11 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             if (success) {
                 RuntimeVariables::EnableNotifyWindow = false;
+
+                /* bAnimationDriven doesn't stop movement, this stops movement internally and prevents animation jitter. Not related to behavior graph at all, sets something internal.
+                   Send after entering SkyParkourState to preserve graph flow and smooth transition. (TL&DR Notify moveStop should return false but it works) */
+                player->NotifyAnimationGraph("movestop");
+
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
                     RuntimeMethods::SwapLegs();
