@@ -552,8 +552,13 @@ bool Parkouring::TryActivateParkour() {
         return false;
     }
 
-    if (!IsParkourActive()) {
-        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+    float turningDelta;
+    player->GetGraphVariableFloat("TurnDelta", turningDelta);
+    if (turningDelta > 10.0f) {
+        return false;
+    }
+
+    if (!RuntimeVariables::IsParkourActive) {
         return false;
     }
     const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
@@ -623,7 +628,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
                 /* bAnimationDriven doesn't stop movement, this stops movement internally and prevents animation jitter. Not related to behavior graph at all, sets something internal.
                    Send after entering SkyParkourState to preserve graph flow and smooth transition. (TL&DR Notify moveStop should return false but it works) */
-                player->NotifyAnimationGraph("movestop");
+                player->NotifyAnimationGraph("moveStop");
 
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {

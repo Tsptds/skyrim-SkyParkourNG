@@ -301,8 +301,15 @@ bool ParkourUtility::PlayerIsSwimming() {
 
 bool ParkourUtility::PlayerWantsToDrawSheath() {
     const auto player = RE::PlayerCharacter::GetSingleton();
-    return player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kDrawn &&
-           player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kSheathed;
+    bool equipping;
+    bool unequipping;
+
+    /* return player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kDrawn &&
+           player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kSheathed;*/
+    player->GetGraphVariableBool("IsEquipping", equipping);
+    player->GetGraphVariableBool("IsUnequipping", unequipping);
+
+    return equipping || unequipping;
 }
 
 bool ParkourUtility::PlayerIsOnStairs() {
