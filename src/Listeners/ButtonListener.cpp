@@ -47,7 +47,7 @@ void ButtonStates::RegisterActivation(RE::InputEvent* event) {
 
     // Delay Threshold Passed
     if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
-        if (ModSettings::parkourDelay <= buttonEvent->heldDownSecs) {
+        if (ModSettings::Parkour_Delay <= buttonEvent->heldDownSecs) {
             Parkouring::TryActivateParkour();
         }
     }
@@ -75,7 +75,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
         return RE::BSEventNotifyControl::kContinue;
 
     // Update this here,
-    if (ModSettings::ModEnabled) {
+    if (ModSettings::Mod_Enabled) {
         Parkouring::UpdateParkourPoint();
     }
 
@@ -92,19 +92,20 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 dxScanCode = ButtonStates::xinputToCKMap[dxScanCode];
             }
 
-            if (ModSettings::UsePresetParkourKey) {
+            if (ModSettings::Use_Preset_Parkour_Key) {
                 auto userEventName = event->QUserEvent();
                 //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
-                if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump && userEventName == RE::UserEvents::GetSingleton()->jump) {
+                if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
+                    userEventName == RE::UserEvents::GetSingleton()->jump) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
 
                     ButtonStates::RegisterActivation(event);
                 }
-                else if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kSprint &&
+                else if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kSprint &&
                          userEventName == RE::UserEvents::GetSingleton()->sprint) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
@@ -112,7 +113,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
                     ButtonStates::RegisterActivation(event);
                 }
-                else if (ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kActivate &&
+                else if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate &&
                          userEventName == RE::UserEvents::GetSingleton()->activate) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
@@ -122,7 +123,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                 }
             }
             else {
-                if (dxScanCode == ModSettings::CustomParkourKey) {
+                if (dxScanCode == ModSettings::Custom_Parkour_Key) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }

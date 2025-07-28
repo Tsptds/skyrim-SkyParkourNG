@@ -1,16 +1,18 @@
 #pragma once
 
 namespace ModSettings {
-    extern bool UsePresetParkourKey;
-    extern int PresetParkourKey;
-    extern int32_t CustomParkourKey;
-    extern bool ModEnabled;
-    extern bool UseIndicators;
-    extern float parkourDelay;
+    extern bool Use_Preset_Parkour_Key;
+    extern int Preset_Parkour_Key;
+    extern int32_t Custom_Parkour_Key;
+    extern bool Mod_Enabled;
+    extern bool Use_Indicators;
+    extern float Parkour_Delay;
     extern bool Enable_Stamina_Consumption;
-    extern bool Is_Stamina_Required;
+    extern bool Must_Have_Stamina;
     extern float Stamina_Damage;
-    extern bool Smart_Parkour_Enabled;
+    extern bool Smart_Steps;
+    extern bool Smart_Vault;
+    extern bool Smart_Climb;
 }  // namespace ModSettings
 
 namespace RuntimeMethods {

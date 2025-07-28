@@ -115,7 +115,7 @@ bool Hooks::CameraHandler::FPP::Install::Update() {
 
 /* Third person */
 bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event) {
-    if (ModSettings::ModEnabled) {
+    if (ModSettings::Mod_Enabled) {
         if (RuntimeVariables::ParkourInProgress) {
             return false;
         }
@@ -147,7 +147,7 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
 
 /* First person */
 bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
-    if (ModSettings::ModEnabled) {
+    if (ModSettings::Mod_Enabled) {
         if (RuntimeVariables::ParkourInProgress) {
             return false;
         }

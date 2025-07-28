@@ -40,7 +40,7 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     }
     else {
         //logger::info(">> Exiting Beast Form");
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             Parkouring::SetParkourOnOff(true);
         }
     }

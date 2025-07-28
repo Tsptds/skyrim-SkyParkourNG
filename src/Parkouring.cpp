@@ -23,7 +23,7 @@ int Parkouring::GetLedgePoint() {
     constexpr int vaultLength = 120;
     constexpr int maxElevationIncrease = 80;
 
-    if (isMoving || !ModSettings::Smart_Parkour_Enabled) {
+    if (isMoving || !ModSettings::Smart_Vault) {
         selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
@@ -303,7 +303,7 @@ void Parkouring::OnStartStop(bool isStop) {
 }
 
 bool Parkouring::PlaceAndShowIndicator() {
-    const bool useIndicators = ModSettings::UseIndicators;
+    const bool useIndicators = ModSettings::Use_Indicators;
     if (!useIndicators) {
         return false;
     }
@@ -597,7 +597,7 @@ bool Parkouring::TryActivateParkour() {
     }
 
     /* Cancel if moving, but allow movement during swimming */
-    if (ModSettings::Smart_Parkour_Enabled && isMoving && !isSwimming) {
+    if (ModSettings::Smart_Climb && isMoving && !isSwimming) {
         if (!lowEffort) {
             return false;
         }

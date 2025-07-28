@@ -11,7 +11,7 @@ namespace Hooks {
             static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
             inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
-                if (!a_event || !ModSettings::ModEnabled) {
+                if (!a_event || !ModSettings::Mod_Enabled) {
                     return _ProcessEvent(this, a_event, a_eventSource);
                 }
 

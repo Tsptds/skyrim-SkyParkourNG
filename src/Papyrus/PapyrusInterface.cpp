@@ -8,15 +8,11 @@ namespace SkyParkour_Papyrus {
     class Getters {
         public:
             static bool GetEnableMod(RE::StaticFunctionTag *) {
-                return ModEnabled;
-            }
-
-            static bool GetSmartParkour(RE::StaticFunctionTag *) {
-                return Smart_Parkour_Enabled;
+                return Mod_Enabled;
             }
 
             static bool GetShowIndicators(RE::StaticFunctionTag *) {
-                return UseIndicators;
+                return Use_Indicators;
             }
 
             static bool GetEnableStaminaSystem(RE::StaticFunctionTag *) {
@@ -24,7 +20,7 @@ namespace SkyParkour_Papyrus {
             }
 
             static bool GetMustHaveStamina(RE::StaticFunctionTag *) {
-                return Is_Stamina_Required;
+                return Must_Have_Stamina;
             }
 
             static float GetBaseStaminaDamage(RE::StaticFunctionTag *) {
@@ -32,19 +28,31 @@ namespace SkyParkour_Papyrus {
             }
 
             static bool GetUsePresetKey(RE::StaticFunctionTag *) {
-                return UsePresetParkourKey;
+                return Use_Preset_Parkour_Key;
             }
 
             static int32_t GetCustomParkourKey(RE::StaticFunctionTag *) {
-                return CustomParkourKey;
+                return Custom_Parkour_Key;
             }
 
             static int32_t GetPresetParkourKey(RE::StaticFunctionTag *) {
-                return PresetParkourKey;
+                return Preset_Parkour_Key;
             }
 
             static float GetParkourDelay(RE::StaticFunctionTag *) {
-                return parkourDelay;
+                return Parkour_Delay;
+            }
+
+            static bool GetSmartSteps(RE::StaticFunctionTag *) {
+                return Smart_Steps;
+            }
+
+            static bool GetSmartVault(RE::StaticFunctionTag *) {
+                return Smart_Vault;
+            }
+
+            static bool GetSmartClimb(RE::StaticFunctionTag *) {
+                return Smart_Climb;
             }
     };
 
@@ -55,18 +63,10 @@ namespace SkyParkour_Papyrus {
                 ini->SetBoolValue("MCM", "bEnableMod", value);
                 save(ini);
 
-                ModEnabled = value;
+                Mod_Enabled = value;
 
                 // Turn on if setting is on and is not beast form. Same logic on race change listener.
-                Parkouring::SetParkourOnOff(ModEnabled && !ParkourUtility::IsBeastForm());
-            }
-
-            static void SetSmartParkour(RE::StaticFunctionTag *, bool value) {
-                auto ini = RuntimeMethods::GetIniHandle();
-                ini->SetBoolValue("MCM", "bSmartParkour", value);
-                save(ini);
-
-                Smart_Parkour_Enabled = value;
+                Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
             }
 
             static void SetShowIndicators(RE::StaticFunctionTag *, bool value) {
@@ -74,7 +74,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetBoolValue("MCM", "bShowIndicators", value);
                 save(ini);
 
-                UseIndicators = value;
+                Use_Indicators = value;
             }
 
             static void SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
@@ -90,7 +90,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetBoolValue("MCM", "bMustHaveStamina", value);
                 save(ini);
 
-                Is_Stamina_Required = value;
+                Must_Have_Stamina = value;
             }
 
             static void SetBaseStaminaDamage(RE::StaticFunctionTag *, float value) {
@@ -106,7 +106,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetBoolValue("MCM", "bUsePresetKey", value);
                 save(ini);
 
-                UsePresetParkourKey = value;
+                Use_Preset_Parkour_Key = value;
             }
 
             static void SetCustomParkourKey(RE::StaticFunctionTag *, int32_t value) {
@@ -114,7 +114,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetValue("MCM", "iCustomKeybind", std::to_string(value).c_str());
                 save(ini);
 
-                CustomParkourKey = value;
+                Custom_Parkour_Key = value;
             }
 
             static void SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value) {
@@ -122,7 +122,7 @@ namespace SkyParkour_Papyrus {
                 ini->SetValue("MCM", "iPresetKeyIndex", std::to_string(value).c_str());
                 save(ini);
 
-                PresetParkourKey = value;
+                Preset_Parkour_Key = value;
             }
 
             static void SetParkourDelay(RE::StaticFunctionTag *, float value) {
@@ -130,7 +130,31 @@ namespace SkyParkour_Papyrus {
                 ini->SetValue("MCM", "fInputDelay", std::to_string(value).c_str());
                 save(ini);
 
-                parkourDelay = value;
+                Parkour_Delay = value;
+            }
+
+            static void SetSmartSteps(RE::StaticFunctionTag *, bool value) {
+                auto ini = RuntimeMethods::GetIniHandle();
+                ini->SetBoolValue("MCM", "bSmartSteps", value);
+                save(ini);
+
+                Smart_Steps = value;
+            }
+
+            static void SetSmartVault(RE::StaticFunctionTag *, bool value) {
+                auto ini = RuntimeMethods::GetIniHandle();
+                ini->SetBoolValue("MCM", "bSmartVault", value);
+                save(ini);
+
+                Smart_Vault = value;
+            }
+
+            static void SetSmartClimb(RE::StaticFunctionTag *, bool value) {
+                auto ini = RuntimeMethods::GetIniHandle();
+                ini->SetBoolValue("MCM", "bSmartClimb", value);
+                save(ini);
+
+                Smart_Climb = value;
             }
 
         private:
@@ -141,7 +165,7 @@ namespace SkyParkour_Papyrus {
 
     void Internal::AlertPlayerLoaded(RE::StaticFunctionTag *) {
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
-        Parkouring::SetParkourOnOff(ModEnabled && !ParkourUtility::IsBeastForm());
+        Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
@@ -150,20 +174,23 @@ namespace SkyParkour_Papyrus {
         auto ini = RuntimeMethods::GetIniHandle();
 
         /* Parkour Settings */
-        ModEnabled = ini->GetBoolValue("MCM", "bEnableMod");
-        Smart_Parkour_Enabled = ini->GetBoolValue("MCM", "bSmartParkour");
-        UseIndicators = ini->GetBoolValue("MCM", "bShowIndicators");
+        Mod_Enabled = ini->GetBoolValue("MCM", "bEnableMod");
+        Use_Indicators = ini->GetBoolValue("MCM", "bShowIndicators");
 
         /* Stamina Settings */
         Enable_Stamina_Consumption = ini->GetBoolValue("MCM", "bEnableStaminaSystem");
-        Is_Stamina_Required = ini->GetBoolValue("MCM", "bMustHaveStamina");
+        Must_Have_Stamina = ini->GetBoolValue("MCM", "bMustHaveStamina");
         Stamina_Damage = static_cast<float>(ini->GetDoubleValue("MCM", "iBaseStaminaDamage"));
 
         /* Input Settings */
-        UsePresetParkourKey = ini->GetBoolValue("MCM", "bUsePresetKey");
-        PresetParkourKey = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iPresetKeyIndex"));
-        CustomParkourKey = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iCustomKeybind"));
-        parkourDelay = static_cast<float>(ini->GetDoubleValue("MCM", "fInputDelay"));
+        Use_Preset_Parkour_Key = ini->GetBoolValue("MCM", "bUsePresetKey");
+        Preset_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iPresetKeyIndex"));
+        Custom_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue("MCM", "iCustomKeybind"));
+        Parkour_Delay = static_cast<float>(ini->GetDoubleValue("MCM", "fInputDelay"));
+
+        Smart_Steps = ini->GetBoolValue("MCM", "bSmartSteps");
+        Smart_Vault = ini->GetBoolValue("MCM", "bSmartVault");
+        Smart_Climb = ini->GetBoolValue("MCM", "bSmartClimb");
     }
     void Internal::RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm) {
         // Maintenance calls this to start polling updates
@@ -171,7 +198,6 @@ namespace SkyParkour_Papyrus {
 
         // Getter functions
         vm->RegisterFunction("GetEnableMod", "SkyParkourPapyrus", Getters::GetEnableMod);
-        vm->RegisterFunction("GetSmartParkour", "SkyParkourPapyrus", Getters::GetSmartParkour);
         vm->RegisterFunction("GetShowIndicators", "SkyParkourPapyrus", Getters::GetShowIndicators);
         vm->RegisterFunction("GetEnableStaminaSystem", "SkyParkourPapyrus", Getters::GetEnableStaminaSystem);
         vm->RegisterFunction("GetMustHaveStamina", "SkyParkourPapyrus", Getters::GetMustHaveStamina);
@@ -180,10 +206,12 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("GetCustomParkourKey", "SkyParkourPapyrus", Getters::GetCustomParkourKey);
         vm->RegisterFunction("GetPresetParkourKey", "SkyParkourPapyrus", Getters::GetPresetParkourKey);
         vm->RegisterFunction("GetParkourDelay", "SkyParkourPapyrus", Getters::GetParkourDelay);
+        vm->RegisterFunction("GetSmartSteps", "SkyParkourPapyrus", Getters::GetSmartSteps);
+        vm->RegisterFunction("GetSmartVault", "SkyParkourPapyrus", Getters::GetSmartVault);
+        vm->RegisterFunction("GetSmartClimb", "SkyParkourPapyrus", Getters::GetSmartClimb);
 
         // Setter functions
         vm->RegisterFunction("SetEnableMod", "SkyParkourPapyrus", Setters::SetEnableMod);
-        vm->RegisterFunction("SetSmartParkour", "SkyParkourPapyrus", Setters::SetSmartParkour);
         vm->RegisterFunction("SetShowIndicators", "SkyParkourPapyrus", Setters::SetShowIndicators);
         vm->RegisterFunction("SetEnableStaminaSystem", "SkyParkourPapyrus", Setters::SetEnableStaminaSystem);
         vm->RegisterFunction("SetMustHaveStamina", "SkyParkourPapyrus", Setters::SetMustHaveStamina);
@@ -192,6 +220,9 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("SetCustomParkourKey", "SkyParkourPapyrus", Setters::SetCustomParkourKey);
         vm->RegisterFunction("SetPresetParkourKey", "SkyParkourPapyrus", Setters::SetPresetParkourKey);
         vm->RegisterFunction("SetParkourDelay", "SkyParkourPapyrus", Setters::SetParkourDelay);
+        vm->RegisterFunction("SetSmartSteps", "SkyParkourPapyrus", Setters::SetSmartSteps);
+        vm->RegisterFunction("SetSmartVault", "SkyParkourPapyrus", Setters::SetSmartVault);
+        vm->RegisterFunction("SetSmartClimb", "SkyParkourPapyrus", Setters::SetSmartClimb);
     }
 
 }  // namespace SkyParkour_Papyrus

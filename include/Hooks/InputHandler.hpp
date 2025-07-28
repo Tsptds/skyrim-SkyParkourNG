@@ -50,9 +50,9 @@ namespace Hooks {
     /* Hooks */
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Jump(RE::InputEvent* a_event) {
-        if (ModSettings::ModEnabled) {
-            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump &&
-                ModSettings::parkourDelay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
+        if (ModSettings::Mod_Enabled) {
+            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
+                ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
                 //logger::info("Prevented Jump");
 
                 return false;
@@ -68,10 +68,10 @@ namespace Hooks {
 
     template <class T>
     void InputHandlerEx<T>::ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data) {
-        if (ModSettings::ModEnabled && !ParkourUtility::IsOnMount()) {
-            if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kJump) {
+        if (ModSettings::Mod_Enabled && !ParkourUtility::IsOnMount()) {
+            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
                 auto btn = a_event->AsButtonEvent();
-                if (btn && btn->QUserEvent() == "Jump" && ModSettings::parkourDelay != 0.0f) {
+                if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
                     if (btn->IsDown()) {
                         return;
                     }
@@ -82,7 +82,7 @@ namespace Hooks {
 
                         // create a delayed Down
                         RE::ButtonEvent* downEvt =
-                            (held < ModSettings::parkourDelay) ? RE::ButtonEvent::Create(dev, "Jump", id, 1.0f, 0.0f) : nullptr;
+                            (held < ModSettings::Parkour_Delay) ? RE::ButtonEvent::Create(dev, "Jump", id, 1.0f, 0.0f) : nullptr;
                         // for a tap, also create a delayed Up
                         RE::ButtonEvent* upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
 
@@ -111,7 +111,7 @@ namespace Hooks {
 
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Sneak(RE::InputEvent* a_event) {
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -122,7 +122,7 @@ namespace Hooks {
 
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Movement(RE::InputEvent* a_event) {
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 /**/
                 /* Recovery Frame Early Exit Logic */
@@ -145,7 +145,7 @@ namespace Hooks {
 
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Activate(RE::InputEvent* a_event) {
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -157,7 +157,7 @@ namespace Hooks {
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_POV(RE::InputEvent* a_event) {
         /* This disables holding F and setting the zoom thing */
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -169,7 +169,7 @@ namespace Hooks {
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Weapon(RE::InputEvent* a_event) {
         /* Stops Weapon Ready button process, mostly fixes weapon state getting stuck and redrawn */
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -180,7 +180,7 @@ namespace Hooks {
 
     template <class T>
     inline bool InputHandlerEx<T>::CanProcess_Look(RE::InputEvent* a_event) {
-        if (ModSettings::ModEnabled) {
+        if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }

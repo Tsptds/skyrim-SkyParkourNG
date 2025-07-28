@@ -41,7 +41,7 @@ bool ParkourUtility::IsParkourActive() {
     }
 
     /* Invalid if activate key selected & crosshair prompt available */
-    if (ModSettings::UsePresetParkourKey && ModSettings::PresetParkourKey == PARKOUR_PRESET_KEYS::kActivate) {
+    if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate) {
         if (IsCrosshairRefActivator()) {
             return false;
         }
@@ -75,8 +75,10 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoi
     //    return true;
     //}
 
-    /* Don't allow it when standing still, can be annoying */
-    return player->IsMoving();
+    if (!ModSettings::Smart_Steps)
+        return true;  // Feature disabled, always allow
+
+    return player->IsMoving();  // Feature enabled, only allow if moving
 }
 
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
@@ -227,7 +229,7 @@ bool ParkourUtility::PlayerHasEnoughStamina() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
-    if (!ModSettings::Is_Stamina_Required || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
+    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
         return true;
     }
     return false;
