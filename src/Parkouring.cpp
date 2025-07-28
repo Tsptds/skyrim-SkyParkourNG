@@ -389,7 +389,15 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
     }
 
     const auto diff = relativeTranslatedToWorld - curPos;
+
+    float mult;
+    movingRef->GetGraphVariableFloat(SPPF_SPEEDMULT, mult);
+    if (mult == 0.0f) {
+        mult = 1.0f;
+    }
+
     auto speed = seconds <= 0 ? 5000 : diff.Length() / seconds;  // Snap to pos if 0 or negative seconds
+    speed *= mult;
 
     // Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
@@ -628,10 +636,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             if (success) {
                 RuntimeVariables::EnableNotifyWindow = false;
-
-                /* bAnimationDriven doesn't stop movement, this stops movement internally and prevents animation jitter. Not related to behavior graph at all, sets something internal.
-                   Send after entering SkyParkourState to preserve graph flow and smooth transition. (TL&DR Notify moveStop should return false but it works) */
-                player->NotifyAnimationGraph("moveStop");
 
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {

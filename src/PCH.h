@@ -288,6 +288,7 @@ namespace SkyParkourUtil {
 #define SPPF_Ledge "SkyParkourLedge"
 #define SPPF_Leg "SkyParkourStepLeg"
 #define SPPF_ONGOING "SkyparkourOngoing"
+#define SPPF_SPEEDMULT "SkyParkourSpeedMult"
 
 /* Bool def for func */
 #define IS_STOP true
