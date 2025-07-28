@@ -127,7 +127,7 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
     if (RuntimeVariables::ParkourInProgress) {
         /* Prevent Havok from pulling the player towards ground */
         auto ctrl = RE::PlayerCharacter::GetSingleton()->GetCharController();
-        ctrl->surfaceInfo.supportedState = RE::hkpSurfaceInfo::SupportedState::kUnsupported;
+        ctrl->flags.reset(RE::CHARACTER_FLAGS::kSupport);
 
         /* TDM swim pitch angle thing */
         if (Compatibility::TrueDirectionalMovement) {
