@@ -50,27 +50,33 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
-bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3 ledgePoint, RE::NiPoint3 playerPos, float ledgePlayerDiff,
-                                      float playerToLedgeHypotenuse) {
-    /* Velocity threshold */
+bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoint3, float, float) {
+    /* Velocity threshold, if player isn't moving forward steps are valid */
     RE::hkVector4 vel;
     auto ctrl = player->GetCharController();
     ctrl->GetLinearVelocityImpl(vel);
-    auto speed = vel.Length3();
+    auto dir = RuntimeVariables::playerDirFlat;
+
+    auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
+
+#ifdef LOG_STEPS_VELOCITY
+    logger::info("{}", speed);
+#endif
 
     if (speed > 1) {
         return false;
     }
 
-    // Additional horizontal and vertical checks for low ledge
-    double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
-    double verticalDistance = abs(ledgePlayerDiff);
+    //// Additional horizontal and vertical checks for low ledge
+    //double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
+    //double verticalDistance = abs(ledgePlayerDiff);
 
-    if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
-        return true;
-    }
+    //if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
+    //    return true;
+    //}
 
-    return false;
+    /* Don't allow it when standing still, can be annoying */
+    return player->IsMoving();
 }
 
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {

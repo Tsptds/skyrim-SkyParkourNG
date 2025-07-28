@@ -302,5 +302,6 @@ namespace SkyParkourUtil {
 //#define LOG_STEPS
 //#define LOG_LEDGE_UPDATES
 //#define LOG_CROSSHAIR
+//#define LOG_STEPS_VELOCITY
 
 #endif
