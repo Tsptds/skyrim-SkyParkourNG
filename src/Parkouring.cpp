@@ -567,7 +567,7 @@ bool Parkouring::TryActivateParkour() {
 
     float turningDelta;
     player->GetGraphVariableFloat("TurnDelta", turningDelta);
-    if (turningDelta > 10.0f) {
+    if (turningDelta > 50.0f) {
         return false;
     }
 
