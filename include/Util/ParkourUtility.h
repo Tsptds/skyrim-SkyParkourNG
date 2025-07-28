@@ -8,17 +8,17 @@ namespace ParkourUtility {
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask);
     // Ragdoll & Get Up Sequence
-    bool IsKnockedOut(RE::Actor *actor);
-    bool IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player);
+    bool IsKnockedOut(RE::Actor *);
+    bool IsPlayerAlreadyAnimationDriven(RE::Actor *);
     // Also includes mounts
-    bool IsSitting(RE::PlayerCharacter *);
+    bool IsSitting(RE::Actor *);
     bool IsCrosshairRefActivator();
     bool IsChargenHandsBound(RE::PlayerCharacter *);
     bool IsBeastForm();
     bool IsOnMount();
     bool IsGamePaused();
-    bool IsPlayerInSyncedAnimation(RE::PlayerCharacter *);
-    float CalculateParkourStamina();
+    bool IsInSyncedAnimation(RE::Actor *);
+    float CalculateParkourStamina(RE::Actor *);
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);
     bool ShouldReplaceMarkerWithFailed();
@@ -26,6 +26,6 @@ namespace ParkourUtility {
     bool PlayerIsGroundedOrSliding();
     bool PlayerIsMidairAndNotSliding();
     bool PlayerIsSwimming();
-    bool PlayerWantsToDrawSheath();
+    bool IsInDrawSheath(RE::Actor *);
     bool PlayerIsOnStairs();
 }  // namespace ParkourUtility

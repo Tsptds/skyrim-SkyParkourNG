@@ -656,7 +656,7 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLo
             return;
         }
 
-        float cost = ParkourUtility::CalculateParkourStamina();
+        float cost = ParkourUtility::CalculateParkourStamina(player);
 
         /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like low effort. */
         if (isLowEffort || isSwimming) {

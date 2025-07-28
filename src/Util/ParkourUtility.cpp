@@ -16,11 +16,11 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (IsPlayerAlreadyAnimationDriven(player)) {
+    if (player->IsAnimationDriven()) {
         return false;
     }
 
-    if (IsPlayerInSyncedAnimation(player)) {
+    if (IsInSyncedAnimation(player)) {
         return false;
     }
 
@@ -32,8 +32,7 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    if (PlayerWantsToDrawSheath()) {
-        //logger::info("WILL DRAW/SHEATHE");
+    if (IsInDrawSheath(player)) {
         return false;
     }
 
@@ -164,13 +163,8 @@ bool ParkourUtility::IsKnockedOut(RE::Actor *actor) {
     return actor->AsActorState()->GetKnockState() != RE::KNOCK_STATE_ENUM::kNormal;
 }
 
-bool ParkourUtility::IsPlayerAlreadyAnimationDriven(RE::PlayerCharacter *player) {
-    bool out;
-    return player->GetGraphVariableBool("bAnimationDriven", out) && out;
-}
-
-bool ParkourUtility::IsSitting(RE::PlayerCharacter *player) {
-    return player->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
+bool ParkourUtility::IsSitting(RE::Actor *actor) {
+    return actor->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
 }
 
 bool ParkourUtility::IsCrosshairRefActivator() {
@@ -211,14 +205,13 @@ bool ParkourUtility::IsGamePaused() {
     return ui && ui->GameIsPaused();
 }
 
-bool ParkourUtility::IsPlayerInSyncedAnimation(RE::PlayerCharacter *player) {
+bool ParkourUtility::IsInSyncedAnimation(RE::Actor *actor) {
     bool out;
-    return player->GetGraphVariableBool("bIsSynced", out) && out;
+    return actor->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
-float ParkourUtility::CalculateParkourStamina() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    float equip = player->GetEquippedWeight();
+float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
+    float equip = actor->GetEquippedWeight();
     //float carry = player->GetTotalCarryWeight();
 
     return ModSettings::Stamina_Damage + (equip * 0.2f);
@@ -228,7 +221,7 @@ bool ParkourUtility::PlayerHasEnoughStamina() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     const auto currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
-    if (!ModSettings::Is_Stamina_Required || currentStamina > CalculateParkourStamina() /* && ModSettings::Is_Stamina_Required */) {
+    if (!ModSettings::Is_Stamina_Required || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
         return true;
     }
     return false;
@@ -299,15 +292,14 @@ bool ParkourUtility::PlayerIsSwimming() {
     return actor->GetWeaponState() == RE::WEAPON_STATE::kSheathed;
 }*/
 
-bool ParkourUtility::PlayerWantsToDrawSheath() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+bool ParkourUtility::IsInDrawSheath(RE::Actor *actor) {
     bool equipping;
     bool unequipping;
 
     /* return player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kDrawn &&
            player->AsActorState()->GetWeaponState() != RE::WEAPON_STATE::kSheathed;*/
-    player->GetGraphVariableBool("IsEquipping", equipping);
-    player->GetGraphVariableBool("IsUnequipping", unequipping);
+    actor->GetGraphVariableBool("IsEquipping", equipping);
+    actor->GetGraphVariableBool("IsUnequipping", unequipping);
 
     return equipping || unequipping;
 }
