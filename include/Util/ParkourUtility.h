@@ -23,8 +23,9 @@ namespace ParkourUtility {
     bool DamageActorStamina(RE::Actor *actor, float amount);
     bool ShouldReplaceMarkerWithFailed();
     bool CheckActionRequiresLowEffort(int32_t selectedLedgeType);
-    bool PlayerIsGroundedOrSliding();
-    bool PlayerIsMidairAndNotSliding();
+    bool IsSupportGroundedOrSliding(RE::Actor *);
+    bool IsSupportUnsupported(RE::Actor *);
+    bool IsSupportSliding(RE::Actor *);
     bool PlayerIsSwimming();
     bool IsInDrawSheath(RE::Actor *);
     bool PlayerIsOnStairs();

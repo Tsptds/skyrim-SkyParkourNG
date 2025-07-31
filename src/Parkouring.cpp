@@ -145,7 +145,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     const float ledgePlayerDiff = ledgePoint.z - playerPos.z;
-    if (PlayerIsGroundedOrSliding() || PlayerIsSwimming()) {
+    if (IsSupportGroundedOrSliding(player) || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             if (ShouldReplaceMarkerWithFailed()) {
                 return ParkourType::Failed;
@@ -187,7 +187,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             }
         }
     }
-    else if (PlayerIsMidairAndNotSliding() && ledgePlayerDiff > HardCodedVariables::grabPlayerAboveLedgeMaxDiff &&
+    else if (IsSupportUnsupported(player) && ledgePlayerDiff > HardCodedVariables::grabPlayerAboveLedgeMaxDiff &&
              ledgePlayerDiff <= HardCodedVariables::grabPlayerBelowLedgeMaxDiff * RuntimeVariables::PlayerScale) {
         return ParkourType::Grab;
     }
@@ -197,7 +197,8 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                            float minVaultHeight, float maxVaultHeight) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    if (!PlayerIsGroundedOrSliding()) {
+    /* TODO: if not grounded return */
+    if (!IsSupportGroundedOrSliding(player)) {
         return ParkourType::NoLedge;
     }
 

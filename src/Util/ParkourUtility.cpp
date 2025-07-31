@@ -260,13 +260,12 @@ bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
            ledge == ParkourType::Low || ledge == ParkourType::Medium;
 }
 
-bool ParkourUtility::PlayerIsGroundedOrSliding() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    const auto charController = player->GetCharController();
+bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {
+    const auto charController = actor->GetCharController();
 
     // logger::info("Flag {}", charController->flags.underlying());
     // Check if the player is in the air (jumping flag)
-    if (player && charController && /*!charController->flags.any(RE::CHARACTER_FLAGS::kJumping) &&
+    if (actor && charController && /*!charController->flags.any(RE::CHARACTER_FLAGS::kJumping) &&
         charController->flags.all(RE::CHARACTER_FLAGS::kCanJump) &&*/
         charController->surfaceInfo.supportedState != RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
         return true;
@@ -274,11 +273,19 @@ bool ParkourUtility::PlayerIsGroundedOrSliding() {
     return false;
 }
 
-bool ParkourUtility::PlayerIsMidairAndNotSliding() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
-    const auto charController = player->GetCharController();
+bool ParkourUtility::IsSupportUnsupported(RE::Actor *actor) {
+    const auto charController = actor->GetCharController();
 
-    if (player && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
+    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
+        return true;
+    }
+    return false;
+}
+
+bool ParkourUtility::IsSupportSliding(RE::Actor *actor) {
+    const auto charController = actor->GetCharController();
+
+    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSliding) {
         return true;
     }
     return false;
