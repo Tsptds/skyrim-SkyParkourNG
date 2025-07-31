@@ -6,6 +6,7 @@ namespace ModSettings {
     extern int32_t Custom_Parkour_Key;
     extern bool Mod_Enabled;
     extern bool Use_Indicators;
+    extern float Playback_Speed;
     extern float Parkour_Delay;
     extern bool Enable_Stamina_Consumption;
     extern bool Must_Have_Stamina;

@@ -8,6 +8,7 @@ namespace ModSettings {
 
     bool Mod_Enabled = true;
     bool Use_Indicators = true;
+    float Playback_Speed = 1.15f;
 
     float Parkour_Delay = 0.0f;  // Set initial delay
 

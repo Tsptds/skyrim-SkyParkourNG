@@ -15,6 +15,10 @@ namespace SkyParkour_Papyrus {
                 return Use_Indicators;
             }
 
+            static float GetPlaybackSpeed(RE::StaticFunctionTag *) {
+                return Playback_Speed;
+            }
+
             static bool GetEnableStaminaSystem(RE::StaticFunctionTag *) {
                 return Enable_Stamina_Consumption;
             }
@@ -75,6 +79,16 @@ namespace SkyParkour_Papyrus {
                 save(ini);
 
                 Use_Indicators = value;
+            }
+
+            static void SetPlaybackSpeed(RE::StaticFunctionTag *, float value) {
+                auto ini = RuntimeMethods::GetIniHandle();
+                ini->SetValue("MCM", "fPlaybackSpeed", std::to_string(value).c_str());
+                save(ini);
+
+                Playback_Speed = value;
+                /* Set the graph variable as well, above is internal */
+                RE::PlayerCharacter::GetSingleton()->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
             }
 
             static void SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
@@ -166,6 +180,7 @@ namespace SkyParkour_Papyrus {
     void Internal::AlertPlayerLoaded(RE::StaticFunctionTag *) {
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
         Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
+        RE::PlayerCharacter::GetSingleton()->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
@@ -176,6 +191,7 @@ namespace SkyParkour_Papyrus {
         /* Parkour Settings */
         Mod_Enabled = ini->GetBoolValue("MCM", "bEnableMod");
         Use_Indicators = ini->GetBoolValue("MCM", "bShowIndicators");
+        Playback_Speed = static_cast<float>(ini->GetDoubleValue("MCM", "fPlaybackSpeed"));
 
         /* Stamina Settings */
         Enable_Stamina_Consumption = ini->GetBoolValue("MCM", "bEnableStaminaSystem");
@@ -199,6 +215,7 @@ namespace SkyParkour_Papyrus {
         // Getter functions
         vm->RegisterFunction("GetEnableMod", "SkyParkourPapyrus", Getters::GetEnableMod);
         vm->RegisterFunction("GetShowIndicators", "SkyParkourPapyrus", Getters::GetShowIndicators);
+        vm->RegisterFunction("GetPlaybackSpeed", "SkyParkourPapyrus", Getters::GetPlaybackSpeed);
         vm->RegisterFunction("GetEnableStaminaSystem", "SkyParkourPapyrus", Getters::GetEnableStaminaSystem);
         vm->RegisterFunction("GetMustHaveStamina", "SkyParkourPapyrus", Getters::GetMustHaveStamina);
         vm->RegisterFunction("GetBaseStaminaDamage", "SkyParkourPapyrus", Getters::GetBaseStaminaDamage);
@@ -213,6 +230,7 @@ namespace SkyParkour_Papyrus {
         // Setter functions
         vm->RegisterFunction("SetEnableMod", "SkyParkourPapyrus", Setters::SetEnableMod);
         vm->RegisterFunction("SetShowIndicators", "SkyParkourPapyrus", Setters::SetShowIndicators);
+        vm->RegisterFunction("SetPlaybackSpeed", "SkyParkourPapyrus", Setters::SetPlaybackSpeed);
         vm->RegisterFunction("SetEnableStaminaSystem", "SkyParkourPapyrus", Setters::SetEnableStaminaSystem);
         vm->RegisterFunction("SetMustHaveStamina", "SkyParkourPapyrus", Setters::SetMustHaveStamina);
         vm->RegisterFunction("SetBaseStaminaDamage", "SkyParkourPapyrus", Setters::SetBaseStaminaDamage);
