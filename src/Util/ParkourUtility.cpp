@@ -51,7 +51,7 @@ bool ParkourUtility::IsParkourActive() {
 }
 
 bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoint3, float, float) {
-    /* Velocity threshold, if player isn't moving forward steps are valid */
+    /* Velocity threshold, if player isn't moving forward steps are not valid */
     RE::hkVector4 vel;
     auto ctrl = player->GetCharController();
     ctrl->GetLinearVelocityImpl(vel);

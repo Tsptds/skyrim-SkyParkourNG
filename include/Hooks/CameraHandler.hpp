@@ -8,6 +8,8 @@ namespace Hooks {
 
         private:
             struct TPP {
+                    inline static float TDM_Pitch_Clamp = 0.4f;
+
                     struct Install {
                             static bool CanProcess();
                             static bool Update();
@@ -25,6 +27,8 @@ namespace Hooks {
             };
 
             struct FPP {
+                    inline static float Vertical_Clamp_Angle = 1.0f;
+
                     struct Install {
                             static bool CanProcess();
                             static bool Update();
@@ -132,11 +136,11 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
         /* TDM swim pitch angle thing */
         if (Compatibility::TrueDirectionalMovement) {
             float pitch = ctrl->pitchAngle;
-            if (pitch > 0.4f) {
-                ctrl->pitchAngle = 0.4f;
+            if (pitch > TDM_Pitch_Clamp) {
+                ctrl->pitchAngle = TDM_Pitch_Clamp;
             }
-            else if (pitch < -0.4f) {
-                ctrl->pitchAngle = -0.4f;
+            else if (pitch < -TDM_Pitch_Clamp) {
+                ctrl->pitchAngle = -TDM_Pitch_Clamp;
             }
         }
     }
@@ -160,11 +164,11 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
         /* Clamp Player looking angle to prevent weird visuals */
         auto player = RE::PlayerCharacter::GetSingleton();
         const auto vertAngle = player->data.angle.x;
-        if (vertAngle > 0.9f) {
-            player->data.angle.x = 0.9f;
+        if (vertAngle > Vertical_Clamp_Angle) {
+            player->data.angle.x = Vertical_Clamp_Angle;
         }
-        else if (vertAngle < -0.9f) {
-            player->data.angle.x = -0.9f;
+        else if (vertAngle < -Vertical_Clamp_Angle) {
+            player->data.angle.x = -Vertical_Clamp_Angle;
         }
     }
 
