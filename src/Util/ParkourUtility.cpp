@@ -291,6 +291,15 @@ bool ParkourUtility::IsSupportSliding(RE::Actor *actor) {
     return false;
 }
 
+bool ParkourUtility::IsSupportGrounded(RE::Actor *actor) {
+    const auto charController = actor->GetCharController();
+
+    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSupported) {
+        return true;
+    }
+    return false;
+}
+
 bool ParkourUtility::PlayerIsSwimming() {
     const auto player = RE::PlayerCharacter::GetSingleton();
     if (!player) {

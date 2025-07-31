@@ -197,8 +197,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                            float minVaultHeight, float maxVaultHeight) {
     const auto player = RE::PlayerCharacter::GetSingleton();
 
-    /* TODO: if not grounded return */
-    if (!IsSupportGroundedOrSliding(player)) {
+    if (!IsSupportGrounded(player)) {
         return ParkourType::NoLedge;
     }
 

@@ -26,6 +26,7 @@ namespace ParkourUtility {
     bool IsSupportGroundedOrSliding(RE::Actor *);
     bool IsSupportUnsupported(RE::Actor *);
     bool IsSupportSliding(RE::Actor *);
+    bool IsSupportGrounded(RE::Actor *);
     bool PlayerIsSwimming();
     bool IsInDrawSheath(RE::Actor *);
     bool PlayerIsOnStairs();
