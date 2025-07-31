@@ -12,7 +12,7 @@ int Parkouring::GetLedgePoint() {
 
     const auto player = RE::PlayerCharacter::GetSingleton();
     //const auto playerPos = player->GetPosition();
-    const bool isMoving = player->IsMoving();
+    const bool isSprinting = player->AsActorState()->IsSprinting();
 
     RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
 
@@ -23,7 +23,7 @@ int Parkouring::GetLedgePoint() {
     constexpr int vaultLength = 120;
     constexpr int maxElevationIncrease = 80;
 
-    if (isMoving || !ModSettings::Smart_Vault) {
+    if (isSprinting || !ModSettings::Smart_Vault) {
         selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
                                        HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
