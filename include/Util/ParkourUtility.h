@@ -4,6 +4,7 @@ namespace ParkourUtility {
     bool IsParkourActive();
     bool StepsExtraChecks(RE::Actor *player, RE::NiPoint3 ledgePoint, RE::NiPoint3 playerPos, float ledgePlayerDiff,
                           float playerToLedgeHypotenuse);
+    bool VaultExtraChecks(RE::Actor *actor);
     void StopInteractions(RE::Actor &actor);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask);

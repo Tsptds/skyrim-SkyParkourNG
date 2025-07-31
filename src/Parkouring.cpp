@@ -12,7 +12,6 @@ int Parkouring::GetLedgePoint() {
 
     const auto player = RE::PlayerCharacter::GetSingleton();
     //const auto playerPos = player->GetPosition();
-    const bool isSprinting = player->AsActorState()->IsSprinting();
 
     RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
 
@@ -23,11 +22,9 @@ int Parkouring::GetLedgePoint() {
     constexpr int vaultLength = 120;
     constexpr int maxElevationIncrease = 80;
 
-    if (isSprinting || !ModSettings::Smart_Vault) {
-        selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
-                                       HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
-                                       HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
-    }
+    selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
+                                   HardCodedVariables::vaultMinHeight * RuntimeVariables::PlayerScale,
+                                   HardCodedVariables::vaultMaxHeight * RuntimeVariables::PlayerScale);
 
     if (selectedLedgeType == ParkourType::NoLedge) {
         selectedLedgeType = ClimbCheck(ledgePoint, playerDirFlat, HardCodedVariables::climbMinHeight * RuntimeVariables::PlayerScale,
@@ -198,6 +195,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const auto player = RE::PlayerCharacter::GetSingleton();
 
     if (!IsSupportGrounded(player)) {
+        return ParkourType::NoLedge;
+    }
+
+    if (!VaultExtraChecks(player)) {
         return ParkourType::NoLedge;
     }
 

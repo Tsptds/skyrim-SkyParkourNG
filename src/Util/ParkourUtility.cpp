@@ -81,6 +81,29 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoi
     return player->IsMoving();  // Feature enabled, only allow if moving
 }
 
+bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
+    /* Velocity threshold, if player isn't sprinting forward vault is not valid */
+    RE::hkVector4 vel;
+    auto ctrl = actor->GetCharController();
+    ctrl->GetLinearVelocityImpl(vel);
+    auto dir = RuntimeVariables::playerDirFlat;
+
+    auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
+
+#ifdef LOG_VAULT_VELOCITY
+    logger::info("{}", speed);
+#endif
+
+    if (speed > 1) {
+        return false;
+    }
+
+    if (!ModSettings::Smart_Vault)
+        return true;  // Feature disabled, always allow
+
+    return actor->AsActorState()->IsSprinting();  // Feature enabled, only allow if sprinting
+}
+
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.PauseCurrentDialogue();
     a_actor.InterruptCast(false);
