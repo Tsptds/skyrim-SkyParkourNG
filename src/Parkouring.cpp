@@ -634,9 +634,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         SKSE::GetTaskInterface()->AddTask([player, ledgeType, isSwimming] {
             player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
+            RuntimeVariables::EnableNotifyWindow = false;
             if (success) {
-                RuntimeVariables::EnableNotifyWindow = false;
-
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
                     RuntimeMethods::SwapLegs();
@@ -646,6 +645,9 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
                     const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
                     Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
                 }
+            }
+            else {
+                RuntimeVariables::ParkourInProgress = false;
             }
         });
     });
