@@ -265,6 +265,7 @@ namespace SkyParkourUtil {
 
 }  // namespace SkyParkourUtil
 
+#define GET_PLAYER RE::PlayerCharacter::GetSingleton()
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 #define RayCastResult SkyParkourUtil::RayCastResult

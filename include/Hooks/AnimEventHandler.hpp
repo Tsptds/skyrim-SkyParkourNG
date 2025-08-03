@@ -30,7 +30,7 @@ namespace Hooks {
 
                     if (a_event->tag == SPPF_MOVE) {
                         if (!a_event->payload.empty()) {
-                            const auto player = RE::PlayerCharacter::GetSingleton();
+                            const auto player = GET_PLAYER;
                             player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
 
                             const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
@@ -47,7 +47,7 @@ namespace Hooks {
 
                         /* If not close to ground on recovery window, end early */
                         /* TODO: Maybe move this to graph, check dist and fire stop event */
-                        const auto player = RE::PlayerCharacter::GetSingleton();
+                        const auto player = GET_PLAYER;
 
                         const RE::NiPoint3 start{player->GetPosition()};
                         constexpr RE::NiPoint3 dir{0, 0, -1};

@@ -88,7 +88,7 @@ namespace SkyParkour_Papyrus {
 
                 Playback_Speed = value;
                 /* Set the graph variable as well, above is internal */
-                RE::PlayerCharacter::GetSingleton()->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
+                GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
             }
 
             static void SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
@@ -180,7 +180,7 @@ namespace SkyParkour_Papyrus {
     void Internal::AlertPlayerLoaded(RE::StaticFunctionTag *) {
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
         Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
-        RE::PlayerCharacter::GetSingleton()->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
+        GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {

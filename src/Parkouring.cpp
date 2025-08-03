@@ -10,7 +10,7 @@ int Parkouring::GetLedgePoint() {
     using namespace GameReferences;
     using namespace ModSettings;
 
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     //const auto playerPos = player->GetPosition();
 
     RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
@@ -51,7 +51,7 @@ int Parkouring::GetLedgePoint() {
 }
 
 int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     const auto playerPos = player->GetPosition();
 
     // Constants adjusted for player scale
@@ -192,7 +192,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 }
 int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease,
                            float minVaultHeight, float maxVaultHeight) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
 
     if (!IsSupportGrounded(player)) {
         return ParkourType::NoLedge;
@@ -276,7 +276,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 void Parkouring::OnStartStop(bool isStop) {
     // IS_START true / IS_STOP false
 
-    auto player = RE::PlayerCharacter::GetSingleton();
+    auto player = GET_PLAYER;
     auto controller = player->GetCharController();
 
     /* Set gravity on off */
@@ -338,7 +338,7 @@ bool Parkouring::PlaceAndShowIndicator() {
             return;
         }
 
-        const auto player = RE::PlayerCharacter::GetSingleton();
+        const auto player = GET_PLAYER;
         if (!player) {
             return;
         }
@@ -474,7 +474,7 @@ void Parkouring::StopInterpolatingRef(const RE::Actor *actor) {
 }
 
 void Parkouring::CalculateStartingPosition(int ledgeType) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     float zAdjust = 0;
     float z = 0;
     float backOffset = 55.0f;
@@ -556,7 +556,7 @@ void Parkouring::UpdateParkourPoint() {
 }
 
 bool Parkouring::TryActivateParkour() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
 
     if (LedgeTypeToProcess == ParkourType::NoLedge) {
@@ -614,7 +614,7 @@ bool Parkouring::TryActivateParkour() {
     return true;
 }
 void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //logger::info("Dist: {}", dist);
 

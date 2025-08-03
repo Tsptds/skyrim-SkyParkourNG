@@ -106,7 +106,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         RuntimeMethods::ResetRuntimeVariables();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player = GET_PLAYER;
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
             logger::warn("Fix: Save with ongoing parkour");

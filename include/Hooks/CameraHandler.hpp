@@ -130,7 +130,7 @@ bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_thi
 void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (RuntimeVariables::ParkourInProgress) {
         /* Prevent Havok from pulling the player towards ground */
-        auto ctrl = RE::PlayerCharacter::GetSingleton()->GetCharController();
+        auto ctrl = GET_PLAYER->GetCharController();
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kSupport);
 
         /* TDM swim pitch angle thing */
@@ -162,7 +162,7 @@ bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_thi
 void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (RuntimeVariables::ParkourInProgress) {
         /* Clamp Player looking angle to prevent weird visuals */
-        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player = GET_PLAYER;
         const auto vertAngle = player->data.angle.x;
         if (vertAngle > Vertical_Clamp_Angle) {
             player->data.angle.x = Vertical_Clamp_Angle;

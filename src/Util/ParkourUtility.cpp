@@ -6,7 +6,7 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     if (IsChargenHandsBound(player)) {
         //logger::info("PLAYER HANDS BOUND");
         return false;
@@ -141,7 +141,7 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
 }
 
 RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask) {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
 
     RayCastResult result{};
     result.distance = maxDist;
@@ -228,7 +228,7 @@ bool ParkourUtility::IsBeastForm() {
 }
 
 bool ParkourUtility::IsOnMount() {
-    return RE::PlayerCharacter::GetSingleton()->IsOnMount();
+    return GET_PLAYER->IsOnMount();
 }
 
 bool ParkourUtility::IsGamePaused() {
@@ -249,7 +249,7 @@ float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
 }
 
 bool ParkourUtility::PlayerHasEnoughStamina() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     const auto currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
     if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
@@ -324,7 +324,7 @@ bool ParkourUtility::IsSupportGrounded(RE::Actor *actor) {
 }
 
 bool ParkourUtility::PlayerIsSwimming() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     if (!player) {
         return false;
     }
@@ -352,7 +352,7 @@ bool ParkourUtility::IsInDrawSheath(RE::Actor *actor) {
 }
 
 bool ParkourUtility::PlayerIsOnStairs() {
-    const auto player = RE::PlayerCharacter::GetSingleton();
+    const auto player = GET_PLAYER;
     if (!player) {
         return false;  // Early exit if the player is null
     }

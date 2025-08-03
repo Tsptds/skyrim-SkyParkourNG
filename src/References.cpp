@@ -25,7 +25,7 @@ namespace RuntimeMethods {
 
     void SwapLegs() {
         RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
-        RE::PlayerCharacter::GetSingleton()->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
+        GET_PLAYER->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
 #ifdef LOG_STEPS
         logger::info("Next Step: {}", RuntimeVariables::shouldUseRightStep ? "Right" : "Left");
 #endif  // LOG_STEPS
@@ -37,7 +37,7 @@ namespace RuntimeMethods {
         RuntimeVariables::EnableNotifyWindow = false;
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
-        auto player = RE::PlayerCharacter::GetSingleton();
+        auto player = GET_PLAYER;
         if (player) {
             player->SetGraphVariableInt(SPPF_Ledge, -1);
         }

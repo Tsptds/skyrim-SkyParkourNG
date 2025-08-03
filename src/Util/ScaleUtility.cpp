@@ -86,7 +86,7 @@ namespace ScaleUtility {
     }
 
     [[nodiscard]] float GetScale() {
-        const auto player = RE::PlayerCharacter::GetSingleton();
+        const auto player = GET_PLAYER;
         if (!player)
             return false;
 

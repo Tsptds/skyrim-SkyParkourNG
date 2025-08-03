@@ -29,7 +29,7 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     if (!actorRef)
         return RE::BSEventNotifyControl::kContinue;
 
-    auto player = RE::PlayerCharacter::GetSingleton();
+    auto player = GET_PLAYER;
     if (actorRef->formID != player->formID)
         return RE::BSEventNotifyControl::kContinue;
 
