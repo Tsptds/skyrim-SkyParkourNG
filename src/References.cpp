@@ -40,6 +40,7 @@ namespace RuntimeMethods {
         auto player = GET_PLAYER;
         if (player) {
             player->SetGraphVariableInt(SPPF_Ledge, -1);
+            player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
         }
     }
     bool CheckESPLoaded() {

@@ -33,6 +33,9 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     if (actorRef->formID != player->formID)
         return RE::BSEventNotifyControl::kContinue;
 
+    /* On race switch graph vars reset, fix it */
+    player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
+
     const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
         //logger::info(">> Entering Beast Form");
