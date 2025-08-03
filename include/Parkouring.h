@@ -8,7 +8,7 @@ namespace Parkouring {
     void OnStartStop(bool isStop);
     bool PlaceAndShowIndicator();
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative = false);
-    void StopInterpolatingRef(RE::Actor *actor);
+    void StopInterpolatingRef(const RE::Actor *actor);
     void CalculateStartingPosition(int ledgeType);
 
     bool TryActivateParkour();

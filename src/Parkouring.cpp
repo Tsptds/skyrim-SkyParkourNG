@@ -435,6 +435,8 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
                                           //std::move(100.0f),
                                           std::move(speed), std::move(maxRotSpeed));
 
+    StopInterpolatingRef(movingRef);
+
     // Call the Papyrus method
     RE::BSTSmartPointer<RE::BSScript::IStackCallbackFunctor> result;
     vm->DispatchMethodCall1(object,        // the Papyrus ObjectReference instance
@@ -442,7 +444,7 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
                             args,          // packed arguments
                             result);
 }
-void Parkouring::StopInterpolatingRef(RE::Actor *actor) {
+void Parkouring::StopInterpolatingRef(const RE::Actor *actor) {
     auto movingRef = actor;
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
