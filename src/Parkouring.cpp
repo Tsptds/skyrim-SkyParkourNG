@@ -473,8 +473,7 @@ void Parkouring::StopInterpolatingRef(const RE::Actor *actor) {
                             result);
 }
 
-void Parkouring::CalculateStartingPosition(int ledgeType) {
-    const auto player = GET_PLAYER;
+void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType) {
     float zAdjust = 0;
     float z = 0;
     float backOffset = 55.0f;
@@ -528,7 +527,7 @@ void Parkouring::CalculateStartingPosition(int ledgeType) {
 
     RuntimeVariables::PlayerStartPosition =
         RE::NiPoint3{RuntimeVariables::ledgePoint.x - backwardAdjustment.x, RuntimeVariables::ledgePoint.y - backwardAdjustment.y,
-                     ledgeType == ParkourType::Failed ? player->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
+                     ledgeType == ParkourType::Failed ? actor->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -629,7 +628,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     /* Reset ground support check, also fixes TDM pitch bug */
     player->GetCharController()->wantState = RE::hkpCharacterStateType::kInAir;
 
-    Parkouring::CalculateStartingPosition(ledgeType);
+    Parkouring::CalculateStartingPosition(player, ledgeType);
     InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
