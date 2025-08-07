@@ -120,7 +120,7 @@ namespace HardCodedVariables {
     const float climbMaxHeight = 250.0f;
     const float climbMinHeight = 30.0f;
 
-    const float vaultMaxHeight = 100.0f;
+    const float vaultMaxHeight = 120.0f;
     const float vaultMinHeight = 40.5f;
 
     const float grabPlayerBelowLedgeMaxDiff = 110.0f;

@@ -35,9 +35,9 @@ namespace HardCodedVariables {
     // 30
     extern const float climbMinHeight;
 
-    // 100
+    // 120
     extern const float vaultMaxHeight;
-    // 40
+    // 40.5
     extern const float vaultMinHeight;
 
     // 110
