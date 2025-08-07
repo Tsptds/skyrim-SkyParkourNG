@@ -46,7 +46,7 @@ or
 
 ~~~
 cmake -B build -S . --preset default --fresh
-cmake --build build --preset release
+cmake --build build --preset release-novr
 ~~~
 
 Then get the .dll in build/Release, or the .zip (ready to install using mod manager) in build.
