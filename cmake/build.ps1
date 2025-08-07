@@ -1,4 +1,4 @@
-param([string]$buildPreset="release", [string]$configPreset="default", [string]$packConfig, [string]$packPreset, [string]$toolset)
+param([string]$buildPreset="release-novr", [string]$configPreset="default", [string]$packConfig, [string]$packPreset, [string]$toolset)
 $ErrorActionPreference = "Stop"
 Set-StrictMode -Version 3.0
 

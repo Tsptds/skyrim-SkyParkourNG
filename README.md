@@ -10,7 +10,7 @@
 - [CMake](https://cmake.org/)
 - [vcpkg](https://vcpkg.io/en/)
 - [Visual Studio Community 2022](https://visualstudio.microsoft.com/vs/community/)
-- [CommonLibSSE-NG](https://github.com/CharmedBaryon/CommonLibSSE-NG)
+- [CommonLibSSE-NG](https://github.com/alandtse/CommonLibVR/tree/ng)
 
 #### ***CommonLibSSE-NG***
 
@@ -27,25 +27,19 @@ git clone
 then
 
 ~~~
+.\_Build.bat
+~~~
+
+or
+
+~~~
 .\cmake\build.ps1
 ~~~
 
 or
 
 ~~~
-.\cmake\build.ps1 -buildPreset relwithdebinfo
-~~~
-
-or
-
-~~~
-.\cmake\build.ps1 -buildPreset debug
-~~~
-
-or
-
-~~~
-cmake -B build -S . --preset default --fresh
+cmake -B build -S . --preset no-vr --fresh
 cmake --build build --preset release-novr
 ~~~
 

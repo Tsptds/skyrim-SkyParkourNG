@@ -3,18 +3,26 @@
   "name": "commonlibsse-ng",
   "version-semver": "3.7.0",
   "port-version": 0,
-  "description": "A reverse engineered resource for developing SKSE plugins, supporting portable plugins that work across AE, SE, and VR.",
+  "description": "A fork of CommonLibSSE with advanced features for modern SKSE development.",
   "homepage": "https://github.com/CharmedBaryon/CommonLibSSE",
   "license": "MIT",
   "supports": "windows & x64",
+  "builtin-baseline": "fc3f61366102c1f0d4547c06d03c523bb18c13a7",
   "dependencies": [
     {
       "name": "vcpkg-cmake-config",
       "host": true
     },
-    "fmt",
+    "directxmath",
+    "directxtk",
     "rapidcsv",
-    "spdlog",
-    "xbyak"
-  ]
+    "spdlog"
+  ],
+  "features": {
+    "tests": {
+      "description": "Build tests for CommonLibSSE.",
+      "dependencies": ["catch2"]
+    }
+  },
+  "default-features": ["tests"]
 }
