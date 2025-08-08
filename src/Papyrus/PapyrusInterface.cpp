@@ -1,7 +1,10 @@
 #include "Papyrus/PapyrusInterface.h"
 #include "Util/ParkourUtility.h"
-#include "References.h"
+#include "_References/ModSettings.h"
+#include "_References/RuntimeMethods.h"
+#include "_References/IniSettings.h"
 #include "Parkouring.h"
+
 namespace SkyParkour_Papyrus {
 
     using namespace ModSettings;

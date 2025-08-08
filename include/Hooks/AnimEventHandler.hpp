@@ -1,4 +1,8 @@
-﻿#include "References.h"
+﻿#pragma once
+#include "_References/ModSettings.h"
+#include "_References/RuntimeMethods.h"
+#include "_References/RuntimeVariables.h"
+
 #include "Parkouring.h"
 #include "Util/ParkourUtility.h"
 

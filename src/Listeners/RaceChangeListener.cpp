@@ -1,7 +1,7 @@
 #include "Listeners/RaceChangeListener.h"
 #include "Util/ParkourUtility.h"
 #include "Listeners/ButtonListener.h"
-#include "References.h"
+#include "_References/ModSettings.h"
 #include "Parkouring.h"
 
 void RaceChangeListener::Register() {

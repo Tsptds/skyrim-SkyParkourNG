@@ -1,7 +1,10 @@
 ﻿#pragma once
-#include "References.h"
+#include "_References/ModSettings.h"
+#include "_References/RuntimeVariables.h"
+#include "_References/ParkourType.h"
+
 #include "Util/ParkourUtility.h"
-// Taken from Skyrim Souls RE -> https://github.com/Vermunds/SkyrimSoulsRE.git
+
 namespace Hooks {
 
     template <class T>

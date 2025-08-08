@@ -1,5 +1,8 @@
-#include "References.h"
 #pragma once
+#include "_References/ModSettings.h"
+#include "_References/RuntimeVariables.h"
+#include "_References/Compatibility.h"
+
 namespace Hooks {
 
     class CameraHandler {

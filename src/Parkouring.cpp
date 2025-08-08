@@ -1,9 +1,16 @@
 ﻿#include "Parkouring.h"
-#include "References.h"
 #include "Util/ParkourUtility.h"
 #include "Listeners/ButtonListener.h"
 #include "Listeners/MenuListener.h"
 #include "Util/ScaleUtility.h"
+
+#include "_References/GameReferences.h"
+#include "_References/ModSettings.h"
+#include "_References/ParkourType.h"
+#include "_References/RuntimeVariables.h"
+#include "_References/HardcodedVariables.h"
+#include "_References/RuntimeMethods.h"
+
 using namespace ParkourUtility;
 
 int Parkouring::GetLedgePoint() {
