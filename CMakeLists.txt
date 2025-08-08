@@ -2,11 +2,12 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
         SkyParkourNG
-        VERSION 2.1.0
+        VERSION 3.0.0
         LANGUAGES CXX)
 set(PROJECT_LICENSE "MIT")
 set(PROJECT_FRIENDLY_NAME ${PROJECT_NAME})
-set(PROJECT_LONG_NAME "SkyParkour Version 2")
+set(PROJECT_LONG_NAME "SkyParkour Version 3")
+set(PROJECT_AUTHOR "Tsptds")
 set(PROJECT_DESCRIPTION ${PROJECT_LONG_NAME})
 set(PROJECT_COPYRIGHT "Copyright")
 
