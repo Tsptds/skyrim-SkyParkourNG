@@ -400,7 +400,7 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
 
     float mult;
     movingRef->GetGraphVariableFloat(SPPF_SPEEDMULT, mult);
-    if (mult == 0.0f) {
+    if (mult <= 0.0f) {
         mult = 1.0f;
     }
 
