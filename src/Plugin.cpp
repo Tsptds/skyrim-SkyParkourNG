@@ -187,7 +187,7 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
     plugin::InitializeLogging();
 
     Init(skse, false);
-    logger::info("'{} {}' / Skyrim '{}'", Plugin::Name, Plugin::VersionString, REL::Module::get().version().string());
+    logger::info("'{} {}' by {} / Skyrim '{}'", Plugin::Name, Plugin::VersionString, Plugin::Author, REL::Module::get().version().string());
 
     SKSE::GetPapyrusInterface()->Register(RegisterPapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);
