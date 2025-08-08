@@ -194,6 +194,6 @@ namespace GameReferences {
 }  // namespace GameReferences
 
 namespace IniSettings {
-    std::string ESP_NAME = "SkyParkourV2.esp";
+    std::string ESP_NAME = "SkyParkour.esp";
     const char *INIPath = "./Data/SKSE/Plugins/SkyParkourNG.ini";
 }  // namespace IniSettings
