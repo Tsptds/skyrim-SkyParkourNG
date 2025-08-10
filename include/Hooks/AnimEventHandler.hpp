@@ -32,21 +32,10 @@ namespace Hooks {
                 if (RuntimeVariables::ParkourInProgress) {
                     //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
 
-                    if (a_event->tag == SPPF_MOVE) {
-                        if (!a_event->payload.empty()) {
-                            const auto player = GET_PLAYER;
-                            player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
-
-                            const ParsedPayload parsed = ParsePayload(a_event->payload.c_str());
-
-                            constexpr bool isRelative = true;
-                            Parkouring::InterpolateRefToPosition(player, parsed.position, parsed.sec, isRelative);
-                        }
-                    }
                     if (a_event->tag == SPPF_START) {
                         Parkouring::OnStartStop(IS_START);
                     }
-                    if (a_event->tag == SPPF_RECOVERY) {
+                    else if (a_event->tag == SPPF_RECOVERY) {
                         RuntimeVariables::RecoveryFramesActive = true;
 
                         /* If not close to ground on recovery window, end early */
@@ -80,36 +69,6 @@ namespace Hooks {
                     return false;
                 }
                 return true;
-            }
-
-        private:
-            struct ParsedPayload {
-                    RE::NiPoint3 position;
-                    float sec;
-            };
-
-            static float parse_next(const char*& ptr, char delim) {
-                char* end;
-                float v = std::strtof(ptr, &end);
-                if (end == ptr) {
-                    return 0;
-                }
-                ptr = end;
-                if (*ptr == delim)
-                    ++ptr;
-                return v;
-            }
-
-            ParsedPayload ParsePayload(const char* payload) {
-                /* Expected anim event - payload format: SkyParkour_Move.x|y|z@s */
-                const char* ptr = payload;
-
-                float x = parse_next(ptr, '|');
-                float y = parse_next(ptr, '|');
-                float z = parse_next(ptr, '@');
-                float sec = parse_next(ptr, '\0');
-
-                return ParsedPayload(RE::NiPoint3(x, y, z), sec);
             }
     };
 

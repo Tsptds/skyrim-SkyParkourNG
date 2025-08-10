@@ -284,26 +284,16 @@ void Parkouring::OnStartStop(bool isStop) {
     // IS_START true / IS_STOP false
 
     auto player = GET_PLAYER;
-    auto controller = player->GetCharController();
-
-    /* Set gravity on off */
-    controller->gravity = isStop;
 
     if (isStop) {
-        StopInterpolatingRef(player);
         player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
     }
     else {
-        /* Reset Fall Damage */
-        controller->fallStartHeight = player->GetPositionZ();
         ParkourUtility::StopInteractions(*player);
     }
-
-    //controller->context.currentState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing; /* Crashes modded setups, not needed */
-    //controller->wantState = enable ? RE::hkpCharacterStateType::kInAir : RE::hkpCharacterStateType::kClimbing;
 
     // Toggle common controls
     auto ctrlMap = RE::ControlMap::GetSingleton();
