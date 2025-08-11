@@ -132,7 +132,7 @@ namespace Hooks {
                 if (RuntimeVariables::RecoveryFramesActive) {
                     bool res = _CanProcessMovement(this, a_event);
                     if (res) {
-                        GET_PLAYER->NotifyAnimationGraph(SPPF_STOP);
+                        GET_PLAYER->NotifyAnimationGraph(SPPF_INTERRUPT);
                     }
                     return res;
                 }

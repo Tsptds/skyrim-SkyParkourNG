@@ -129,6 +129,12 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             return false;
         }
     }
+
+    if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
+        /* If stop event is sent forcibly, flow to correct graph state. */
+        const_cast<RE::BSFixedString&>(a_eventName) = SPPF_INTERRUPT;
+    }
+
     if (a_eventName == SPPF_NOTIFY &&
         (!RuntimeVariables::IsParkourActive || (RuntimeVariables::ParkourInProgress && !RuntimeVariables::EnableNotifyWindow))) {
         return false;

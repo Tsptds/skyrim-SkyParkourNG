@@ -283,6 +283,7 @@ namespace SkyParkourUtil {
 #define SPPF_START "SkyParkour_Start"
 #define SPPF_STOP "SkyParkour_Stop"
 #define SPPF_RECOVERY "SkyParkour_Recovery"
+#define SPPF_INTERRUPT "SkyParkour_Interrupt"
 
 /* Graph Variables */
 #define SPPF_Ledge "SkyParkourLedge"
