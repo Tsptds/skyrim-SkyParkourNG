@@ -290,6 +290,13 @@ void Parkouring::OnStartStop(bool isStop) {
         RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
+
+        /* Workaround for sheathing weap if weapon in hand */
+        RuntimeVariables::BlockSheatheNotifyWindow = true;
+        _THREAD_POOL.enqueue([] {
+            std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            RuntimeVariables::BlockSheatheNotifyWindow = false;
+        });
     }
     else {
         ParkourUtility::StopInteractions(*player);

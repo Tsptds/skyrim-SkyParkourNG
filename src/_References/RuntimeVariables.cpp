@@ -18,4 +18,6 @@ namespace RuntimeVariables {
     bool IsInMainMenu = true;
 
     bool shouldUseRightStep = true;
+
+    bool BlockSheatheNotifyWindow = false;
 }  // namespace RuntimeVariables
