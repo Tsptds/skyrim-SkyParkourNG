@@ -146,6 +146,11 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
                 ctrl->pitchAngle = -TDM_Pitch_Clamp;
             }
         }
+
+        auto &zoom = a_this->currentZoomOffset;
+        if (zoom <= 0.001f) {
+            zoom = 0.001f;
+        }
     }
 
     OG::_Update(a_this, a_nextState);
