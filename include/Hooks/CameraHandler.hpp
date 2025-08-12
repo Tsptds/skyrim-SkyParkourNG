@@ -168,12 +168,12 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
         const auto &player = GET_PLAYER;
 
         /* Vert */
-        const auto &vertAngle = player->data.angle.x;
+        auto &vertAngle = player->data.angle.x;
         if (vertAngle > Vertical_Clamp_Angle) {
-            player->data.angle.x = Vertical_Clamp_Angle;
+            vertAngle = Vertical_Clamp_Angle;
         }
         else if (vertAngle < -Vertical_Clamp_Angle) {
-            player->data.angle.x = -Vertical_Clamp_Angle;
+            vertAngle = -Vertical_Clamp_Angle;
         }
 
         /* Horz */

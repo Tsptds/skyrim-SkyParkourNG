@@ -286,7 +286,7 @@ void Parkouring::OnStartStop(bool isStop) {
     auto player = GET_PLAYER;
 
     if (isStop) {
-        player->As<RE::IAnimationGraphManagerHolder>()->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
