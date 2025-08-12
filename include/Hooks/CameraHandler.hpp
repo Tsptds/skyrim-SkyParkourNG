@@ -30,7 +30,7 @@ namespace Hooks {
             };
 
             struct FPP {
-                    inline static float Vertical_Clamp_Angle = 1.0f;
+                    inline static const float Vertical_Clamp_Angle = 1.0f;
 
                     struct Install {
                             static bool CanProcess();
@@ -165,14 +165,20 @@ bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_thi
 void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (RuntimeVariables::ParkourInProgress) {
         /* Clamp Player looking angle to prevent weird visuals */
-        auto player = GET_PLAYER;
-        const auto vertAngle = player->data.angle.x;
+        const auto &player = GET_PLAYER;
+
+        /* Vert */
+        const auto &vertAngle = player->data.angle.x;
         if (vertAngle > Vertical_Clamp_Angle) {
             player->data.angle.x = Vertical_Clamp_Angle;
         }
         else if (vertAngle < -Vertical_Clamp_Angle) {
             player->data.angle.x = -Vertical_Clamp_Angle;
         }
+
+        /* Horz */
+        auto &camAngle = a_this->sittingRotation;
+        camAngle = 0.0f;
     }
 
     OG::_Update(a_this, a_nextState);

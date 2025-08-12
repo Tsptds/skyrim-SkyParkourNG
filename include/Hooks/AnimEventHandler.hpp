@@ -40,7 +40,7 @@ namespace Hooks {
 
                         /* If not close to ground on recovery window, end early */
                         /* TODO: Maybe move this to graph, check dist and fire stop event */
-                        const auto player = GET_PLAYER;
+                        const auto& player = GET_PLAYER;
 
                         const RE::NiPoint3 start{player->GetPosition()};
                         constexpr RE::NiPoint3 dir{0, 0, -1};
