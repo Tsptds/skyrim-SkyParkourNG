@@ -46,12 +46,13 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    /* Invalid if activate key selected & crosshair prompt available */
-    if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate) {
-        if (IsCrosshairRefActivator()) {
-            return false;
-        }
-    }
+    /* TODO: Find a better way for this */
+    // /* Invalid if activate key selected & crosshair prompt available */
+    // if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate) {
+    //     if (IsCrosshairRefActivator()) {
+    //         return false;
+    //     }
+    // }
 
     return true;
 }
