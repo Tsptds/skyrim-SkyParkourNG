@@ -88,10 +88,18 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoi
 }
 
 bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
-    if (!ModSettings::Smart_Vault)
+    if (!ModSettings::Smart_Vault) {
         return true;  // Feature disabled, always allow
+    }
 
-    return actor->AsActorState()->IsSprinting();  // Feature enabled, only allow if sprinting
+    const auto &state = actor->AsActorState();
+
+    // Sprint state is locked behind a perk, handle it differently
+    if (state->IsSneaking()) {
+        return actor->IsMoving();  // Allow only if moving
+    }
+
+    return state->IsSprinting();  // Feature enabled & not sneaking, only allow if sprinting.
 }
 
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
