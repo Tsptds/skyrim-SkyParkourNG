@@ -22,6 +22,10 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
+    if (player->IsStaggering()) {
+        return false;
+    }
+
     if (IsInSyncedAnimation(player)) {
         return false;
     }
@@ -168,8 +172,7 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
         result.distance = maxDist * pickData.rayOutput.hitFraction;
         result.normalOut = pickData.rayOutput.normal;
 
-        const RE::COL_LAYER layer =
-            static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->GetCollisionLayer());
+        const RE::COL_LAYER layer = static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->GetCollisionLayer());
 
         result.layer = layer;
     }
