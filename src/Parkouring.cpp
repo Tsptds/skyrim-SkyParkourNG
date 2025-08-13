@@ -67,9 +67,8 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float minUpCheck = 100 * RuntimeVariables::PlayerScale;
     const float maxUpCheck = (maxLedgeHeight - startZOffset) + 20 * RuntimeVariables::PlayerScale;
     const float fwdCheckStep = 8 * RuntimeVariables::PlayerScale;
-    const int fwdCheckIterations = 10;            // 15
-    const float minLedgeFlatness = 0.5;           //0.5
-    const float playerToLedgeHypotenuse = 0.85f;  // 0.75 - larger is more relaxed, lesser is more strict. Don't set 0
+    const int fwdCheckIterations = 10;   // 15
+    const float minLedgeFlatness = 0.5;  //0.5
 
     // Raycast above player, is there enough room
     RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
@@ -83,8 +82,9 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     // Forward raycast initialization
     RE::NiPoint3 fwdRayStart = upRayStart + upRayDir * (upRay.distance - 10);
-    RE::NiPoint3 downRayDir(0, 0, -1);
+    RE::NiPoint3 ledgeRayDir(0, 0, -1);
 
+    RayCastResult ledgeRay;
     bool foundLedge = false;
     float normalZ = 0;
 
@@ -101,22 +101,22 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
         // Downward raycast to detect ledge point
-        RE::NiPoint3 downRayStart = fwdRayStart + checkDir * fwdRay.distance;
-        RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
+        RE::NiPoint3 ledgeRayStart = fwdRayStart + checkDir * fwdRay.distance;
+        ledgeRay = RayCast(ledgeRayStart, ledgeRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
 
 #ifdef LOG_CLIMB
-        LOG("Ledge Down: {}", PRINT_LAYER(downRay.layer));
+        LOG("Ledge Down: {}", PRINT_LAYER(ledgeRay.layer));
 #endif
 
-        if (LAYERS_CLIMB_EXCLUDE.contains(downRay.layer)) {
+        if (LAYERS_CLIMB_EXCLUDE.contains(ledgeRay.layer)) {
             continue;
         }
 
-        ledgePoint = downRayStart + downRayDir * downRay.distance;
-        normalZ = downRay.normalOut.quad.m128_f32[2];
+        ledgePoint = ledgeRayStart + ledgeRayDir * ledgeRay.distance;
+        normalZ = ledgeRay.normalOut.quad.m128_f32[2];
 
         // Validate ledge based on height and flatness
-        if (ledgePoint.z < playerPos.z + minLedgeHeight || ledgePoint.z > playerPos.z + maxLedgeHeight || downRay.distance < 10 ||
+        if (ledgePoint.z < playerPos.z + minLedgeHeight || ledgePoint.z > playerPos.z + maxLedgeHeight || ledgeRay.distance < 10 ||
             normalZ < minLedgeFlatness) {
             continue;
         }
@@ -177,7 +177,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
-            if (StepsExtraChecks(player, ledgePoint, playerPos, ledgePlayerDiff, playerToLedgeHypotenuse)) {
+            if (StepsExtraChecks(player, ledgeRay)) {
                 return ParkourType::StepHigh;  // High Step
             }
         }
@@ -186,13 +186,12 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 return ParkourType::Grab;  // Grab ledge out of water, don't step out
             }
 
-            if (!PlayerIsOnStairs() && StepsExtraChecks(player, ledgePoint, playerPos, ledgePlayerDiff, playerToLedgeHypotenuse)) {
+            if (StepsExtraChecks(player, ledgeRay)) {
                 return ParkourType::StepLow;  // Low Step
             }
         }
     }
-    else if (IsSupportUnsupported(player) && ledgePlayerDiff > HardCodedVariables::grabPlayerAboveLedgeMaxDiff &&
-             ledgePlayerDiff <= HardCodedVariables::grabPlayerBelowLedgeMaxDiff * RuntimeVariables::PlayerScale) {
+    else if (IsSupportUnsupported(player) && GrabExtraChecks(ledgePlayerDiff, ledgeRay)) {
         return ParkourType::Grab;
     }
     return ParkourType::NoLedge;

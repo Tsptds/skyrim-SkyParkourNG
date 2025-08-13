@@ -2,9 +2,10 @@
 
 namespace ParkourUtility {
     bool IsParkourActive();
-    bool StepsExtraChecks(RE::Actor *player, RE::NiPoint3 ledgePoint, RE::NiPoint3 playerPos, float ledgePlayerDiff,
-                          float playerToLedgeHypotenuse);
+    bool StepsExtraChecks(RE::Actor *player, const RayCastResult ray);
+    bool IsStepNormalValid(const RayCastResult ray, bool isMoving);
     bool VaultExtraChecks(RE::Actor *actor);
+    bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray);
     void StopInteractions(RE::Actor &actor);
     RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask);
@@ -30,5 +31,4 @@ namespace ParkourUtility {
     bool IsSupportGrounded(RE::Actor *);
     bool PlayerIsSwimming();
     bool IsInDrawSheath(RE::Actor *);
-    bool PlayerIsOnStairs();
 }  // namespace ParkourUtility

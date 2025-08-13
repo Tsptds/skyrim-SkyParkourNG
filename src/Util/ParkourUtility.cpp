@@ -2,6 +2,7 @@
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
+#include "_References/HardcodedVariables.h"
 
 bool ParkourUtility::IsParkourActive() {
     if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) {
@@ -57,7 +58,7 @@ bool ParkourUtility::IsParkourActive() {
     return true;
 }
 
-bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoint3, float, float) {
+bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray) {
     /* Velocity threshold, if player isn't moving forward steps are not valid */
     RE::hkVector4 vel;
     auto ctrl = player->GetCharController();
@@ -70,22 +71,52 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoi
     LOG("{}", speed);
 #endif
 
-    if (speed > 1) {
+    const auto &notStuck = speed > 1;
+    if (notStuck) {
         return false;
     }
 
-    //// Additional horizontal and vertical checks for low ledge
-    //double horizontalDistance = sqrt(pow(ledgePoint.x - playerPos.x, 2) + pow(ledgePoint.y - playerPos.y, 2));
-    //double verticalDistance = abs(ledgePlayerDiff);
+    const auto &isMoving = player->IsMoving();
+    bool normalsValid = IsStepNormalValid(ray, isMoving);
 
-    //if (horizontalDistance < verticalDistance * playerToLedgeHypotenuse) {
-    //    return true;
-    //}
+    if (!normalsValid) {
+        return false;
+    }
 
     if (!ModSettings::Smart_Steps)
         return true;  // Feature disabled, always allow
 
     return player->IsMoving();  // Feature enabled, only allow if moving
+}
+
+bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
+    // Actor velocity low, check ledge normals
+    const auto &normals = ray.normalOut.quad.m128_f32;
+
+#ifdef LOG_STEPS
+    LOG("{}\nStep Normals: {} {} {}", PRINT_LAYER(ray.layer), normals[0], normals[1], normals[2]);
+#endif
+
+    // 0, 1, 2 ->x, y, z
+    const auto &z = normals[2];
+    switch (ray.layer) {
+        case RE::COL_LAYER::kTerrain:
+            // default normal check 0.5 in ClimbCheck
+            break;
+        case RE::COL_LAYER::kGround:
+            if (z < 0.65f) {
+                return false;
+            }
+            break;
+        default:
+            // Still inputting move ? normalZ = 0.5 : normalZ = 0.9
+            if (!isMoving) {
+                if (z < 0.9f) {
+                    return false;
+                }
+            }
+    }
+    return true;
 }
 
 bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
@@ -101,6 +132,24 @@ bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
     }
 
     return state->IsSprinting();  // Feature enabled & not sneaking, only allow if sprinting.
+}
+
+bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray) {
+    // Avoid grabbing ground
+    if (ray.layer == RE::COL_LAYER::kGround) {
+        return false;
+    }
+
+    // Height checks
+    constexpr auto &maxDistToledgeBelow = HardCodedVariables::grabPlayerAboveLedgeMaxDiff;
+    constexpr auto &maxDistToledgeAbove = HardCodedVariables::grabPlayerBelowLedgeMaxDiff;
+
+    /* Ledge above is relative to player height, not ledge below. */
+    if (ledgePlayerDiff <= maxDistToledgeBelow || ledgePlayerDiff > maxDistToledgeAbove * RuntimeVariables::PlayerScale) {
+        return false;
+    }
+
+    return true;
 }
 
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
@@ -348,16 +397,4 @@ bool ParkourUtility::IsInDrawSheath(RE::Actor *actor) {
     actor->GetGraphVariableBool("IsUnequipping", unequipping);
 
     return equipping || unequipping;
-}
-
-bool ParkourUtility::PlayerIsOnStairs() {
-    const auto player = GET_PLAYER;
-    if (!player) {
-        return false;  // Early exit if the player is null
-    }
-
-    const auto charController = player->GetCharController();
-    return charController && charController->flags.any(RE::CHARACTER_FLAGS::kOnStairs) /*&&
-            PluginReferences::lastHitObject == RE::COL_LAYER::kStairHelper*/
-        ;
 }
