@@ -27,7 +27,7 @@ namespace Compatibility {
         if (cam->IsInFirstPerson()) {
             _THREAD_POOL.enqueue([actor] {
                 std::this_thread::sleep_for(std::chrono::milliseconds(100));
-                SKSE::GetTaskInterface()->AddTask([actor] {
+                _TASK_Q([actor] {
                     constexpr bool isFirstPerson = true;
                     const auto fppNode = actor->Get3D(isFirstPerson);
 

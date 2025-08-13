@@ -169,6 +169,7 @@ namespace logger = SKSE::log;
 #define Mask_OR(x, y) (static_cast<uint32_t>(x) | static_cast<uint32_t>(y))
 #define Mask_AND(x, y) (static_cast<uint32_t>(x) & static_cast<uint32_t>(y))
 #define Mask_DIFF(x, y) (static_cast<uint32_t>(x) & ~static_cast<uint32_t>(y))
+#define PRINT_LAYER(x) (RE::CollisionLayerToString(x))
 
 namespace SkyParkourUtil {
     using namespace RE;
@@ -220,14 +221,16 @@ namespace SkyParkourUtil {
 #define ERROR(x, ...) logger::error(x, __VA_ARGS__)
 #define CRITICAL(x, ...) logger::error(x, __VA_ARGS__)
 
-#define GET_PLAYER RE::PlayerCharacter::GetSingleton()
+/* Task Queue & Thread Pool Macro */
 #define _THREAD_POOL SkyParkourUtil::threads
+#define _TASK_Q SKSE::GetTaskInterface()->AddTask
+
+/* Generic Stuff */
+#define GET_PLAYER RE::PlayerCharacter::GetSingleton()
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
 #define RayCastResult SkyParkourUtil::RayCastResult
 #define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
 #define PARKOUR_PRESET_KEYS SkyParkourUtil::ParkourKeyOptions
-
-#define PRINT_LAYER(x) (RE::CollisionLayerToString(x))
 
 #define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
 #define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList

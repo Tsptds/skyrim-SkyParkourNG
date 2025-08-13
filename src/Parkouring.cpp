@@ -319,7 +319,7 @@ bool Parkouring::PlaceAndShowIndicator() {
 
     const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckActionRequiresLowEffort(ledgeType);
 
-    SKSE::GetTaskInterface()->AddTask([useRed]() {
+    _TASK_Q([useRed]() {
         auto blueRef = GameReferences::indicatorRef_Blue;
         auto redRef = GameReferences::indicatorRef_Red;
         if (!blueRef || !redRef) {
@@ -548,7 +548,7 @@ void Parkouring::UpdateParkourPoint() {
 
         if (!RuntimeVariables::ParkourInProgress) {
             /*Avoid updating the ledge if parkour already started*/
-            SKSE::GetTaskInterface()->AddTask([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
+            _TASK_Q([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
         }
     });
 
@@ -637,7 +637,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-        SKSE::GetTaskInterface()->AddTask([player, ledgeType, isSwimming] {
+        _TASK_Q([player, ledgeType, isSwimming] {
             player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;

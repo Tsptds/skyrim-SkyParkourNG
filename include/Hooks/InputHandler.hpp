@@ -91,7 +91,7 @@ namespace Hooks {
 
                         if (downEvt || upEvt) {
                             _THREAD_POOL.enqueue([this, downEvt, upEvt, a_data]() {
-                                SKSE::GetTaskInterface()->AddTask([this, downEvt, upEvt, a_data]() {
+                                _TASK_Q([this, downEvt, upEvt, a_data]() {
                                     if (downEvt) {
                                         _ProcessButtonJump(this, downEvt, a_data);
                                         delete downEvt;
