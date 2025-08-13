@@ -156,10 +156,11 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
 
     //static_cast<uint32_t>(COL_LAYER::kAnimStatic) & ~static_cast<uint32_t>(COL_LAYER::kDoorDetection)
 
-    /* TODO: Bitwise or layers, keep them as uint32_t as a custom mask for the layers valid */
-    uint32_t collisionFilterInfo = 0;
-    player->GetCollisionFilterInfo(collisionFilterInfo);
-    pickData.rayInput.filterInfo = (collisionFilterInfo & 0xFFFF0000) | static_cast<uint32_t>(layerMask);
+    RE::CFilter cFilter;
+    player->GetCollisionFilterInfo(cFilter);
+    cFilter.SetCollisionLayer(static_cast<RE::COL_LAYER>(layerMask));
+    pickData.rayInput.filterInfo = cFilter;
+    // static_cast<RE::CFilter>(cFilter.filter | static_cast<uint32_t>(layerMask));
 
     // Perform the raycast
     if (bhkWorld->PickObject(pickData) && pickData.rayOutput.HasHit()) {
@@ -168,7 +169,7 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
         result.normalOut = pickData.rayOutput.normal;
 
         const RE::COL_LAYER layer =
-            static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->broadPhaseHandle.collisionFilterInfo & 0x7F);
+            static_cast<RE::COL_LAYER>(pickData.rayOutput.rootCollidable->GetCollisionLayer());
 
         result.layer = layer;
     }
@@ -202,7 +203,7 @@ bool ParkourUtility::IsCrosshairRefActivator() {
 bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {
     // Check if player has chargen flag hands bound
     const auto &gs = player->GetGameStatsData();
-    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kHandsBound)) {
+    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kShowControlsDisabledMessage)) {
         //logger::info(">> Chargen: {}", gs.byCharGenFlag.underlying());
         return true;
     }
@@ -246,7 +247,7 @@ bool ParkourUtility::PlayerHasEnoughStamina() {
 
 bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount) {
     if (actor) {
-        actor->AsActorValueOwner()->RestoreActorValue(RE::ACTOR_VALUE_MODIFIERS::kDamage, RE::ActorValue::kStamina, -amount);
+        actor->AsActorValueOwner()->DamageActorValue(RE::ActorValue::kStamina, amount);
         return true;
     }
     return false;
