@@ -214,6 +214,12 @@ namespace SkyParkourUtil {
 
 }  // namespace SkyParkourUtil
 
+/* Log macros */
+#define LOG(x, ...) logger::info(x, __VA_ARGS__)
+#define WARN(x, ...) logger::warn(x, __VA_ARGS__)
+#define ERROR(x, ...) logger::error(x, __VA_ARGS__)
+#define CRITICAL(x, ...) logger::error(x, __VA_ARGS__)
+
 #define GET_PLAYER RE::PlayerCharacter::GetSingleton()
 #define _THREAD_POOL SkyParkourUtil::threads
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
@@ -247,11 +253,11 @@ namespace SkyParkourUtil {
 /* Log switches */
 #ifdef _DEBUG
 
-//#define LOG_CLIMB
-//#define LOG_VAULT
-//#define LOG_STEPS
-//#define LOG_LEDGE_UPDATES
-//#define LOG_CROSSHAIR
-//#define LOG_STEPS_VELOCITY
+// #define LOG_CLIMB
+// #define LOG_VAULT
+// #define LOG_STEPS
+// #define LOG_LEDGE_UPDATES
+// #define LOG_CROSSHAIR
+// #define LOG_STEPS_VELOCITY
 
 #endif

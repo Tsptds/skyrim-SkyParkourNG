@@ -30,7 +30,7 @@ namespace Hooks {
                 }
 
                 if (RuntimeVariables::ParkourInProgress) {
-                    //logger::info(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
+                    //LOG(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
 
                     if (a_event->tag == SPPF_START) {
                         Parkouring::OnStartStop(IS_START);
@@ -65,7 +65,7 @@ namespace Hooks {
                 _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
 
                 if (!_ProcessEvent.address()) {
-                    logger::critical("AnimEvent Hook Not Installed");
+                    CRITICAL("AnimEvent Hook Not Installed");
                     return false;
                 }
                 return true;
@@ -103,7 +103,7 @@ bool Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
     _origPlayerCharacter = vtblPlayer.write_vfunc(0x1, OnPlayerCharacter);
 
     if (!_origPlayerCharacter.address()) {
-        logger::critical("Notify Hook Not Installed");
+        CRITICAL("Notify Hook Not Installed");
         return false;
     }
     return true;
@@ -113,13 +113,13 @@ bool Hooks::NotifyGraphHandler::OnTESObjectREFR(RE::IAnimationGraphManagerHolder
     // pre‑hook logic...
     bool result = _origTESObjectREFR(a_this, a_eventName);
     // post‑hook logic...
-    logger::info(">> Object Anim Event: {}", a_eventName.c_str());
+    LOG(">> Object Anim Event: {}", a_eventName.c_str());
     return result;
 }
 
 bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
     bool result = _origCharacter(a_this, a_eventName);
-    logger::info(">> Char Anim Event: {}", a_eventName.c_str());
+    LOG(">> Char Anim Event: {}", a_eventName.c_str());
     return result;
 }
 

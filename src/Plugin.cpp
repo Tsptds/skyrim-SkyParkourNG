@@ -55,8 +55,8 @@ bool RegisterIndicators() {
 
         if (!blueStr || endBlue == blueStr || *endBlue != '\0' || !redStr || endRed == redStr || *endRed != '\0' || !blueParse ||
             !redParse) {
-            logger::error("Indicator refs in INI are corrupt: Blue='{}', Red='{}'", blueStr, redStr);
-            logger::warn("Using Default Indicator Refs");
+            ERROR("Indicator refs in INI are corrupt: Blue='{}', Red='{}'", blueStr, redStr);
+            WARN("Using Default Indicator Refs");
         }
         else {
             blueForm = blueParse;
@@ -70,12 +70,12 @@ bool RegisterIndicators() {
         RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(redForm, IniSettings::ESP_NAME));
 
     if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
-        logger::error("!Indicator Refs Are Null!");
+        ERROR("!Indicator Refs Are Null!");
         return false;
     }
 
     GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
-    logger::info("Indicators: Registered");
+    LOG("Indicators: Registered");
     return true;
 }
 
@@ -92,7 +92,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         if (!RuntimeMethods::CheckESPLoaded()) {
-            logger::error("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
+            ERROR("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
             std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod is disabled.";
 
             RE::DebugMessageBox(err.c_str());
@@ -102,7 +102,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         RegisterIndicators();
         Install_Hooks_And_Listeners();
 
-        logger::info("|>_SkyParkour Loaded_<|");
+        LOG("|>_SkyParkour Loaded_<|");
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
@@ -111,7 +111,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         auto player = GET_PLAYER;
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
-            logger::warn("Fix: Save with ongoing parkour");
+            WARN("Fix: Save with ongoing parkour");
             player->NotifyAnimationGraph(SPPF_STOP);
         }
 
@@ -189,7 +189,7 @@ extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
     plugin::InitializeLogging();
 
     Init(skse, false);
-    logger::info("'{} {}' by {} / Skyrim '{}'", Plugin::Name, Plugin::VersionString, Plugin::Author, REL::Module::get().version().string());
+    LOG("'{} {}' by {} / Skyrim '{}'", Plugin::Name, Plugin::VersionString, Plugin::Author, REL::Module::get().version().string());
 
     SKSE::GetPapyrusInterface()->Register(RegisterPapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);

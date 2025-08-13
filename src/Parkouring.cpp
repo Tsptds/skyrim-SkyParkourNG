@@ -93,7 +93,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, fwdCheckStep * i, COL_LAYER_EXTEND::kClimbObstruction);
 
 #ifdef LOG_CLIMB
-        logger::info("Ledge FWD: {}", PRINT_LAYER(fwdRay.layer));
+        LOG("Ledge FWD: {}", PRINT_LAYER(fwdRay.layer));
 #endif
 
         if (fwdRay.distance < fwdCheckStep * i) {
@@ -105,7 +105,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         RayCastResult downRay = RayCast(downRayStart, downRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
 
 #ifdef LOG_CLIMB
-        logger::info("Ledge Down: {}", PRINT_LAYER(downRay.layer));
+        LOG("Ledge Down: {}", PRINT_LAYER(downRay.layer));
 #endif
 
         if (LAYERS_CLIMB_EXCLUDE.contains(downRay.layer)) {
@@ -219,7 +219,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
     RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kVaultForward);
 #ifdef LOG_VAULT
-    logger::info("Vault FWD: {}", PRINT_LAYER(fwdRay.layer));
+    LOG("Vault FWD: {}", PRINT_LAYER(fwdRay.layer));
 #endif
 
     if (fwdRay.didHit && fwdRay.distance < minSpaceRequired && LAYERS_VAULT_FORWARD_RAY.contains(fwdRay.layer)) {
@@ -261,7 +261,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             ledgePoint = downRayStart + downRayDir * downRay.distance;
             foundVaulter = true;
 #ifdef LOG_VAULT
-            logger::info("Vault Down: {}", PRINT_LAYER(downRay.layer));
+            LOG("Vault Down: {}", PRINT_LAYER(downRay.layer));
 #endif
         }
         else if (foundVaulter && hitHeight < minVaultHeight) {
@@ -522,7 +522,7 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
         case 0:  // Failed (Low Stamina Animation)
             break;
         default:
-            logger::error(" >> START POSITION NOT SET, INVALID LEDGE TYPE {} <<", ledgeType);
+            ERROR(" >> START POSITION NOT SET, INVALID LEDGE TYPE {} <<", ledgeType);
             return;
     }
 
@@ -552,7 +552,7 @@ void Parkouring::UpdateParkourPoint() {
         }
     });
 
-    //logger::info("{}", RE::GetSecondsSinceLastFrame());
+    //LOG("{}", RE::GetSecondsSinceLastFrame());
 
     // Indicator stuff
     _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
@@ -589,7 +589,7 @@ bool Parkouring::TryActivateParkour() {
     const auto fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
     const bool avoidMidairParkour = fallTime < 0.17f;
-    //logger::info(">> Fall time: {}", fallTime);
+    //LOG(">> Fall time: {}", fallTime);
 
     if (LedgeTypeToProcess != ParkourType::Grab) {
         if (avoidOnGroundParkour) {
@@ -619,7 +619,7 @@ bool Parkouring::TryActivateParkour() {
 void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     const auto player = GET_PLAYER;
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
-    //logger::info("Dist: {}", dist);
+    //LOG("Dist: {}", dist);
 
     /* Another guard for multiple activations */
     if (RuntimeVariables::EnableNotifyWindow) {
@@ -668,11 +668,11 @@ void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLo
 
         /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like low effort. */
         if (isLowEffort || isSwimming) {
-            // logger::info("cost{}", cost / 2);
+            // LOG("cost{}", cost / 2);
             DamageActorStamina(player, cost / 2);
         }
         else if (PlayerHasEnoughStamina()) {
-            // logger::info("cost{}", cost);
+            // LOG("cost{}", cost);
             DamageActorStamina(player, cost);
         }
         else {
@@ -686,13 +686,13 @@ void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         if (!ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Register();
-            logger::info("Processing On");
+            LOG("Processing On");
         }
     }
     else {
         if (ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Unregister();
-            logger::info("Processing Off");
+            LOG("Processing Off");
         }
 
         RuntimeMethods::ResetRuntimeVariables();

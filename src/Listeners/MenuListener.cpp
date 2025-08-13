@@ -57,7 +57,7 @@ bool MenuListener::Unregister() {
 
 RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent* ev, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) {
     if (ev->opening) {
-        //logger::info("Menu {} opened", ev->menuName.c_str());
+        //LOG("Menu {} opened", ev->menuName.c_str());
 
         if (Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = true;
@@ -69,11 +69,11 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
             RuntimeVariables::IsInMainMenu = true;
 
-            //logger::info(">> In Menu");
+            //LOG(">> In Menu");
         }
     }
     else {
-        //logger::info("Menu {} closed", ev->menuName.c_str());
+        //LOG("Menu {} closed", ev->menuName.c_str());
 
         //// Treating this as save loaded event, fires on COC command and new game, when area along with player loads.
         //if (ev->menuName == RE::LoadingMenu::MENU_NAME) {
@@ -90,13 +90,13 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         if (!Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = false;
 
-            //logger::info(">> Closed Menu");
+            //LOG(">> Closed Menu");
         }
 
         if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
             RuntimeVariables::IsInMainMenu = false;
 
-            //logger::info(">> Closed Main Menu");
+            //LOG(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;

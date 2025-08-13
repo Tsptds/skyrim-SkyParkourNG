@@ -11,7 +11,7 @@ namespace RuntimeMethods {
         RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
         GET_PLAYER->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
 #ifdef LOG_STEPS
-        logger::info("Next Step: {}", RuntimeVariables::shouldUseRightStep ? "Right" : "Left");
+        LOG("Next Step: {}", RuntimeVariables::shouldUseRightStep ? "Right" : "Left");
 #endif  // LOG_STEPS
     }
 
@@ -40,7 +40,7 @@ namespace RuntimeMethods {
 
         SI_Error rc = ini->LoadFile(path);
         if (rc < 0) {
-            logger::warn("SkyParkourNG.ini not found, creating with default values");
+            WARN("SkyParkourNG.ini not found, creating with default values");
 
             // Set default values here
             ini->SetValue("ESP", "sEspName", "SkyParkourV2.esp");
@@ -61,7 +61,7 @@ namespace RuntimeMethods {
             ini->SetValue("MCM", "fInputDelay", "0.0");
 
             if (ini->SaveFile(path) < 0) {
-                logger::error("Failed to create default SkyParkourNG.ini");
+                ERROR("Failed to create default SkyParkourNG.ini");
                 return nullptr;
             }
         }
@@ -72,16 +72,16 @@ namespace RuntimeMethods {
     bool ReadPluginConfigFromINI() {
         auto ini = GetIniHandle();
         if (!ini) {
-            logger::error("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
+            ERROR("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
             return false;
         }
 
         const char *name = ini->GetValue("ESP", "sEspName");
         if (!name) {
-            logger::error("EspName not found, using default name");
+            ERROR("EspName not found, using default name");
         }
 
-        logger::info("ESP Name: '{}'", name);
+        LOG("ESP Name: '{}'", name);
         IniSettings::ESP_NAME = name;
         return true;
     }
@@ -90,13 +90,13 @@ namespace RuntimeMethods {
         auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
         if (TDM) {
             Compatibility::TrueDirectionalMovement = true;
-            logger::info("Patch: True Directional Movement |360|Swim Pitch|");
+            LOG("Patch: True Directional Movement |360|Swim Pitch|");
         }
 
         // auto IC = GetModuleHandleA("ImprovedCameraSE.dll");
         // if (IC) {
         //     Compatibility::ImprovedCamera = true;
-        //     logger::info("Patch: Improved Camera |Hands Fix|");
+        //     LOG("Patch: Improved Camera |Hands Fix|");
         // }
     }
 }  // namespace RuntimeMethods

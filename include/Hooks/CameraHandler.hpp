@@ -72,7 +72,7 @@ bool Hooks::CameraHandler::TPP::Install::CanProcess() {
     OG::_CanProcess = vtblInput.write_vfunc(0x1, &Callback::CanProcess);
 
     if (!OG::_CanProcess.address()) {
-        logger::critical("TPP CanProcess Hook Not Installed");
+        CRITICAL("TPP CanProcess Hook Not Installed");
         return false;
     }
     return true;
@@ -84,7 +84,7 @@ bool Hooks::CameraHandler::TPP::Install::Update() {
     OG::_Update = vtblInput.write_vfunc(0x3, &Callback::Update);
 
     if (!OG::_Update.address()) {
-        logger::critical("TPP Update Hook Not Installed");
+        CRITICAL("TPP Update Hook Not Installed");
         return false;
     }
     return true;
@@ -99,7 +99,7 @@ bool Hooks::CameraHandler::FPP::Install::CanProcess() {
     OG::_CanProcess = vtblPlayer.write_vfunc(0x1, &Callback::CanProcess);
 
     if (!OG::_CanProcess.address()) {
-        logger::critical("FPP State Hook Not Installed");
+        CRITICAL("FPP State Hook Not Installed");
         return false;
     }
     return true;
@@ -111,7 +111,7 @@ bool Hooks::CameraHandler::FPP::Install::Update() {
     OG::_Update = vtblInput.write_vfunc(0x3, &Callback::Update);
 
     if (!OG::_Update.address()) {
-        logger::critical("FPP Update Hook Not Installed");
+        CRITICAL("FPP Update Hook Not Installed");
         return false;
     }
     return true;

@@ -38,7 +38,7 @@ std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
 int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
     auto it = xinputToCKMap.find(dxcode);
     if (it != xinputToCKMap.end()) {
-        //logger::info("Alt. CK input found, mapping {}", it->second);
+        //LOG("Alt. CK input found, mapping {}", it->second);
         return it->second;
     }
     return dxcode;  // Return default value if key not found
@@ -59,7 +59,7 @@ void ButtonEventListener::Register() {
     if (inputManager) {
         inputManager->AddEventSink(ButtonEventListener::GetSingleton());
         ButtonEventListener::GetSingleton()->SinkRegistered = true;
-        //logger::info("Buttons - Listening");
+        //LOG("Buttons - Listening");
     }
 }
 void ButtonEventListener::Unregister() {
@@ -67,7 +67,7 @@ void ButtonEventListener::Unregister() {
     if (inputManager) {
         inputManager->RemoveEventSink(ButtonEventListener::GetSingleton());
         ButtonEventListener::GetSingleton()->SinkRegistered = false;
-        //logger::info("Buttons - Not Listening");
+        //LOG("Buttons - Not Listening");
     }
 }
 
@@ -83,7 +83,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
             auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
-            // logger::info("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
+            // LOG("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
 
             // Convert Xinput codes to creation kit versions
             if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kGamepad) {
@@ -95,8 +95,8 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
             if (ModSettings::Use_Preset_Parkour_Key) {
                 auto userEventName = event->QUserEvent();
-                //logger::info("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
-                //logger::info("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
+                //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
+                //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
                 if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
                     userEventName == RE::UserEvents::GetSingleton()->jump) {

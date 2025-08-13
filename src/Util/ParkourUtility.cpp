@@ -10,7 +10,7 @@ bool ParkourUtility::IsParkourActive() {
 
     const auto player = GET_PLAYER;
     if (IsChargenHandsBound(player)) {
-        //logger::info("PLAYER HANDS BOUND");
+        //LOG("PLAYER HANDS BOUND");
         return false;
     }
 
@@ -67,7 +67,7 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, RE::NiPoint3, RE::NiPoi
     auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
 
 #ifdef LOG_STEPS_VELOCITY
-    logger::info("{}", speed);
+    LOG("{}", speed);
 #endif
 
     if (speed > 1) {
@@ -204,7 +204,7 @@ bool ParkourUtility::IsCrosshairRefActivator() {
         /* Something activatable in crosshair */
 #ifdef LOG_CROSSHAIR
         auto layer = ref->Get3D()->GetCollisionLayer();
-        logger::info("Layer: {}", PRINT_LAYER(layer));
+        LOG("Layer: {}", PRINT_LAYER(layer));
 #endif
 
         return true;
@@ -216,7 +216,7 @@ bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {
     // Check if player has chargen flag hands bound
     const auto &gs = player->GetGameStatsData();
     if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kShowControlsDisabledMessage)) {
-        //logger::info(">> Chargen: {}", gs.byCharGenFlag.underlying());
+        //LOG(">> Chargen: {}", gs.byCharGenFlag.underlying());
         return true;
     }
     return false;
@@ -285,7 +285,7 @@ bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
 bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {
     const auto charController = actor->GetCharController();
 
-    // logger::info("Flag {}", charController->flags.underlying());
+    // LOG("Flag {}", charController->flags.underlying());
     // Check if the player is in the air (jumping flag)
     if (actor && charController && /*!charController->flags.any(RE::CHARACTER_FLAGS::kJumping) &&
         charController->flags.all(RE::CHARACTER_FLAGS::kCanJump) &&*/

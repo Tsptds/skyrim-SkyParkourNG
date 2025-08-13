@@ -10,7 +10,7 @@ void RaceChangeListener::Register() {
     if (g_raceChangeSink) {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->AddEventSink(g_raceChangeSink);
 
-        //logger::info(">> RaceChange - Listening");
+        //LOG(">> RaceChange - Listening");
     }
 }
 void RaceChangeListener::Unregister() {
@@ -19,7 +19,7 @@ void RaceChangeListener::Unregister() {
     if (g_raceChangeSink) {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->RemoveEventSink(g_raceChangeSink);
 
-        //logger::info("RaceChange - Not Listening");
+        //LOG("RaceChange - Not Listening");
     }
 }
 
@@ -38,11 +38,11 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
 
     const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
-        //logger::info(">> Entering Beast Form");
+        //LOG(">> Entering Beast Form");
         Parkouring::SetParkourOnOff(false);
     }
     else {
-        //logger::info(">> Exiting Beast Form");
+        //LOG(">> Exiting Beast Form");
         if (ModSettings::Mod_Enabled) {
             Parkouring::SetParkourOnOff(true);
         }

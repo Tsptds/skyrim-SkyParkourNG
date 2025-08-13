@@ -56,7 +56,7 @@ namespace Hooks {
         if (ModSettings::Mod_Enabled) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
                 ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
-                //logger::info("Prevented Jump");
+                //LOG("Prevented Jump");
 
                 return false;
             }
@@ -201,7 +201,7 @@ namespace Hooks {
         _CanProcessJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Jump);
 
         if (!_CanProcessJump.address()) {
-            logger::critical("Jump Hook Not Installed");
+            CRITICAL("Jump Hook Not Installed");
             return false;
         }
 
@@ -216,7 +216,7 @@ namespace Hooks {
         _ProcessButtonJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::ProcessButton_Jump);
 
         if (!_ProcessButtonJump.address()) {
-            logger::critical("Jump Process Hook Not Installed");
+            CRITICAL("Jump Process Hook Not Installed");
             return false;
         }
         return true;
@@ -230,7 +230,7 @@ namespace Hooks {
         _CanProcessSneak = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Sneak);
 
         if (!_CanProcessSneak.address()) {
-            logger::critical("Sneak Hook Not Installed");
+            CRITICAL("Sneak Hook Not Installed");
             return false;
         }
         return true;
@@ -244,7 +244,7 @@ namespace Hooks {
         _CanProcessMovement = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Movement);
 
         if (!_CanProcessMovement.address()) {
-            logger::critical("Movement Hook Not Installed");
+            CRITICAL("Movement Hook Not Installed");
             return false;
         }
         return true;
@@ -258,7 +258,7 @@ namespace Hooks {
         _CanProcessActivate = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Activate);
 
         if (!_CanProcessActivate.address()) {
-            logger::critical("Movement Hook Not Installed");
+            CRITICAL("Movement Hook Not Installed");
             return false;
         }
         return true;
@@ -272,7 +272,7 @@ namespace Hooks {
         _CanProcessPOV = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_POV);
 
         if (!_CanProcessPOV.address()) {
-            logger::critical("POV Hook Not Installed");
+            CRITICAL("POV Hook Not Installed");
             return false;
         }
         return true;
@@ -286,7 +286,7 @@ namespace Hooks {
         _CanProcessWeapon = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Weapon);
 
         if (!_CanProcessWeapon.address()) {
-            logger::critical("Weapon Hook Not Installed");
+            CRITICAL("Weapon Hook Not Installed");
             return false;
         }
         return true;
@@ -300,7 +300,7 @@ namespace Hooks {
         _CanProcessLook = a_vtbl.write_vfunc(a_offset, &InputHandlerEx<T>::CanProcess_Look);
 
         if (!_CanProcessLook.address()) {
-            logger::critical("Look Hook Not Installed");
+            CRITICAL("Look Hook Not Installed");
             return false;
         }
         return true;
