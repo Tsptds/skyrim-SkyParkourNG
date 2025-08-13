@@ -19,8 +19,8 @@ namespace SkyParkourUtil {
 
     /* Head Level Check Layers. If hit, consider vault has obstruction behind */
     static const std::unordered_set<COL_LAYER> VaultForwardRayList{
-        COL_LAYER::kStatic, COL_LAYER::kTerrain, COL_LAYER::kGround,     COL_LAYER::kProps,       COL_LAYER::kDoorDetection,
-        COL_LAYER::kTrees,  COL_LAYER::kWard,    COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
+        COL_LAYER::kStatic, COL_LAYER::kTerrain,    COL_LAYER::kGround,      COL_LAYER::kProps,      COL_LAYER::kDoorDetection,
+        COL_LAYER::kTrees,  COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
 
     /* Ledge Point Layers. If hit, consider vault point invalid. */
     static const std::unordered_set<COL_LAYER> VaultDownRayList{
