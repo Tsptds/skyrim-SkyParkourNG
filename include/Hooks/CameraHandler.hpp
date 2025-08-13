@@ -11,7 +11,7 @@ namespace Hooks {
 
         private:
             struct TPP {
-                    inline static float TDM_Pitch_Clamp = 0.4f;
+                    inline static float TDM_Pitch_Clamp = 0.1f;
 
                     struct Install {
                             static bool CanProcess();
@@ -147,11 +147,9 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
             }
         }
 
-        auto &zoom = a_this->currentZoomOffset;
-        if (zoom <= 0.001f) {
-            zoom = 0.001f;
+        a_this->targetZoomOffset = a_this->currentZoomOffset;
+        a_this->stateNotActive = false;
         }
-    }
 
     OG::_Update(a_this, a_nextState);
 }
