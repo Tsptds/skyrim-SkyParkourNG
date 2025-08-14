@@ -59,7 +59,7 @@ bool ParkourUtility::IsParkourActive() {
 }
 
 bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray) {
-    /* Velocity threshold, if player isn't moving forward steps are not valid */
+    /* Velocity threshold */
     RE::hkVector4 vel;
     auto ctrl = player->GetCharController();
     ctrl->GetLinearVelocityImpl(vel);
@@ -70,13 +70,22 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray
 #ifdef LOG_STEPS_VELOCITY
     LOG("{}", speed);
 #endif
-
+    /* If player isn't actually moving forward steps are not valid */
     const auto &notStuck = speed > 1;
     if (notStuck) {
         return false;
     }
 
     const auto &isMoving = player->IsMoving();
+
+    /* If player has just started moving, block premature steps */
+    float graphSpeed;
+    player->GetGraphVariableFloat("Speed", graphSpeed);
+
+    if (isMoving && graphSpeed < 150) {
+        return false;
+    }
+
     bool normalsValid = IsStepNormalValid(ray, isMoving);
 
     if (!normalsValid) {
