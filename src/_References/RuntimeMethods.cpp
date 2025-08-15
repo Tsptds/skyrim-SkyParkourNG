@@ -33,7 +33,7 @@ namespace RuntimeMethods {
                       dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
     }
     std::unique_ptr<CSimpleIniA> GetIniHandle() {
-        constexpr const char *path = "./Data/SKSE/Plugins/SkyParkourNG.ini";
+        const auto &path = IniSettings::INIPath.c_str();
 
         auto ini = std::make_unique<CSimpleIniA>();
         ini->SetUnicode();
@@ -42,23 +42,7 @@ namespace RuntimeMethods {
         if (rc < 0) {
             WARN("SkyParkourNG.ini not found, creating with default values");
 
-            // Set default values here
-            ini->SetValue("ESP", "sEspName", "SkyParkourV2.esp");
-            ini->SetValue("ESP", "iBlueMarkerRefID", "0x000014");
-            ini->SetValue("ESP", "iRedMarkerRefID", "0x00000C");
-
-            ini->SetValue("MCM", "bEnableMod", "true");
-            ini->SetValue("MCM", "bSmartParkour", "true");
-            ini->SetValue("MCM", "bShowIndicators", "true");
-
-            ini->SetValue("MCM", "bEnableStaminaSystem", "true");
-            ini->SetValue("MCM", "bMustHaveStamina", "true");
-            ini->SetValue("MCM", "iBaseStaminaDamage", "20");
-
-            ini->SetValue("MCM", "bUsePresetKey", "true");
-            ini->SetValue("MCM", "iPresetKeyIndex", "0");
-            ini->SetValue("MCM", "iCustomKeybind", "0");
-            ini->SetValue("MCM", "fInputDelay", "0.0");
+            IniSettings::CreateDefault(ini);
 
             if (ini->SaveFile(path) < 0) {
                 ERROR("Failed to create default SkyParkourNG.ini");

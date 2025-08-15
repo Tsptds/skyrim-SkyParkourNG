@@ -176,7 +176,7 @@ namespace SkyParkour_Papyrus {
 
         private:
             static void save(const std::unique_ptr<CSimpleIniA> &ini) {
-                ini->SaveFile(IniSettings::INIPath);
+                ini->SaveFile(IniSettings::INIPath.c_str());
             }
     };
 

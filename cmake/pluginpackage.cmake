@@ -13,10 +13,10 @@ endif()
 install(TARGETS ${PROJECT_NAME}
         RUNTIME DESTINATION ${PLUGIN_INSTALL_DEST})
 
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dist/Data")
-    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/dist/Data/"
-            DESTINATION ".")
-endif()
+# if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/dist/Data")
+#     install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/dist/Data/"
+#             DESTINATION ".")
+# endif()
 
 set(CPACK_GENERATOR ZIP)
 set(CPACK_PACKAGE_NAME ${PROJECT_LONG_NAME})
