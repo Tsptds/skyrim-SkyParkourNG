@@ -1,4 +1,4 @@
-# ***SkyParkour v2 NG Procedural Parkour Framework for Skyrim- CommonLibSSE-NG***
+# ***SkyParkour V3 NG Procedural Parkour Framework for Skyrim- CommonLibSSE-NG***
 
 ## ***Runtime requirements***
 
