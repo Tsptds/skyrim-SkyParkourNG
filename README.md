@@ -51,8 +51,8 @@ CMake will use a file named local.cmake (project root), in this file you can add
 
 ~~~
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
-    COMMAND xcopy /y /-I "bin\\$<CONFIG>\\${PROJECT_NAME}.dll" "C:\\games\\Skyrim\\Data\\SKSE\\Plugins\\${PROJECT_NAME}.dll"
-    COMMAND xcopy /y /-I "bin\\$<CONFIG>\\${PROJECT_NAME}.pdb" "C:\\games\\Skyrim\\Data\\SKSE\\Plugins\\${PROJECT_NAME}.pdb"
+    COMMAND ${CMAKE_COMMAND} -E copy "bin\\$<CONFIG>\\${PROJECT_NAME}.dll" "C:\\games\\Skyrim\\Data\\SKSE\\Plugins\\${PROJECT_NAME}.dll"
+    COMMAND ${CMAKE_COMMAND} -E copy "bin\\$<CONFIG>\\${PROJECT_NAME}.pdb" "C:\\games\\Skyrim\\Data\\SKSE\\Plugins\\${PROJECT_NAME}.pdb"
 )
 add_custom_command(TARGET ${PROJECT_NAME} POST_BUILD
     COMMAND "C:\\games\\Skyrim\\skse64_loader.exe" WORKING_DIRECTORY "C:\\games\\Skyrim"
