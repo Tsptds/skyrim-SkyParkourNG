@@ -93,7 +93,27 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         if (!RuntimeMethods::CheckESPLoaded()) {
             ERROR("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
-            std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order. Mod is disabled.";
+
+            /* ESP not loaded by the game, check if game is pre 1.6.1130 */
+            auto IsPreExtendedEslVersion = REL::Module::get().version() < SKSE::RUNTIME_SSE_1_6_1130;
+            if (IsPreExtendedEslVersion) {
+                auto BEES = GetModuleHandleA("BackportedESLSupport.dll");
+                if (BEES) {
+                    Compatibility::BackportedESLSupport = true;
+                    LOG("BEES found on a pre-extended ESL Skyrim version");
+                }
+                else {
+                    ERROR("BEES not installed on a pre-extended ESL Skyrim version");
+                    const std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded." +
+                                            "\n\n'Backported Extended ESL Support' is required on pre 1.6.1130 Skyrim versions." +
+                                            "\n\nMod is disabled.";
+                    RE::DebugMessageBox(err.c_str());
+                    return;
+                }
+            }
+
+            const std::string err =
+                "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order." + "\nMod is disabled.";
 
             RE::DebugMessageBox(err.c_str());
             return;

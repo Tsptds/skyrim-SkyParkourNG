@@ -76,11 +76,5 @@ namespace RuntimeMethods {
             Compatibility::TrueDirectionalMovement = true;
             LOG("Patch: True Directional Movement |360|Swim Pitch|");
         }
-
-        // auto IC = GetModuleHandleA("ImprovedCameraSE.dll");
-        // if (IC) {
-        //     Compatibility::ImprovedCamera = true;
-        //     LOG("Patch: Improved Camera |Hands Fix|");
-        // }
     }
 }  // namespace RuntimeMethods
