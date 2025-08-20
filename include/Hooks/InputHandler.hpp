@@ -73,15 +73,15 @@ namespace Hooks {
     void InputHandlerEx<T>::ProcessButton_Jump(RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data) {
         if (ModSettings::Mod_Enabled && !ParkourUtility::IsOnMount()) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
-                auto btn = a_event->AsButtonEvent();
+                const auto& btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
                     if (btn->IsDown()) {
                         return;
                     }
                     else if (btn->IsUp()) {
-                        float held = btn->HeldDuration();
-                        auto dev = btn->GetDevice();
-                        auto id = btn->GetIDCode();
+                        const float& held = btn->HeldDuration();
+                        const auto& dev = btn->GetDevice();
+                        const auto& id = btn->GetIDCode();
 
                         // create a delayed Down
                         RE::ButtonEvent* downEvt =
@@ -90,18 +90,15 @@ namespace Hooks {
                         RE::ButtonEvent* upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
 
                         if (downEvt || upEvt) {
-                            _THREAD_POOL.enqueue([this, downEvt, upEvt, a_data]() {
-                                _TASK_Q([this, downEvt, upEvt, a_data]() {
-                                    if (downEvt) {
-                                        _ProcessButtonJump(this, downEvt, a_data);
-                                        delete downEvt;
-                                    }
-                                    if (upEvt) {
-                                        _ProcessButtonJump(this, upEvt, a_data);
-                                        delete upEvt;
-                                    }
-                                });
-                            });
+                            if (downEvt) {
+                                _ProcessButtonJump(this, downEvt, a_data);
+                                delete downEvt;
+                            }
+                            if (upEvt) {
+                                _ProcessButtonJump(this, upEvt, a_data);
+                                delete upEvt;
+                            }
+
                             return;  // don’t let the engine see the original Up
                         }
                     }
