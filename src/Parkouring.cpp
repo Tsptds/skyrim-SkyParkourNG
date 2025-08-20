@@ -628,16 +628,12 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     RuntimeVariables::EnableNotifyWindow = true;
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
 
-    /* Reset ground support check, also fixes TDM pitch bug */
-    player->GetCharController()->wantState = RE::hkpCharacterStateType::kInAir;
-
     Parkouring::CalculateStartingPosition(player, ledgeType);
     InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
         _TASK_Q([player, ledgeType, isSwimming] {
-            player->GetCharController()->SetLinearVelocityImpl(ZERO_VECTOR);
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
             if (success) {

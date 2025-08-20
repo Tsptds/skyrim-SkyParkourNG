@@ -132,9 +132,7 @@ bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_thi
 }
 void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (RuntimeVariables::ParkourInProgress) {
-        /* Prevent Havok from pulling the player towards ground */
         auto ctrl = GET_PLAYER->GetCharController();
-        ctrl->flags.reset(RE::CHARACTER_FLAGS::kSupport);
 
         /* TDM swim pitch angle thing */
         if (Compatibility::TrueDirectionalMovement) {
@@ -149,7 +147,7 @@ void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, R
 
         a_this->targetZoomOffset = a_this->currentZoomOffset;
         a_this->stateNotActive = false;
-        }
+    }
 
     OG::_Update(a_this, a_nextState);
 }
