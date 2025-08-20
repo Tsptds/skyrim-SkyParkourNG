@@ -18,21 +18,11 @@ bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
 void Install_Hooks_And_Listeners() {
     RaceChangeListener::Register();
     MenuListener::Register();
-    //ButtonEventListener::Register();  // Do it inside Menu Listener, when main menu closes
+    //ButtonEventListener::Register();  // Do it when player loads, unregister inside Menu Listener
 
-    Hooks::InputHandlerEx<RE::JumpHandler>::InstallJumpHook();
-    Hooks::InputHandlerEx<RE::JumpHandler>::InstallProcessJumpHook();
-    Hooks::InputHandlerEx<RE::SneakHandler>::InstallSneakHook();
-    Hooks::InputHandlerEx<RE::MovementHandler>::InstallMovementHook();
-    Hooks::InputHandlerEx<RE::ActivateHandler>::InstallActivateHook();
-    Hooks::InputHandlerEx<RE::TogglePOVHandler>::InstallPOVHook();
-    Hooks::InputHandlerEx<RE::ReadyWeaponHandler>::InstallWeaponHook();
+    Hooks::InputHandlerEx::InstallInputHooks();
 
-    if (!Compatibility::TrueDirectionalMovement) {
-        Hooks::InputHandlerEx<RE::LookHandler>::InstallLookHook(); /* Rotate camera, use for compatibility */
-    }
-
-    Hooks::AnimationEventHook<RE::BSAnimationGraphManager>::InstallAnimEventHook();
+    Hooks::AnimationEventHook::InstallAnimEventHook();
     Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
 
     Hooks::CameraHandler::InstallCamStateHooks();

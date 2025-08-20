@@ -1,5 +1,4 @@
 ﻿#include "Listeners/ButtonListener.h"
-#include "Hooks/InputHandler.hpp"
 #include "Parkouring.h"
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"

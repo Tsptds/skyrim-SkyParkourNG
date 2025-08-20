@@ -8,20 +8,31 @@
 
 namespace Hooks {
 
-    template <class T>
-    class AnimationEventHook : public T {
+    class AnimationEventHook {
         public:
-            using Fn_t = decltype(&T::ProcessEvent);
-            static inline REL::Relocation<Fn_t> _ProcessEvent;  // 01
-            inline RE::BSEventNotifyControl Hook(const RE::BSAnimationGraphEvent* a_event,
+            static bool InstallAnimEventHook() {
+                // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
+                auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
+                constexpr std::size_t idx = 0x1;
+                _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
+
+                if (!_ProcessEvent.address()) {
+                    CRITICAL("AnimEvent Hook Not Installed");
+                    return false;
+                }
+                return true;
+            }
+
+        private:
+            static inline RE::BSEventNotifyControl Hook(RE::BSAnimationGraphManager *a_this, const RE::BSAnimationGraphEvent* a_event,
                                                  RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
                 if (!a_event || !ModSettings::Mod_Enabled) {
-                    return _ProcessEvent(this, a_event, a_eventSource);
+                    return _ProcessEvent(a_this, a_event, a_eventSource);
                 }
 
                 auto actor = a_event->holder;
                 if (!actor || !actor->IsPlayerRef()) {
-                    return _ProcessEvent(this, a_event, a_eventSource);
+                    return _ProcessEvent(a_this, a_event, a_eventSource);
                 }
 
                 if (a_event->tag == "GetUpExit") {
@@ -55,21 +66,10 @@ namespace Hooks {
                         Parkouring::OnStartStop(IS_STOP);
                     }
                 }
-                return _ProcessEvent(this, a_event, a_eventSource);
+                return _ProcessEvent(a_this, a_event, a_eventSource);
             }
 
-            static bool InstallAnimEventHook() {
-                // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
-                auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
-                constexpr std::size_t idx = 0x1;
-                _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
-
-                if (!_ProcessEvent.address()) {
-                    CRITICAL("AnimEvent Hook Not Installed");
-                    return false;
-                }
-                return true;
-            }
+            static inline REL::Relocation<decltype(Hook)> _ProcessEvent;  // 01
     };
 
     class NotifyGraphHandler {
