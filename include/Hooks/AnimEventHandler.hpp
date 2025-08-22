@@ -24,8 +24,8 @@ namespace Hooks {
             }
 
         private:
-            static inline RE::BSEventNotifyControl Hook(RE::BSAnimationGraphManager *a_this, const RE::BSAnimationGraphEvent* a_event,
-                                                 RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
+            static inline RE::BSEventNotifyControl Hook(RE::BSAnimationGraphManager* a_this, const RE::BSAnimationGraphEvent* a_event,
+                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
                 if (!a_event || !ModSettings::Mod_Enabled) {
                     return _ProcessEvent(a_this, a_event, a_eventSource);
                 }
@@ -124,7 +124,7 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (RuntimeVariables::BlockSheatheNotifyWindow) {
+    if (RuntimeVariables::BlockSheatheNotifyWindow || RuntimeVariables::ParkourInProgress) {
         if (a_eventName == "Unequip") {
             return false;
         }

@@ -282,7 +282,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 void Parkouring::OnStartStop(bool isStop) {
     // IS_START true / IS_STOP false
 
-    auto player = GET_PLAYER;
+    const auto &player = GET_PLAYER;
 
     if (isStop) {
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
