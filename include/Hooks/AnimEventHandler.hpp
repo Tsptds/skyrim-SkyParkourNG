@@ -124,12 +124,6 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (RuntimeVariables::BlockSheatheNotifyWindow || RuntimeVariables::ParkourInProgress) {
-        if (a_eventName == "Unequip") {
-            return false;
-        }
-    }
-
     if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
         /* If stop event is sent forcibly, flow to correct graph state. */
         const_cast<RE::BSFixedString&>(a_eventName) = SPPF_INTERRUPT;

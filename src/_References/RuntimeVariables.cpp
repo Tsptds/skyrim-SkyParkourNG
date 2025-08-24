@@ -19,5 +19,4 @@ namespace RuntimeVariables {
 
     bool shouldUseRightStep = true;
 
-    bool BlockSheatheNotifyWindow = false;
 }  // namespace RuntimeVariables
