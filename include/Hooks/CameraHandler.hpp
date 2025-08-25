@@ -47,6 +47,25 @@ namespace Hooks {
                             static inline REL::Relocation<decltype(Callback::Update)> _Update;
                     };
             };
+
+            struct FreeCam {
+                    inline static bool inFreecam = false;
+
+                    struct Install {
+                            static bool Begin();
+                            static bool End();
+                    };
+
+                    struct Callback {
+                            static void Begin(RE::FreeCameraState *a_this);
+                            static void End(RE::FreeCameraState *a_this);
+                    };
+
+                    struct OG {
+                            static inline REL::Relocation<decltype(Callback::Begin)> _Begin;
+                            static inline REL::Relocation<decltype(Callback::End)> _End;
+                    };
+            };
     };
 }  // namespace Hooks
 
@@ -60,6 +79,9 @@ bool Hooks::CameraHandler::InstallCamStateHooks() {
 
     res &= FPP::Install::CanProcess();
     res &= FPP::Install::Update();
+
+    //res &= FreeCam::Install::Begin();
+    //res &= FreeCam::Install::End();
 
     return res;
 }
@@ -112,6 +134,33 @@ bool Hooks::CameraHandler::FPP::Install::Update() {
 
     if (!OG::_Update.address()) {
         CRITICAL("FPP Update Hook Not Installed");
+        return false;
+    }
+    return true;
+}
+/* ------------------------------------------------------------- */
+
+/* Freecam */
+bool Hooks::CameraHandler::FreeCam::Install::Begin() {
+    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FreeCameraState[0]};
+    OG::_Begin = vtbl.write_vfunc(0x1, &Callback::Begin);
+
+    if (!OG::_Begin.address()) {
+        CRITICAL("Freecam Begin Hook Not Installed");
+        return false;
+    }
+    return true;
+}
+bool Hooks::CameraHandler::FreeCam::Install::End() {
+    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FreeCameraState[0]};
+    OG::_End = vtbl.write_vfunc(0x2, &Callback::End);
+
+    if (!OG::_End.address()) {
+        CRITICAL("Freecam End Hook Not Installed");
         return false;
     }
     return true;
@@ -183,5 +232,27 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
     }
 
     OG::_Update(a_this, a_nextState);
+}
+/* ------------------------------------------------------------- */
+
+/* Freecam */
+void Hooks::CameraHandler::FreeCam::Callback::Begin(RE::FreeCameraState *a_this) {
+    //LOG("Entered Freecam");
+    if (RuntimeVariables::ParkourInProgress) {
+        inFreecam = true;
+    }
+    OG::_Begin(a_this);
+}
+void Hooks::CameraHandler::FreeCam::Callback::End(RE::FreeCameraState *a_this) {
+    //LOG("Exited Freecam");
+    if (inFreecam) {
+        inFreecam = false;
+        _TASK_Q([] {
+            WARN("Fixing main four controls");
+            auto ctrlMap = RE::ControlMap::GetSingleton();
+            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, true);
+        });
+    }
+    OG::_End(a_this);
 }
 /* ------------------------------------------------------------- */
