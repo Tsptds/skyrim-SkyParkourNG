@@ -296,7 +296,7 @@ void Parkouring::OnStartStop(bool isStop) {
 
     // Toggle common controls
     auto ctrlMap = RE::ControlMap::GetSingleton();
-    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip
+    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
 }
 
 bool Parkouring::PlaceAndShowIndicator() {
