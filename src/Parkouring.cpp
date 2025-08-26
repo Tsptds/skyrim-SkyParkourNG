@@ -287,6 +287,7 @@ void Parkouring::OnStartStop(bool isStop) {
 
     if (isStop) {
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
+        player->NotifyAnimationGraph(SPPF_STOP);  // The other graph doesn't see the current graph, notify on stop to notify all
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;

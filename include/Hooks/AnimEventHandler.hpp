@@ -23,6 +23,23 @@ namespace Hooks {
                 return true;
             }
 
+            static void GetGraphs(RE::Actor* actor) {
+                if (actor) {
+                    RE::BSAnimationGraphManagerPtr graphMgr;
+                    if (actor->GetAnimationGraphManager(graphMgr)) {
+                        for (auto& graph: graphMgr->graphs) {
+                            if (!graph)
+                                continue;
+                            bool out;
+                            graph->GetGraphVariableBool(SPPF_ONGOING, out);
+
+                            // Debug print to see which is which
+                            logger::info("Ongoing {} in {}", out, graph->projectName);  // DefaultMale or DefaultFemale, FirstPerson
+                        }
+                    }
+                }
+            }
+
         private:
             static inline RE::BSEventNotifyControl Hook(RE::BSAnimationGraphManager* a_this, const RE::BSAnimationGraphEvent* a_event,
                                                         RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
