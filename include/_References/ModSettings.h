@@ -3,7 +3,7 @@
 namespace ModSettings {
     extern bool Use_Preset_Parkour_Key;
     extern int Preset_Parkour_Key;
-    extern int32_t Custom_Parkour_Key;
+    extern uint32_t Custom_Parkour_Key;
     extern bool Mod_Enabled;
     extern bool Use_Indicators;
     extern float Playback_Speed;

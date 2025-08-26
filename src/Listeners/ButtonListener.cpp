@@ -3,7 +3,7 @@
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 
-std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
+std::unordered_map<uint32_t, uint32_t> ButtonStates::xinputToCKMap = {
     // Mouse
     {2, 258},  // Mouse middle
     {3, 259},  // M4
@@ -34,7 +34,7 @@ std::unordered_map<int32_t, int32_t> ButtonStates::xinputToCKMap = {
     //{0x8000, 279}   // Y
 };
 
-int32_t ButtonStates::MapToCKIfPossible(int32_t dxcode) {
+uint32_t ButtonStates::MapToCKIfPossible(uint32_t dxcode) {
     auto it = xinputToCKMap.find(dxcode);
     if (it != xinputToCKMap.end()) {
         //LOG("Alt. CK input found, mapping {}", it->second);
@@ -81,48 +81,46 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
-            auto dxScanCode = static_cast<int32_t>(buttonEvent->GetIDCode());  // DX Scan Code
-            // LOG("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
-
-            // Convert Xinput codes to creation kit versions
-            if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kGamepad) {
-                dxScanCode = SKSE::InputMap::GamepadMaskToKeycode(dxScanCode);
-            }
-            else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
-                dxScanCode = ButtonStates::xinputToCKMap[dxScanCode];
-            }
-
             if (ModSettings::Use_Preset_Parkour_Key) {
-                auto userEventName = event->QUserEvent();
+                auto& userEventName = event->QUserEvent();
                 //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
-                if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
-                    userEventName == RE::UserEvents::GetSingleton()->jump) {
-                    if (RuntimeVariables::ParkourInProgress) {
-                        continue;
-                    }
+                RE::BSFixedString expectedEvent;
 
-                    ButtonStates::RegisterActivation(event);
+                switch (ModSettings::Preset_Parkour_Key) {
+                    case PARKOUR_PRESET_KEYS::kJump:
+                        expectedEvent = RE::UserEvents::GetSingleton()->jump;
+                        break;
+                    case PARKOUR_PRESET_KEYS::kSprint:
+                        expectedEvent = RE::UserEvents::GetSingleton()->sprint;
+                        break;
+                    case PARKOUR_PRESET_KEYS::kActivate:
+                        expectedEvent = RE::UserEvents::GetSingleton()->activate;
+                        break;
+                    default:
+                        break;
                 }
-                else if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kSprint &&
-                         userEventName == RE::UserEvents::GetSingleton()->sprint) {
+
+                if (userEventName == expectedEvent) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
-
-                    ButtonStates::RegisterActivation(event);
-                }
-                else if (ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate &&
-                         userEventName == RE::UserEvents::GetSingleton()->activate) {
-                    if (RuntimeVariables::ParkourInProgress) {
-                        continue;
-                    }
-
                     ButtonStates::RegisterActivation(event);
                 }
             }
             else {
+                auto dxScanCode = buttonEvent->GetIDCode();  // DX Scan Code
+                // LOG("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
+
+                // Convert Xinput codes to creation kit versions
+                if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kGamepad) {
+                    dxScanCode = SKSE::InputMap::GamepadMaskToKeycode(dxScanCode);
+                }
+                else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
+                    dxScanCode = ButtonStates::xinputToCKMap[dxScanCode];
+                }
+
                 if (dxScanCode == ModSettings::Custom_Parkour_Key) {
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;

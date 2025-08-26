@@ -2,9 +2,9 @@
 
 namespace ButtonStates {
 
-    extern std::unordered_map<int32_t, int32_t> xinputToCKMap;
+    extern std::unordered_map<uint32_t, uint32_t> xinputToCKMap;
 
-    extern int32_t MapToCKIfPossible(int32_t dxcode);
+    extern uint32_t MapToCKIfPossible(uint32_t dxcode);
 
     extern void RegisterActivation(RE::InputEvent* event);
 }  // namespace ButtonStates
