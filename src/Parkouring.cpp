@@ -285,12 +285,14 @@ void Parkouring::OnStartStop(bool isStop) {
     const auto &player = GET_PLAYER;
 
     if (isStop) {
+        player->GetCharController()->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
         RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
     }
     else {
+        player->GetCharController()->flags.set(RE::CHARACTER_FLAGS::kNoSim);
         ParkourUtility::StopInteractions(*player);
     }
 
