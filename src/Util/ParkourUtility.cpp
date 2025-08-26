@@ -257,7 +257,7 @@ bool ParkourUtility::IsSitting(RE::Actor *actor) {
 
 bool ParkourUtility::IsCrosshairRefActivator() {
     //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
-    auto ref = RE::CrosshairPickData::GetSingleton()->target.get();
+    const auto &ref = RE::CrosshairPickData::GetSingleton()->target.get();
     if (ref) {
         /* Something activatable in crosshair */
 #ifdef LOG_CROSSHAIR
@@ -289,7 +289,7 @@ bool ParkourUtility::IsOnMount() {
 }
 
 bool ParkourUtility::IsGamePaused() {
-    auto ui = RE::UI::GetSingleton();
+    const auto &ui = RE::UI::GetSingleton();
     return ui && ui->GameIsPaused();
 }
 
@@ -299,15 +299,15 @@ bool ParkourUtility::IsInSyncedAnimation(RE::Actor *actor) {
 }
 
 float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
-    float equip = actor->GetEquippedWeight();
+    const float &equip = actor->GetEquippedWeight();
     //float carry = player->GetTotalCarryWeight();
 
     return ModSettings::Stamina_Damage + (equip * 0.2f);
 }
 
 bool ParkourUtility::PlayerHasEnoughStamina() {
-    const auto player = GET_PLAYER;
-    const auto currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
+    const auto &player = GET_PLAYER;
+    const auto &currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
     if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
         return true;
@@ -341,7 +341,7 @@ bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
 }
 
 bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {
-    const auto charController = actor->GetCharController();
+    const auto &charController = actor->GetCharController();
 
     // LOG("Flag {}", charController->flags.underlying());
     // Check if the player is in the air (jumping flag)
@@ -354,7 +354,7 @@ bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {
 }
 
 bool ParkourUtility::IsSupportUnsupported(RE::Actor *actor) {
-    const auto charController = actor->GetCharController();
+    const auto &charController = actor->GetCharController();
 
     if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
         return true;
@@ -363,7 +363,7 @@ bool ParkourUtility::IsSupportUnsupported(RE::Actor *actor) {
 }
 
 bool ParkourUtility::IsSupportSliding(RE::Actor *actor) {
-    const auto charController = actor->GetCharController();
+    const auto &charController = actor->GetCharController();
 
     if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSliding) {
         return true;
@@ -372,7 +372,7 @@ bool ParkourUtility::IsSupportSliding(RE::Actor *actor) {
 }
 
 bool ParkourUtility::IsSupportGrounded(RE::Actor *actor) {
-    const auto charController = actor->GetCharController();
+    const auto &charController = actor->GetCharController();
 
     if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSupported) {
         return true;
@@ -381,10 +381,7 @@ bool ParkourUtility::IsSupportGrounded(RE::Actor *actor) {
 }
 
 bool ParkourUtility::PlayerIsSwimming() {
-    const auto player = GET_PLAYER;
-    if (!player) {
-        return false;
-    }
+    const auto &player = GET_PLAYER;
     return player->AsActorState()->IsSwimming();
 
     // IDK why swim at surface works this way, but it does.
