@@ -259,11 +259,17 @@ bool ParkourUtility::IsCrosshairRefActivator() {
     //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
     const auto &ref = RE::CrosshairPickData::GetSingleton()->target.get();
     if (ref) {
-        /* Something activatable in crosshair */
 #ifdef LOG_CROSSHAIR
         auto layer = ref->Get3D()->GetCollisionLayer();
         LOG("Layer: {}", PRINT_LAYER(layer));
 #endif
+
+        /* Something activatable in crosshair */
+        if (ref->GetFormFlags() & RE::TESObjectREFR::RecordFlags::kHarvested) {
+            //LOG("Harvested");
+            /* Activator is harvested, don't consider it valid */
+            return false;
+        }
 
         return true;
     }
