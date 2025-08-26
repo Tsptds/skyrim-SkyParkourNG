@@ -51,6 +51,58 @@ namespace SkyParkourUtil {
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
 
+    void LogCharacterFlags() {
+        if (auto* controller = RE::PlayerCharacter::GetSingleton()->GetCharController()) {
+            auto flags = controller->flags;
+
+            struct FlagInfo {
+                    const char* name;
+                    std::uint32_t mask;
+            };
+            static constexpr FlagInfo table[] = {{"kQuadruped", 1 << 0},
+                                                 {"kNoGravityOnGround", 1 << 1},
+                                                 {"kTryStep", 1 << 2},
+                                                 {"kNoFriction", 1 << 3},
+                                                 {"kAllowJumpNoContact", 1 << 4},
+                                                 {"kStuckQuad", 1 << 5},
+                                                 {"kAnimAngleMod", 1 << 6},
+                                                 {"kHitDamage", 1 << 7},
+                                                 {"kSupport", 1 << 8},
+                                                 {"kHasPotentialSupportManifold", 1 << 9},
+                                                 {"kCanJump", 1 << 10},
+                                                 {"kChaseBip", 1 << 11},
+                                                 {"kFollowRagdoll", 1 << 12},
+                                                 {"kJumping", 1 << 13},
+                                                 {"kNotPushable", 1 << 14},
+                                                 {"kFloatLand", 1 << 15},
+                                                 {"kCheckSupport", 1 << 16},
+                                                 {"kNoSim", 1 << 17},
+                                                 {"kFarAway", 1 << 18},
+                                                 {"kOnStilts", 1 << 19},
+                                                 {"kQuickSimulate", 1 << 20},
+                                                 {"kRecordHits", 1 << 21},
+                                                 {"kComputeTiltPreIntegrate", 1 << 22},
+                                                 {"kShouldersUnderWater", 1 << 23},
+                                                 {"kOnStairs", 1 << 24},
+                                                 {"kCanPitch", 1 << 25},
+                                                 {"kCanRoll", 1 << 26},
+                                                 {"kNoCharacterCollisions", 1 << 27},
+                                                 {"kNotPushablePermanent", 1 << 28},
+                                                 {"kPossiblePathObstacle", 1 << 29},
+                                                 {"kShapeRequiresZRot", 1 << 30},
+                                                 {"kSwimAtWaterSurface", 1u << 31}};
+
+            for (auto& f: table) {
+                if (flags.any(static_cast<RE::CHARACTER_FLAGS>(f.mask))) {
+                    logger::info(" - {}", f.name);
+                }
+            }
+        }
+        else {
+            logger::info("No character controller on player.");
+        }
+    }
+
 }  // namespace SkyParkourUtil
 
 /* Log macros */
@@ -69,6 +121,7 @@ namespace SkyParkourUtil {
 #define RayCastResult SkyParkourUtil::RayCastResult
 #define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
 #define PARKOUR_PRESET_KEYS SkyParkourUtil::ParkourKeyOptions
+#define LOG_PLAYER_CONTROLLER_FLAGS SkyParkourUtil::LogCharacterFlags()
 
 #define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
 #define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList
