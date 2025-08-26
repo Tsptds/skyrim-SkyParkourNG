@@ -158,9 +158,10 @@
 
 //local
 #include <SimpleIni.h>
-#include "_Globals.h"
 
 #define DLLEXPORT __declspec(dllexport)
 
 using namespace std::literals;
 namespace logger = SKSE::log;
+
+#include "_Globals.h"
