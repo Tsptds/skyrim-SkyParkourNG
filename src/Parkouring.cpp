@@ -625,10 +625,10 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
         std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
         _TASK_Q([player, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
+            StopInterpolatingRef(player);
             if (success) {
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
@@ -641,6 +641,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
                 }
             }
             else {
+                player->NotifyAnimationGraph(SPPF_STOP);
                 RuntimeVariables::ParkourInProgress = false;
             }
         });
