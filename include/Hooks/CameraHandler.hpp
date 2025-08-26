@@ -78,7 +78,7 @@ bool Hooks::CameraHandler::InstallCamStateHooks() {
     res &= FPP::Install::CanProcess();
     res &= FPP::Install::Update();
 
-    res &= FreeCam::Install::Begin();
+    //res &= FreeCam::Install::Begin();
     //res &= FreeCam::Install::End();
 
     return res;
@@ -236,11 +236,8 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
 /* Freecam */
 void Hooks::CameraHandler::FreeCam::Callback::Begin(RE::FreeCameraState *a_this) {
     //LOG("Entered Freecam");
+
     OG::_Begin(a_this);
-    if (RuntimeVariables::ParkourInProgress) {
-        const auto &cam = RE::PlayerCamera::GetSingleton();
-        cam->PushCameraState(RE::CameraState::kThirdPerson);
-    }
 }
 void Hooks::CameraHandler::FreeCam::Callback::End(RE::FreeCameraState *a_this) {
     //LOG("Exited Freecam");
