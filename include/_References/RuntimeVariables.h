@@ -7,8 +7,6 @@ namespace RuntimeVariables {
     extern RE::NiPoint3 ledgePoint;
     extern RE::NiPoint3 playerDirFlat;
 
-    extern RE::NiPoint3 PlayerStartPosition;
-
     extern bool ParkourInProgress;
     extern bool EnableNotifyWindow;
     extern bool RecoveryFramesActive;

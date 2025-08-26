@@ -283,17 +283,19 @@ void Parkouring::OnStartStop(bool isStop) {
     // IS_START true / IS_STOP false
 
     const auto &player = GET_PLAYER;
+    const auto &ctrl = player->GetCharController();
 
     if (isStop) {
-        player->GetCharController()->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
+        ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
-        RuntimeVariables::PlayerStartPosition = player->GetPosition();
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
     }
-    else {
-        player->GetCharController()->flags.set(RE::CHARACTER_FLAGS::kNoSim);
+    else /* if isStart */ {
         ParkourUtility::StopInteractions(*player);
+
+        // Disable simulation, fixes char controller taking over on hit
+        player->GetCharController()->flags.set(RE::CHARACTER_FLAGS::kNoSim);
     }
 
     // Toggle common controls
@@ -360,7 +362,7 @@ bool Parkouring::PlaceAndShowIndicator() {
     return true;
 }
 
-void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative) {
+void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds) {
     auto vm = RE::BSScript::Internal::VirtualMachine::GetSingleton();
     if (!vm) {
         return;
@@ -368,24 +370,7 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
 
     /* Calculate speed from cur pos to target dist / time. BUT Read annotations relative to start position. */
     auto curPos = movingRef->GetPosition();
-    RE::NiPoint3 relativeTranslatedToWorld = position;
-
-    if (isRelative) {
-        const auto facing = RuntimeVariables::playerDirFlat;
-        // playerDirFlat = forward vector (x,y,0), normalized
-        const float rightX = facing.y;
-        const float rightY = -facing.x;
-
-        const auto startPos = RuntimeVariables::PlayerStartPosition;
-
-        const float worldX =
-            startPos.x + position.x * rightX * RuntimeVariables::PlayerScale + position.y * facing.x * RuntimeVariables::PlayerScale;
-        const float worldY =
-            startPos.y + position.x * rightY * RuntimeVariables::PlayerScale + position.y * facing.y * RuntimeVariables::PlayerScale;
-        const float worldZ = startPos.z + position.z * RuntimeVariables::PlayerScale;
-
-        relativeTranslatedToWorld = RE::NiPoint3{worldX, worldY, worldZ};
-    }
+    RE::NiPoint3 relativeTranslatedToWorld = to;
 
     const auto diff = relativeTranslatedToWorld - curPos;
 
@@ -471,7 +456,7 @@ void Parkouring::StopInterpolatingRef(const RE::Actor *actor) {
                             result);
 }
 
-void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType) {
+void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType, RE::NiPoint3 &out) {
     float zAdjust = 0;
     float z = 0;
     float backOffset = 55.0f;
@@ -523,9 +508,8 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
     zAdjust = -z * RuntimeVariables::PlayerScale;
     backwardAdjustment = RuntimeVariables::PlayerScale * RuntimeVariables::playerDirFlat * backOffset;
 
-    RuntimeVariables::PlayerStartPosition =
-        RE::NiPoint3{RuntimeVariables::ledgePoint.x - backwardAdjustment.x, RuntimeVariables::ledgePoint.y - backwardAdjustment.y,
-                     ledgeType == ParkourType::Failed ? actor->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
+    out = RE::NiPoint3{RuntimeVariables::ledgePoint.x - backwardAdjustment.x, RuntimeVariables::ledgePoint.y - backwardAdjustment.y,
+                       ledgeType == ParkourType::Failed ? actor->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -619,14 +603,30 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     if (RuntimeVariables::EnableNotifyWindow) {
         return;
     }
-
     RuntimeVariables::EnableNotifyWindow = true;
+
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
 
-    Parkouring::CalculateStartingPosition(player, ledgeType);
-    InterpolateRefToPosition(player, RuntimeVariables::PlayerStartPosition, 0.1f);
-    _THREAD_POOL.enqueue([player, ledgeType, isSwimming] {
-        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+    RE::NiPoint3 startPos;
+    Parkouring::CalculateStartingPosition(player, ledgeType, startPos);
+    InterpolateRefToPosition(player, startPos, 0.1f);
+
+    _THREAD_POOL.enqueue([player, ledgeType, isSwimming, startPos] {
+        auto startTime = std::chrono::high_resolution_clock::now();
+
+        while (player->GetPosition().GetDistance(startPos) > 1.0f) {
+            auto elapsedMS =
+                std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
+
+            if (elapsedMS > 500) {
+                WARN("Pre-adjustment timed out");
+                _TASK_Q([player, startPos] { player->SetPosition(startPos, true); });
+                break;
+            }
+
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));  // avoid busy spin
+        }
+
         _TASK_Q([player, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
@@ -638,8 +638,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
                 }
                 /* Steps don't consume stamina anymore */
                 else {
-                    const bool lowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
-                    Parkouring::PostParkourStaminaDamage(player, lowEffort, isSwimming);
+                    const bool isLowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
+                    Parkouring::PostParkourStaminaDamage(player, isLowEffort, isSwimming);
                 }
             }
             else {

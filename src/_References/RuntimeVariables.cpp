@@ -9,8 +9,6 @@ namespace RuntimeVariables {
     RE::NiPoint3 ledgePoint = {0, 0, 0};
     RE::NiPoint3 playerDirFlat = {0, 0, 0};
 
-    RE::NiPoint3 PlayerStartPosition = {0, 0, 0};
-
     bool ParkourInProgress = false;
     bool EnableNotifyWindow = false;
     bool RecoveryFramesActive = false;

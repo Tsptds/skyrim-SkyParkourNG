@@ -7,9 +7,9 @@ namespace Parkouring {
                    float maxVaultHeight);
     void OnStartStop(bool isStop);
     bool PlaceAndShowIndicator();
-    void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 position, float seconds, bool isRelative = false);
+    void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds);
     void StopInterpolatingRef(const RE::Actor *actor);
-    void CalculateStartingPosition(const RE::Actor *actor, int ledgeType);
+    void CalculateStartingPosition(const RE::Actor *actor, int ledgeType, RE::NiPoint3 &out);
 
     bool TryActivateParkour();
     void UpdateParkourPoint();
