@@ -49,8 +49,6 @@ namespace Hooks {
             };
 
             struct FreeCam {
-                    inline static bool inFreecam = false;
-
                     struct Install {
                             static bool Begin();
                             static bool End();
@@ -80,7 +78,7 @@ bool Hooks::CameraHandler::InstallCamStateHooks() {
     res &= FPP::Install::CanProcess();
     res &= FPP::Install::Update();
 
-    //res &= FreeCam::Install::Begin();
+    res &= FreeCam::Install::Begin();
     //res &= FreeCam::Install::End();
 
     return res;
@@ -238,21 +236,15 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
 /* Freecam */
 void Hooks::CameraHandler::FreeCam::Callback::Begin(RE::FreeCameraState *a_this) {
     //LOG("Entered Freecam");
-    if (RuntimeVariables::ParkourInProgress) {
-        inFreecam = true;
-    }
     OG::_Begin(a_this);
+    if (RuntimeVariables::ParkourInProgress) {
+        const auto &cam = RE::PlayerCamera::GetSingleton();
+        cam->PushCameraState(RE::CameraState::kThirdPerson);
+    }
 }
 void Hooks::CameraHandler::FreeCam::Callback::End(RE::FreeCameraState *a_this) {
     //LOG("Exited Freecam");
-    if (inFreecam) {
-        inFreecam = false;
-        _TASK_Q([] {
-            WARN("Fixing main four controls");
-            auto ctrlMap = RE::ControlMap::GetSingleton();
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, true);
-        });
-    }
+
     OG::_End(a_this);
 }
 /* ------------------------------------------------------------- */
