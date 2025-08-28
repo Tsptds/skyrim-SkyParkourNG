@@ -4,6 +4,7 @@
 #include "_References/GameReferences.h"
 #include "_References/HardcodedVariables.h"
 #include "_References/IniSettings.h"
+#include "_References/Localization.h"
 #include "_References/ModSettings.h"
 #include "_References/ParkourType.h"
 #include "_References/RuntimeMethods.h"
