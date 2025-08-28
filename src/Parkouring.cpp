@@ -284,11 +284,14 @@ void Parkouring::OnStartStop(bool isStop) {
 
     const auto &player = GET_PLAYER;
     const auto &ctrl = player->GetCharController();
+    ctrl->gravity = isStop ? 1.0f : 0.0f;
 
     if (isStop) {
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
+
         player->NotifyAnimationGraph(SPPF_STOP);  // The other graph doesn't see the current graph, notify on stop to notify all
         player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
     }
@@ -296,7 +299,7 @@ void Parkouring::OnStartStop(bool isStop) {
         ParkourUtility::StopInteractions(*player);
 
         // Disable simulation, fixes char controller taking over on hit
-        player->GetCharController()->flags.set(RE::CHARACTER_FLAGS::kNoSim);
+        ctrl->flags.set(RE::CHARACTER_FLAGS::kNoSim);
     }
 
     // Toggle common controls
