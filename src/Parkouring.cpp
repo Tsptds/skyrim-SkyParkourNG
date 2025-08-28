@@ -284,7 +284,6 @@ void Parkouring::OnStartStop(bool isStop) {
 
     const auto &player = GET_PLAYER;
     const auto &ctrl = player->GetCharController();
-    ctrl->gravity = isStop ? 1.0f : 0.0f;
 
     if (isStop) {
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
