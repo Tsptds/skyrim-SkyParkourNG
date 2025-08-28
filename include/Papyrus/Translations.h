@@ -1,8 +1,12 @@
 #pragma once
 
 namespace SkyParkour_Papyrus {
+
     class Translations {
         public:
+            static void RegisterFuncs(RE::BSScript::IVirtualMachine *vm);
+
+        private:
             struct Core {
                     inline static const char *Section = "Core";
 
