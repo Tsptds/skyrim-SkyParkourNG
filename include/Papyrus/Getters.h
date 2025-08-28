@@ -7,6 +7,8 @@ namespace SkyParkour_Papyrus {
             static void RegisterFuncs(RE::BSScript::IVirtualMachine *vm);
 
         private:
+            inline static const std::string className = "SkyParkourPapyrus"s;
+
             static bool GetEnableMod(RE::StaticFunctionTag *);
             static bool GetShowIndicators(RE::StaticFunctionTag *);
             static float GetPlaybackSpeed(RE::StaticFunctionTag *);

@@ -12,49 +12,50 @@ namespace SkyParkour_Papyrus {
         const auto pf_warn = "Warn_"s;
 
         // Core Settings
-        vm->RegisterFunction(pf_core + "Header", "SkyParkourPapyrus", Core::Header);
-        vm->RegisterFunction(pf_core + "OnOff", "SkyParkourPapyrus", Core::OnOff);
-        vm->RegisterFunction(pf_core + "Indicator", "SkyParkourPapyrus", Core::Indicator);
-        vm->RegisterFunction(pf_core + "PlaybackSpeed", "SkyParkourPapyrus", Core::PlaybackSpeed);
+        vm->RegisterFunction(pf_core + "Header", className, Core::Header);
+        vm->RegisterFunction(pf_core + "OnOff", className, Core::OnOff);
+        vm->RegisterFunction(pf_core + "Indicator", className, Core::Indicator);
+        vm->RegisterFunction(pf_core + "PlaybackSpeed", className, Core::PlaybackSpeed);
 
         // Input Settings
-        vm->RegisterFunction(pf_input + "Header", "SkyParkourPapyrus", Input::Header);
-        vm->RegisterFunction(pf_input + "PresetKeyList", "SkyParkourPapyrus", Input::PresetKeyList);
-        vm->RegisterFunction(pf_input + "PresetKey0", "SkyParkourPapyrus", Input::PresetKey0);
-        vm->RegisterFunction(pf_input + "PresetKey1", "SkyParkourPapyrus", Input::PresetKey1);
-        vm->RegisterFunction(pf_input + "PresetKey2", "SkyParkourPapyrus", Input::PresetKey2);
-        vm->RegisterFunction(pf_input + "CustomKey", "SkyParkourPapyrus", Input::CustomKey);
-        vm->RegisterFunction(pf_input + "Delay", "SkyParkourPapyrus", Input::Delay);
+        vm->RegisterFunction(pf_input + "Header", className, Input::Header);
+        vm->RegisterFunction(pf_input + "UsePresetKey", className, Input::UsePresetKey);
+        vm->RegisterFunction(pf_input + "PresetKeyIndex", className, Input::PresetKeyIndex);
+        vm->RegisterFunction(pf_input + "PresetKey0", className, Input::PresetKey0);
+        vm->RegisterFunction(pf_input + "PresetKey1", className, Input::PresetKey1);
+        vm->RegisterFunction(pf_input + "PresetKey2", className, Input::PresetKey2);
+        vm->RegisterFunction(pf_input + "CustomKey", className, Input::CustomKey);
+        vm->RegisterFunction(pf_input + "Delay", className, Input::Delay);
 
         // Stamina Settings
-        vm->RegisterFunction(pf_stamina + "Header", "SkyParkourPapyrus", Stamina::Header);
-        vm->RegisterFunction(pf_stamina + "StaminaSystem", "SkyParkourPapyrus", Stamina::StaminaSystem);
-        vm->RegisterFunction(pf_stamina + "MustHaveStamina", "SkyParkourPapyrus", Stamina::MustHaveStamina);
-        vm->RegisterFunction(pf_stamina + "BaseStaminaCost", "SkyParkourPapyrus", Stamina::BaseStaminaCost);
+        vm->RegisterFunction(pf_stamina + "Header", className, Stamina::Header);
+        vm->RegisterFunction(pf_stamina + "StaminaSystem", className, Stamina::StaminaSystem);
+        vm->RegisterFunction(pf_stamina + "MustHaveStamina", className, Stamina::MustHaveStamina);
+        vm->RegisterFunction(pf_stamina + "BaseStaminaCost", className, Stamina::BaseStaminaCost);
 
         // Smart Parkour Settings
-        vm->RegisterFunction(pf_smart + "Header", "SkyParkourPapyrus", SmartParkour::Header);
-        vm->RegisterFunction(pf_smart + "Steps", "SkyParkourPapyrus", SmartParkour::Steps);
-        vm->RegisterFunction(pf_smart + "Vault", "SkyParkourPapyrus", SmartParkour::Vault);
-        vm->RegisterFunction(pf_smart + "Climb", "SkyParkourPapyrus", SmartParkour::Climb);
+        vm->RegisterFunction(pf_smart + "Header", className, SmartParkour::Header);
+        vm->RegisterFunction(pf_smart + "Steps", className, SmartParkour::Steps);
+        vm->RegisterFunction(pf_smart + "Vault", className, SmartParkour::Vault);
+        vm->RegisterFunction(pf_smart + "Climb", className, SmartParkour::Climb);
 
         // MCM Tooltip Info
-        vm->RegisterFunction(pf_tooltip + "OnOff", "SkyParkourPapyrus", MCM_Info::OnOff);
-        vm->RegisterFunction(pf_tooltip + "Indicator", "SkyParkourPapyrus", MCM_Info::Indicator);
-        vm->RegisterFunction(pf_tooltip + "PlaybackSpeed", "SkyParkourPapyrus", MCM_Info::PlaybackSpeed);
-        vm->RegisterFunction(pf_tooltip + "UsePresetKey", "SkyParkourPapyrus", MCM_Info::UsePresetKey);
-        vm->RegisterFunction(pf_tooltip + "CustomKey", "SkyParkourPapyrus", MCM_Info::CustomKey);
-        vm->RegisterFunction(pf_tooltip + "Delay", "SkyParkourPapyrus", MCM_Info::Delay);
-        vm->RegisterFunction(pf_tooltip + "StaminaSystem", "SkyParkourPapyrus", MCM_Info::StaminaSystem);
-        vm->RegisterFunction(pf_tooltip + "MustHaveStamina", "SkyParkourPapyrus", MCM_Info::MustHaveStamina);
-        vm->RegisterFunction(pf_tooltip + "StaminaCost", "SkyParkourPapyrus", MCM_Info::StaminaCost);
-        vm->RegisterFunction(pf_tooltip + "SmartSteps", "SkyParkourPapyrus", MCM_Info::SmartSteps);
-        vm->RegisterFunction(pf_tooltip + "SmartVault", "SkyParkourPapyrus", MCM_Info::SmartVault);
-        vm->RegisterFunction(pf_tooltip + "SmartClimb", "SkyParkourPapyrus", MCM_Info::SmartClimb);
+        vm->RegisterFunction(pf_tooltip + "OnOff", className, MCM_Info::OnOff);
+        vm->RegisterFunction(pf_tooltip + "Indicator", className, MCM_Info::Indicator);
+        vm->RegisterFunction(pf_tooltip + "PlaybackSpeed", className, MCM_Info::PlaybackSpeed);
+        vm->RegisterFunction(pf_tooltip + "UsePresetKey", className, MCM_Info::UsePresetKey);
+        vm->RegisterFunction(pf_tooltip + "CustomKey", className, MCM_Info::CustomKey);
+        vm->RegisterFunction(pf_tooltip + "Delay", className, MCM_Info::Delay);
+        vm->RegisterFunction(pf_tooltip + "StaminaSystem", className, MCM_Info::StaminaSystem);
+        vm->RegisterFunction(pf_tooltip + "MustHaveStamina", className, MCM_Info::MustHaveStamina);
+        vm->RegisterFunction(pf_tooltip + "StaminaCost", className, MCM_Info::StaminaCost);
+        vm->RegisterFunction(pf_tooltip + "SmartSteps", className, MCM_Info::SmartSteps);
+        vm->RegisterFunction(pf_tooltip + "SmartVault", className, MCM_Info::SmartVault);
+        vm->RegisterFunction(pf_tooltip + "SmartClimb", className, MCM_Info::SmartClimb);
 
         // MCM Warnings
-        vm->RegisterFunction(pf_warn + "AreYouSure", "SkyParkourPapyrus", MCM_Warn::AreYouSure);
-        vm->RegisterFunction(pf_warn + "KeyAlreadyMapped", "SkyParkourPapyrus", MCM_Warn::KeyAlreadyMapped);
+        vm->RegisterFunction(pf_warn + "AreYouSure", className, MCM_Warn::AreYouSure);
+        vm->RegisterFunction(pf_warn + "KeyAlreadyMapped", className, MCM_Warn::KeyAlreadyMapped);
     }
 
     // Core Settings
@@ -90,10 +91,16 @@ namespace SkyParkour_Papyrus {
         const auto &val = ini->GetValue(Section, "Header");
         return RE::BSFixedString(val);
     }
-    RE::BSFixedString Translations::Input::PresetKeyList(RE::StaticFunctionTag *) {
+    RE::BSFixedString Translations::Input::UsePresetKey(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
 
-        const auto &val = ini->GetValue(Section, "PresetKeyList");
+        const auto &val = ini->GetValue(Section, "UsePresetKey");
+        return RE::BSFixedString(val);
+    }
+    RE::BSFixedString Translations::Input::PresetKeyIndex(RE::StaticFunctionTag *) {
+        const auto &ini = Localized_ini::GetIniHandle();
+
+        const auto &val = ini->GetValue(Section, "PresetKeyIndex");
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::PresetKey0(RE::StaticFunctionTag *) {

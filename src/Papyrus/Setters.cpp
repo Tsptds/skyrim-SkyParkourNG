@@ -10,24 +10,24 @@ namespace SkyParkour_Papyrus {
     using namespace ModSettings;
 
     void Setters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm) {
-        vm->RegisterFunction("SetEnableMod", "SkyParkourPapyrus", SetEnableMod);
-        vm->RegisterFunction("SetShowIndicators", "SkyParkourPapyrus", SetShowIndicators);
-        vm->RegisterFunction("SetPlaybackSpeed", "SkyParkourPapyrus", SetPlaybackSpeed);
-        vm->RegisterFunction("SetEnableStaminaSystem", "SkyParkourPapyrus", SetEnableStaminaSystem);
-        vm->RegisterFunction("SetMustHaveStamina", "SkyParkourPapyrus", SetMustHaveStamina);
-        vm->RegisterFunction("SetBaseStaminaDamage", "SkyParkourPapyrus", SetBaseStaminaDamage);
-        vm->RegisterFunction("SetUsePresetKey", "SkyParkourPapyrus", SetUsePresetKey);
-        vm->RegisterFunction("SetCustomParkourKey", "SkyParkourPapyrus", SetCustomParkourKey);
-        vm->RegisterFunction("SetPresetParkourKey", "SkyParkourPapyrus", SetPresetParkourKey);
-        vm->RegisterFunction("SetParkourDelay", "SkyParkourPapyrus", SetParkourDelay);
-        vm->RegisterFunction("SetSmartSteps", "SkyParkourPapyrus", SetSmartSteps);
-        vm->RegisterFunction("SetSmartVault", "SkyParkourPapyrus", SetSmartVault);
-        vm->RegisterFunction("SetSmartClimb", "SkyParkourPapyrus", SetSmartClimb);
+        vm->RegisterFunction("SetEnableMod", className, SetEnableMod);
+        vm->RegisterFunction("SetShowIndicators", className, SetShowIndicators);
+        vm->RegisterFunction("SetPlaybackSpeed", className, SetPlaybackSpeed);
+        vm->RegisterFunction("SetEnableStaminaSystem", className, SetEnableStaminaSystem);
+        vm->RegisterFunction("SetMustHaveStamina", className, SetMustHaveStamina);
+        vm->RegisterFunction("SetBaseStaminaDamage", className, SetBaseStaminaDamage);
+        vm->RegisterFunction("SetUsePresetKey", className, SetUsePresetKey);
+        vm->RegisterFunction("SetCustomParkourKey", className, SetCustomParkourKey);
+        vm->RegisterFunction("SetPresetParkourKey", className, SetPresetParkourKey);
+        vm->RegisterFunction("SetParkourDelay", className, SetParkourDelay);
+        vm->RegisterFunction("SetSmartSteps", className, SetSmartSteps);
+        vm->RegisterFunction("SetSmartVault", className, SetSmartVault);
+        vm->RegisterFunction("SetSmartClimb", className, SetSmartClimb);
     }
 
     void Setters::SetEnableMod(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bEnableMod", value);
+        ini->SetBoolValue(Section, "bEnableMod", value);
         save(ini);
 
         Mod_Enabled = value;
@@ -37,14 +37,14 @@ namespace SkyParkour_Papyrus {
     }
     void Setters::SetShowIndicators(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bShowIndicators", value);
+        ini->SetBoolValue(Section, "bShowIndicators", value);
         save(ini);
 
         Use_Indicators = value;
     }
     void Setters::SetPlaybackSpeed(RE::StaticFunctionTag *, float value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetValue("MCM", "fPlaybackSpeed", std::to_string(value).c_str());
+        ini->SetValue(Section, "fPlaybackSpeed", std::to_string(value).c_str());
         save(ini);
 
         Playback_Speed = value;
@@ -53,70 +53,70 @@ namespace SkyParkour_Papyrus {
     }
     void Setters::SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bEnableStaminaSystem", value);
+        ini->SetBoolValue(Section, "bEnableStaminaSystem", value);
         save(ini);
 
         Enable_Stamina_Consumption = value;
     }
     void Setters::SetMustHaveStamina(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bMustHaveStamina", value);
+        ini->SetBoolValue(Section, "bMustHaveStamina", value);
         save(ini);
 
         Must_Have_Stamina = value;
     }
     void Setters::SetBaseStaminaDamage(RE::StaticFunctionTag *, float value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetValue("MCM", "iBaseStaminaDamage", std::to_string(value).c_str());
+        ini->SetValue(Section, "iBaseStaminaDamage", std::to_string(value).c_str());
         save(ini);
 
         Stamina_Damage = value;
     }
     void Setters::SetUsePresetKey(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bUsePresetKey", value);
+        ini->SetBoolValue(Section, "bUsePresetKey", value);
         save(ini);
 
         Use_Preset_Parkour_Key = value;
     }
     void Setters::SetCustomParkourKey(RE::StaticFunctionTag *, int32_t value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetValue("MCM", "iCustomKeybind", std::to_string(value).c_str());
+        ini->SetValue(Section, "iCustomKeybind", std::to_string(value).c_str());
         save(ini);
 
         Custom_Parkour_Key = value;
     }
     void Setters::SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetValue("MCM", "iPresetKeyIndex", std::to_string(value).c_str());
+        ini->SetValue(Section, "iPresetKeyIndex", std::to_string(value).c_str());
         save(ini);
 
         Preset_Parkour_Key = value;
     }
     void Setters::SetParkourDelay(RE::StaticFunctionTag *, float value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetValue("MCM", "fInputDelay", std::to_string(value).c_str());
+        ini->SetValue(Section, "fInputDelay", std::to_string(value).c_str());
         save(ini);
 
         Parkour_Delay = value;
     }
     void Setters::SetSmartSteps(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bSmartSteps", value);
+        ini->SetBoolValue(Section, "bSmartSteps", value);
         save(ini);
 
         Smart_Steps = value;
     }
     void Setters::SetSmartVault(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bSmartVault", value);
+        ini->SetBoolValue(Section, "bSmartVault", value);
         save(ini);
 
         Smart_Vault = value;
     }
     void Setters::SetSmartClimb(RE::StaticFunctionTag *, bool value) {
         auto ini = RuntimeMethods::GetIniHandle();
-        ini->SetBoolValue("MCM", "bSmartClimb", value);
+        ini->SetBoolValue(Section, "bSmartClimb", value);
         save(ini);
 
         Smart_Climb = value;

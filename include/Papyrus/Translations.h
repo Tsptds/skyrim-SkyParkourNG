@@ -7,6 +7,8 @@ namespace SkyParkour_Papyrus {
             static void RegisterFuncs(RE::BSScript::IVirtualMachine *vm);
 
         private:
+            inline static const std::string className = "SkyParkourLocalization"s;
+
             struct Core {
                     inline static const char *Section = "Core";
 
@@ -20,7 +22,8 @@ namespace SkyParkour_Papyrus {
                     inline static const char *Section = "Input";
 
                     static RE::BSFixedString Header(RE::StaticFunctionTag *);
-                    static RE::BSFixedString PresetKeyList(RE::StaticFunctionTag *);
+                    static RE::BSFixedString UsePresetKey(RE::StaticFunctionTag *);
+                    static RE::BSFixedString PresetKeyIndex(RE::StaticFunctionTag *);
                     static RE::BSFixedString PresetKey0(RE::StaticFunctionTag *);
                     static RE::BSFixedString PresetKey1(RE::StaticFunctionTag *);
                     static RE::BSFixedString PresetKey2(RE::StaticFunctionTag *);

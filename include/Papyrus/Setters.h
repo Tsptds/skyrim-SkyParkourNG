@@ -7,6 +7,9 @@ namespace SkyParkour_Papyrus {
             static void RegisterFuncs(RE::BSScript::IVirtualMachine *vm);
 
         private:
+            inline static const std::string className = "SkyParkourPapyrus"s;
+            inline static const char* Section = "MCM";
+
             static void SetEnableMod(RE::StaticFunctionTag *, bool value);
             static void SetShowIndicators(RE::StaticFunctionTag *, bool value);
             static void SetPlaybackSpeed(RE::StaticFunctionTag *, float value);

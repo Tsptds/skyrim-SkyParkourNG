@@ -7,19 +7,19 @@ namespace SkyParkour_Papyrus {
     using namespace ModSettings;
 
     void Getters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm){
-        vm->RegisterFunction("GetEnableMod", "SkyParkourPapyrus", GetEnableMod);
-        vm->RegisterFunction("GetShowIndicators", "SkyParkourPapyrus", GetShowIndicators);
-        vm->RegisterFunction("GetPlaybackSpeed", "SkyParkourPapyrus", GetPlaybackSpeed);
-        vm->RegisterFunction("GetEnableStaminaSystem", "SkyParkourPapyrus", GetEnableStaminaSystem);
-        vm->RegisterFunction("GetMustHaveStamina", "SkyParkourPapyrus", GetMustHaveStamina);
-        vm->RegisterFunction("GetBaseStaminaDamage", "SkyParkourPapyrus", GetBaseStaminaDamage);
-        vm->RegisterFunction("GetUsePresetKey", "SkyParkourPapyrus", GetUsePresetKey);
-        vm->RegisterFunction("GetCustomParkourKey", "SkyParkourPapyrus", GetCustomParkourKey);
-        vm->RegisterFunction("GetPresetParkourKey", "SkyParkourPapyrus", GetPresetParkourKey);
-        vm->RegisterFunction("GetParkourDelay", "SkyParkourPapyrus", GetParkourDelay);
-        vm->RegisterFunction("GetSmartSteps", "SkyParkourPapyrus", GetSmartSteps);
-        vm->RegisterFunction("GetSmartVault", "SkyParkourPapyrus", GetSmartVault);
-        vm->RegisterFunction("GetSmartClimb", "SkyParkourPapyrus", GetSmartClimb);
+        vm->RegisterFunction("GetEnableMod", className, GetEnableMod);
+        vm->RegisterFunction("GetShowIndicators", className, GetShowIndicators);
+        vm->RegisterFunction("GetPlaybackSpeed", className, GetPlaybackSpeed);
+        vm->RegisterFunction("GetEnableStaminaSystem", className, GetEnableStaminaSystem);
+        vm->RegisterFunction("GetMustHaveStamina", className, GetMustHaveStamina);
+        vm->RegisterFunction("GetBaseStaminaDamage", className, GetBaseStaminaDamage);
+        vm->RegisterFunction("GetUsePresetKey", className, GetUsePresetKey);
+        vm->RegisterFunction("GetCustomParkourKey", className, GetCustomParkourKey);
+        vm->RegisterFunction("GetPresetParkourKey", className, GetPresetParkourKey);
+        vm->RegisterFunction("GetParkourDelay", className, GetParkourDelay);
+        vm->RegisterFunction("GetSmartSteps", className, GetSmartSteps);
+        vm->RegisterFunction("GetSmartVault", className, GetSmartVault);
+        vm->RegisterFunction("GetSmartClimb", className, GetSmartClimb);
     }
 
     bool Getters::GetEnableMod(RE::StaticFunctionTag *) {
