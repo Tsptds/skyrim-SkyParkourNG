@@ -179,7 +179,7 @@ bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_thi
 }
 void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (RuntimeVariables::ParkourInProgress) {
-        auto ctrl = GET_PLAYER->GetCharController();
+        const auto &ctrl = GET_PLAYER->GetCharController();
 
         /* TDM swim pitch angle thing */
         if (Compatibility::TrueDirectionalMovement) {

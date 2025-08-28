@@ -51,7 +51,7 @@ namespace SkyParkourUtil {
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
 
-    void LogCharacterFlags() {
+    static void LogCharacterFlags() {
         if (auto* controller = RE::PlayerCharacter::GetSingleton()->GetCharController()) {
             auto flags = controller->flags;
 
