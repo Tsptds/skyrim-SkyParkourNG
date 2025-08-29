@@ -78,7 +78,7 @@ bool Hooks::CameraHandler::InstallCamStateHooks() {
     res &= FPP::Install::CanProcess();
     res &= FPP::Install::Update();
 
-    //res &= FreeCam::Install::Begin();
+    res &= FreeCam::Install::Begin();
     //res &= FreeCam::Install::End();
 
     return res;
@@ -178,6 +178,10 @@ bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_thi
     return OG::_CanProcess(a_this, a_event);
 }
 void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+    if (ModSettings::Mod_Enabled) {
+        Parkouring::UpdateParkourPoint();
+    }
+
     if (RuntimeVariables::ParkourInProgress) {
         const auto &ctrl = GET_PLAYER->GetCharController();
 
@@ -211,6 +215,10 @@ bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_thi
     return OG::_CanProcess(a_this, a_event);
 }
 void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+    if (ModSettings::Mod_Enabled) {
+        Parkouring::UpdateParkourPoint();
+    }
+
     if (RuntimeVariables::ParkourInProgress) {
         /* Clamp Player looking angle to prevent weird visuals */
         const auto &player = GET_PLAYER;
@@ -236,7 +244,7 @@ void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, R
 /* Freecam */
 void Hooks::CameraHandler::FreeCam::Callback::Begin(RE::FreeCameraState *a_this) {
     //LOG("Entered Freecam");
-
+    Parkouring::OngoingParkourInvalidateVars();
     OG::_Begin(a_this);
 }
 void Hooks::CameraHandler::FreeCam::Callback::End(RE::FreeCameraState *a_this) {

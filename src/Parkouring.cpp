@@ -515,23 +515,27 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
                        ledgeType == ParkourType::Failed ? actor->GetPositionZ() : RuntimeVariables::ledgePoint.z + zAdjust};
 }
 
+void Parkouring::OngoingParkourInvalidateVars() {
+    if (GameReferences::currentIndicatorRef)
+        GameReferences::currentIndicatorRef->Disable();
+    RuntimeVariables::selectedLedgeType = -1;
+}
+
 void Parkouring::UpdateParkourPoint() {
     if (RuntimeVariables::ParkourInProgress) {
-        if (GameReferences::currentIndicatorRef)
-            GameReferences::currentIndicatorRef->Disable();
-        RuntimeVariables::selectedLedgeType = -1;
+        OngoingParkourInvalidateVars();
         return;
     }
 
     _THREAD_POOL.enqueue([]() {
         RuntimeVariables::IsParkourActive = IsParkourActive();
         RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
-
-        if (!RuntimeVariables::ParkourInProgress) {
-            /*Avoid updating the ledge if parkour already started*/
-            _TASK_Q([]() { RuntimeVariables::selectedLedgeType = GetLedgePoint(); });
-        }
     });
+
+    if (!RuntimeVariables::ParkourInProgress) {
+        /*Avoid updating the ledge if parkour already started*/
+        RuntimeVariables::selectedLedgeType = GetLedgePoint();
+    }
 
     //LOG("{}", RE::GetSecondsSinceLastFrame());
 

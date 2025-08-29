@@ -74,11 +74,6 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
     if (!a_event)
         return RE::BSEventNotifyControl::kContinue;
 
-    // Update this here,
-    if (ModSettings::Mod_Enabled) {
-        Parkouring::UpdateParkourPoint();
-    }
-
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
             if (ModSettings::Use_Preset_Parkour_Key) {
