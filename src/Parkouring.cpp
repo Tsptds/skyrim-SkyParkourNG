@@ -66,9 +66,9 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float playerHeight = 120 * RuntimeVariables::PlayerScale;
     const float minUpCheck = 100 * RuntimeVariables::PlayerScale;
     const float maxUpCheck = (maxLedgeHeight - startZOffset) + 20 * RuntimeVariables::PlayerScale;
-    const float fwdCheckStep = 5 * RuntimeVariables::PlayerScale; // 8
-    const int fwdCheckIterations = 15;   // 15
-    const float minLedgeFlatness = 0.5;  //0.5
+    const float fwdCheckStep = 5 * RuntimeVariables::PlayerScale;  // 8
+    const int fwdCheckIterations = 15;                             // 15
+    const float minLedgeFlatness = 0.5;                            //0.5
 
     // Raycast above player, is there enough room
     RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
