@@ -71,6 +71,11 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray
     LOG("{}", speed);
 #endif
     /* If player isn't actually moving forward steps are not valid */
+
+    if (speed < -0.5f) { /* Standing still has precision errors */
+        return false;
+    }
+
     const auto &notStuck = speed > 1;
     if (notStuck) {
         return false;
