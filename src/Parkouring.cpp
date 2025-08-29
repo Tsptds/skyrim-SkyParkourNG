@@ -58,16 +58,16 @@ int Parkouring::GetLedgePoint() {
 }
 
 int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight) {
-    const auto player = GET_PLAYER;
-    const auto playerPos = player->GetPosition();
+    const auto &player = GET_PLAYER;
+    const auto &playerPos = player->GetPosition();
 
     // Constants adjusted for player scale
     const float startZOffset = 100 * RuntimeVariables::PlayerScale;
     const float playerHeight = 120 * RuntimeVariables::PlayerScale;
     const float minUpCheck = 100 * RuntimeVariables::PlayerScale;
     const float maxUpCheck = (maxLedgeHeight - startZOffset) + 20 * RuntimeVariables::PlayerScale;
-    const float fwdCheckStep = 8 * RuntimeVariables::PlayerScale;
-    const int fwdCheckIterations = 10;   // 15
+    const float fwdCheckStep = 5 * RuntimeVariables::PlayerScale; // 8
+    const int fwdCheckIterations = 15;   // 15
     const float minLedgeFlatness = 0.5;  //0.5
 
     // Raycast above player, is there enough room
@@ -139,7 +139,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     // Ensure there is sufficient headroom for the player to stand
-    float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
+    const float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
     const float headroomPlayerDiff = playerHeight - headroomBuffer;
     RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
     RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, COL_LAYER_EXTEND::kClimbObstruction);
