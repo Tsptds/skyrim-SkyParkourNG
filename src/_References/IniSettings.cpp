@@ -29,4 +29,25 @@ namespace IniSettings {
         ini->SetValue("MCM", "bSmartVault", "true");
         ini->SetValue("MCM", "bSmartClimb", "true");
     }
+
+    std::unique_ptr<CSimpleIniA> GetIniHandle() {
+        const auto &path = IniSettings::INIPath.c_str();
+
+        auto ini = std::make_unique<CSimpleIniA>();
+        ini->SetUnicode();
+
+        SI_Error rc = ini->LoadFile(path);
+        if (rc < 0) {
+            WARN("SkyParkourNG.ini not found, creating with default values");
+
+            IniSettings::CreateDefault(ini);
+
+            if (ini->SaveFile(path) < 0) {
+                ERROR("Failed to create default SkyParkourNG.ini");
+                return nullptr;
+            }
+        }
+
+        return ini;
+    }
 }  // namespace IniSettings

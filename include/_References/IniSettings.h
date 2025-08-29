@@ -7,4 +7,5 @@ namespace IniSettings {
     extern std::string Red_Indicator_RefID;
 
     extern void CreateDefault(std::unique_ptr<CSimpleIniA> &ini);
+    extern std::unique_ptr<CSimpleIniA> GetIniHandle();
 }  // namespace IniSettings

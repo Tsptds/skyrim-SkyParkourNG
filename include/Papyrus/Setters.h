@@ -25,5 +25,6 @@ namespace SkyParkour_Papyrus {
             static void SetSmartClimb(RE::StaticFunctionTag *, bool value);
 
             static void save(const std::unique_ptr<CSimpleIniA> &ini);
+            static std::unique_ptr<CSimpleIniA> GetINI();
     };
 }  // namespace SkyParkour_Papyrus

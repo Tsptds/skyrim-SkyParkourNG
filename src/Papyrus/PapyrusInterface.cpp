@@ -5,7 +5,7 @@
 
 #include "_References/ModSettings.h"
 #include "Util/ParkourUtility.h"
-#include "_References/RuntimeMethods.h"
+#include "_References/IniSettings.h"
 #include "Parkouring.h"
 
 namespace SkyParkour_Papyrus {
@@ -18,7 +18,7 @@ namespace SkyParkour_Papyrus {
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
-        auto ini = RuntimeMethods::GetIniHandle();
+        auto ini = IniSettings::GetIniHandle();
 
         /* Parkour Settings */
         Mod_Enabled = ini->GetBoolValue(Section, "bEnableMod");

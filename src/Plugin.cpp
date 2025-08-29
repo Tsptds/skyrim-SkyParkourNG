@@ -29,7 +29,7 @@ void Install_Hooks_And_Listeners() {
 }
 
 bool RegisterIndicators() {
-    auto ini = RuntimeMethods::GetIniHandle();
+    auto ini = IniSettings::GetIniHandle();
     int blueForm = 0x000014;
     int redForm = 0x00000C;
 

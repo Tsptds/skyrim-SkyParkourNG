@@ -32,29 +32,9 @@ namespace RuntimeMethods {
         return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
                       dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
     }
-    std::unique_ptr<CSimpleIniA> GetIniHandle() {
-        const auto &path = IniSettings::INIPath.c_str();
-
-        auto ini = std::make_unique<CSimpleIniA>();
-        ini->SetUnicode();
-
-        SI_Error rc = ini->LoadFile(path);
-        if (rc < 0) {
-            WARN("SkyParkourNG.ini not found, creating with default values");
-
-            IniSettings::CreateDefault(ini);
-
-            if (ini->SaveFile(path) < 0) {
-                ERROR("Failed to create default SkyParkourNG.ini");
-                return nullptr;
-            }
-        }
-
-        return ini;
-    }
 
     bool ReadPluginConfigFromINI() {
-        auto ini = GetIniHandle();
+        auto ini = IniSettings::GetIniHandle();
         if (!ini) {
             ERROR("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
             return false;
