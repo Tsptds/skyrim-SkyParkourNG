@@ -1,7 +1,9 @@
 #pragma once
 
 #include "Util/ThreadPool.hpp"
+#ifdef _DEBUG
 #include "_Logging.h"
+#endif
 
 /* Macro func */
 #define Mask_OR(x, y) (static_cast<uint32_t>(x) | static_cast<uint32_t>(y))
