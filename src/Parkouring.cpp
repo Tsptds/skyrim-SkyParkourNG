@@ -616,23 +616,17 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
     RE::NiPoint3 startPos;
     Parkouring::CalculateStartingPosition(player, ledgeType, startPos);
-    InterpolateRefToPosition(player, startPos, 0.1f);
+
+    InterpolateRefToPosition(player, startPos, 0.15f);
 
     _THREAD_POOL.enqueue([player, ledgeType, isSwimming, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
-
-        while (player->GetPosition().GetDistance(startPos) > 1.0f) {
-            auto elapsedMS =
+        long long elapsedMS;
+        do {
+            elapsedMS =
                 std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 
-            if (elapsedMS > 500) {
-                WARN("Pre-adjustment timed out");
-                _TASK_Q([player, startPos] { player->SetPosition(startPos, true); });
-                break;
-            }
-
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));  // avoid busy spin
-        }
+        } while (elapsedMS < 100);
 
         _TASK_Q([player, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
