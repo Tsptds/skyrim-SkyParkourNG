@@ -604,7 +604,8 @@ bool Parkouring::TryActivateParkour() {
     return true;
 }
 void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
-    const auto player = GET_PLAYER;
+    const auto &player = GET_PLAYER;
+    const auto &ctrl = player->GetCharController();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //LOG("Dist: {}", dist);
 
@@ -613,15 +614,16 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         return;
     }
     RuntimeVariables::EnableNotifyWindow = true;
-
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
 
     RE::NiPoint3 startPos;
     Parkouring::CalculateStartingPosition(player, ledgeType, startPos);
 
+    ctrl->gravity = 0;
+
     InterpolateRefToPosition(player, startPos, 0.15f);
 
-    _THREAD_POOL.enqueue([player, ledgeType, isSwimming, startPos] {
+    _THREAD_POOL.enqueue([player, ctrl, ledgeType, isSwimming, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
         long long elapsedMS;
         do {
@@ -630,10 +632,12 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
         } while (elapsedMS < 100);
 
-        _TASK_Q([player, ledgeType, isSwimming] {
+        _TASK_Q([player, ctrl, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
             RuntimeVariables::EnableNotifyWindow = false;
+            ctrl->gravity = 1;
             StopInterpolatingRef(player);
+
             if (success) {
                 /* Swap last leg (Step animations) */
                 if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
