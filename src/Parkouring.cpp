@@ -284,7 +284,6 @@ void Parkouring::OnStartStop(bool isStop) {
 
     const auto &player = GET_PLAYER;
     const auto &ctrl = player->GetCharController();
-    const auto &cam = RE::PlayerCamera::GetSingleton();
 
     if (isStop) {
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
@@ -304,10 +303,8 @@ void Parkouring::OnStartStop(bool isStop) {
         ctrl->flags.set(RE::CHARACTER_FLAGS::kNoSim);
     }
 
-    if (cam && (cam->IsInFirstPerson() || cam->IsInThirdPerson())) {
-        const auto &ctrlMap = RE::ControlMap::GetSingleton();
-        ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
-    }
+    const auto &ctrlMap = RE::ControlMap::GetSingleton();
+    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
 }
 
 bool Parkouring::PlaceAndShowIndicator() {

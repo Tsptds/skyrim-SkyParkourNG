@@ -90,12 +90,12 @@ namespace Hooks {
 bool Hooks::CameraHandler::InstallCamStateHooks() {
     bool res = false;
 
-    res &= TPP::Install::Begin();
+    // res &= TPP::Install::Begin();
     res &= TPP::Install::End();
     res &= TPP::Install::Update();
     res &= TPP::Install::CanProcess();
 
-    res &= FPP::Install::Begin();
+    // res &= FPP::Install::Begin();
     res &= FPP::Install::End();
     res &= FPP::Install::Update();
     res &= FPP::Install::CanProcess();
@@ -218,26 +218,11 @@ bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_thi
     return OG::_CanProcess(a_this, a_event);
 }
 void Hooks::CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this) {
-    
-    if (RuntimeVariables::ParkourInProgress) {
-        auto ctrlMap = RE::ControlMap::GetSingleton();
-        if (ctrlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour)) {
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, false);
-        }
-    }
-
     OG::_Begin(a_this);
 }
 void Hooks::CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
     // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
     Parkouring::OngoingParkourInvalidateVars();
-
-    if (RuntimeVariables::ParkourInProgress) {
-        auto ctrlMap = RE::ControlMap::GetSingleton();
-        if (!ctrlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour)) {
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, true);
-        }
-    }
 
     OG::_End(a_this);
 }
@@ -279,26 +264,11 @@ bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_thi
     return OG::_CanProcess(a_this, a_event);
 }
 void Hooks::CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this) {
-    
-    if (RuntimeVariables::ParkourInProgress) {
-        auto ctrlMap = RE::ControlMap::GetSingleton();
-        if (ctrlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour)) {
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, false);
-        }
-    }
-
     OG::_Begin(a_this);
 }
 void Hooks::CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this) {
     // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
     Parkouring::OngoingParkourInvalidateVars();
-
-    if (RuntimeVariables::ParkourInProgress) {
-        auto ctrlMap = RE::ControlMap::GetSingleton();
-        if (!ctrlMap->AreControlsEnabled(RE::ControlMap::UEFlag::kMainFour)) {
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, true);
-        }
-    }
 
     OG::_End(a_this);
 }
