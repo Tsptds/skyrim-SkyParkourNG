@@ -12,17 +12,9 @@ namespace SkyParkour_Papyrus {
     using namespace ModSettings;
 
     void Internal::AlertPlayerLoaded(RE::StaticFunctionTag *) {
-        /* Check if user installed the behavior patch */
-        const auto &player = GET_PLAYER;
-        int GraphVariableToCheck;
-        if (!player->GetGraphVariableInt(SPPF_Ledge, GraphVariableToCheck)) {
-            RE::DebugMessageBox(
-                "SkyParkour Warning\n\nThe behavior patch is not installed properly. You will have problems with animations.");
-        }
-
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
         Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
-        player->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
+        GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
     }
 
     void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
