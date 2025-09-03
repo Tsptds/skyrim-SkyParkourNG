@@ -1,9 +1,9 @@
 {
   "$schema": "https://raw.githubusercontent.com/microsoft/vcpkg-tool/main/docs/vcpkg.schema.json",
-  "name": "skyparkour-ng-v2",
-  "version-string": "2.1.0",
+  "name": "skyparkour-ng-v3",
+  "version-string": "3.1.0",
   "description": "Procedural Parkour Framework For Skyrim Special Edition",
-  "homepage": "https://github.com/Tsptds/SkyParkourNGv2",
+  "homepage": "https://github.com/Tsptds/skyrim-SkyParkourNG",
   "features": {
     "plugin": {
       "description": "SKSE plugin",
