@@ -225,8 +225,6 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         return ParkourType::NoLedge;  // Obstruction behind the vaultable surface
     }
 
-    /* TODO: Raycast obstruction check from the validated ledge point, to ensure not vaulting into stuff. Account backward adjustment. */
-
     /* Move forward by this steps, and RayCast downwards. If a valid layer is found, mark it. */
     int downIterations = 20;
     RE::NiPoint3 downRayDir(0, 0, -1);
@@ -267,6 +265,15 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             foundLandingHeight = std::min(hitHeight, foundLandingHeight);
             foundLanding = true;
         }
+    }
+
+    // Check if the structure is like a railing by casting an upwards ray on the valid ledge
+    const RE::NiPoint3 upRayDir(0, 0, 1);
+    const float halfPlayerHeight = headHeight * 0.5f;
+    const RayCastResult upRay = RayCast(ledgePoint, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kClimbObstruction);
+
+    if (upRay.didHit) {
+        return ParkourType::NoLedge;
     }
 
     // Final validation for vault
