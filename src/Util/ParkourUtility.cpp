@@ -100,7 +100,7 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray
     if (!ModSettings::Smart_Steps)
         return true;  // Feature disabled, always allow
 
-    return player->IsMoving();  // Feature enabled, only allow if moving
+    return isMoving;  // Feature enabled, only allow if moving
 }
 
 bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
