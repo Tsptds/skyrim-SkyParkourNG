@@ -625,7 +625,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
     ctrl->gravity = 0;
 
-    InterpolateRefToPosition(player, startPos, 0.15f);
+    InterpolateRefToPosition(player, startPos, 0.1f);
 
     _THREAD_POOL.enqueue([player, ctrl, ledgeType, isSwimming, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -634,7 +634,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             elapsedMS =
                 std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 
-        } while (elapsedMS < 100);
+        } while (elapsedMS < 100 && (player->GetPosition().GetDistance(startPos) > 1.0f));
 
         _TASK_Q([player, ctrl, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
