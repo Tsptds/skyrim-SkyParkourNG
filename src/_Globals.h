@@ -49,6 +49,7 @@ namespace SkyParkourUtil {
         kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
         kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
         kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
+        kVaultUp = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
     };
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now

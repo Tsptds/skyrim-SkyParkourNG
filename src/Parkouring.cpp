@@ -270,7 +270,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     // Check if the structure is like a railing by casting an upwards ray on the valid ledge
     const RE::NiPoint3 upRayDir(0, 0, 1);
     const float halfPlayerHeight = headHeight * 0.5f;
-    const RayCastResult upRay = RayCast(ledgePoint, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kClimbObstruction);
+    const RayCastResult upRay = RayCast(ledgePoint, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kVaultUp);
 
     if (upRay.didHit) {
         return ParkourType::NoLedge;
