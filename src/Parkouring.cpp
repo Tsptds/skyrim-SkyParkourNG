@@ -311,6 +311,7 @@ void Parkouring::OnStartStop(bool isStop) {
     }
 
     const auto &ctrlMap = RE::ControlMap::GetSingleton();
+    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop);
     ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
 }
 
