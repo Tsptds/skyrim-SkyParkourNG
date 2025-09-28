@@ -326,49 +326,51 @@ bool Parkouring::PlaceAndShowIndicator() {
 
     const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckActionRequiresLowEffort(ledgeType);
 
-    _TASK_Q([useRed]() {
-        auto blueRef = GameReferences::indicatorRef_Blue;
-        auto redRef = GameReferences::indicatorRef_Red;
-        if (!blueRef || !redRef) {
-            return;
-        }
+    auto blueRef = GameReferences::indicatorRef_Blue;
+    auto redRef = GameReferences::indicatorRef_Red;
+    if (!blueRef || !redRef) {
+        return false;
+    }
 
-        auto &currentRef = GameReferences::currentIndicatorRef;
-        currentRef = useRed ? redRef : blueRef;
+    auto &currentRef = GameReferences::currentIndicatorRef;
+    currentRef = useRed ? redRef : blueRef;
 
-        if (useRed) {
-            if (blueRef)
-                blueRef->Disable();
-        }
-        else {
-            if (redRef)
-                redRef->Disable();
-        }
+    if (useRed) {
+        if (blueRef)
+            blueRef->Disable();
+    }
+    else {
+        if (redRef)
+            redRef->Disable();
+    }
 
-        if (!currentRef) {
-            return;
-        }
+    if (!currentRef) {
+        return false;
+    }
 
-        const auto player = GET_PLAYER;
-        if (!player) {
-            return;
-        }
+    const auto &player = GET_PLAYER;
+    if (!player) {
+        return false;
+    }
 
-        if (currentRef->GetParentCell() != player->GetParentCell()) {
-            currentRef->MoveTo(player->AsReference());
-        }
+    const auto &playerCell = player->GetParentCell();
+    if (!playerCell) {
+        return false;
+    }
 
-        currentRef->data.location = RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8.0f);
-        currentRef->data.angle = RE::NiPoint3(0, 0, std::atan2(RuntimeVariables::playerDirFlat.x, RuntimeVariables::playerDirFlat.y));
-        currentRef->Update3DPosition(true);
+    if (currentRef->GetParentCell() != playerCell) {
+        currentRef->SetParentCell(playerCell);
+    }
 
-        if (RuntimeVariables::IsParkourActive) {
-            currentRef->Enable(false);
-        }
-        else {
-            currentRef->Disable();
-        }
-    });
+    currentRef->SetPosition(RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8.0f));
+    currentRef->Update3DPosition(true);
+
+    if (RuntimeVariables::IsParkourActive) {
+        currentRef->Enable(false);
+    }
+    else {
+        currentRef->Disable();
+    }
 
     return true;
 }
@@ -546,7 +548,7 @@ void Parkouring::UpdateParkourPoint() {
     }
 
     // Indicator stuff
-    _THREAD_POOL.enqueue([]() { PlaceAndShowIndicator(); });
+    PlaceAndShowIndicator();
 }
 
 bool Parkouring::TryActivateParkour() {
