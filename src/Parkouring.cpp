@@ -508,7 +508,7 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
 
         case 1:  // Grab (Midair or Out of Water)
             z = HardCodedVariables::grabElevation - 5;
-            backOffset = 40;  // Override backward offset
+            // backOffset = 40;  // Override backward offset
             break;
 
         case 0:  // Failed (Low Stamina Animation)
@@ -627,7 +627,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
     ctrl->gravity = 0;
 
-    InterpolateRefToPosition(player, startPos, 0.1f);
+    InterpolateRefToPosition(player, startPos, 0.15f);
 
     _THREAD_POOL.enqueue([player, ctrl, ledgeType, isSwimming, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
