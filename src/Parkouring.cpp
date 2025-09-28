@@ -509,7 +509,7 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
 
         case 1:  // Grab (Midair or Out of Water)
             z = HardCodedVariables::grabElevation - 5;
-            // backOffset = 40;  // Override backward offset
+            backOffset = 45;  // Override backward offset
             break;
 
         case 0:  // Failed (Low Stamina Animation)
@@ -627,8 +627,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     Parkouring::CalculateStartingPosition(player, ledgeType, startPos);
 
     ctrl->gravity = 0;
-
-    InterpolateRefToPosition(player, startPos, 0.15f);
+    const float timeOfAdjust = ledgeType == ParkourType::Grab ? 0.1f : 0.15f; /* Grab's gotta be more precise */
+    InterpolateRefToPosition(player, startPos, timeOfAdjust);
 
     _THREAD_POOL.enqueue([player, ctrl, ledgeType, isSwimming, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
@@ -637,7 +637,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
             elapsedMS =
                 std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - startTime).count();
 
-        } while (elapsedMS < 100 && (player->GetPosition().GetDistance(startPos) > 1.0f));
+        } while (elapsedMS < 100 && (player->GetPosition().GetDistance(startPos) >= 1.0f));
 
         _TASK_Q([player, ctrl, ledgeType, isSwimming] {
             bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);

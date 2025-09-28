@@ -8,7 +8,7 @@ namespace HardCodedVariables {
     const float vaultMaxHeight = 120.0f;
     const float vaultMinHeight = 40.5f;
 
-    const float grabPlayerBelowLedgeMaxDiff = 105.0f;
+    const float grabPlayerBelowLedgeMaxDiff = 110.0f;
     const float grabPlayerAboveLedgeMaxDiff = -35.0f;
 
     // These are the height ranges for parkour type selection, represent low limits.
