@@ -6,9 +6,6 @@
 #endif
 
 /* Macro func */
-#define Mask_OR(x, y) (static_cast<uint32_t>(x) | static_cast<uint32_t>(y))
-#define Mask_AND(x, y) (static_cast<uint32_t>(x) & static_cast<uint32_t>(y))
-#define Mask_DIFF(x, y) (static_cast<uint32_t>(x) & ~static_cast<uint32_t>(y))
 #define PRINT_LAYER(x) (RE::CollisionLayerToString(x))
 
 namespace SkyParkourUtil {
@@ -46,13 +43,13 @@ namespace SkyParkourUtil {
 
     enum class COL_LAYER_EXTEND {
         kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
-        kClimbObstruction = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
-        kVaultDown = Mask_OR(RE::COL_LAYER::kLOS, RE::COL_LAYER::kTransparent),
+        kClimbObstruction = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
+        kVaultDown = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
         kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
         kVaultUp = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
     };
 
-    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate, k_Custom };  // k_Custom is unused for now
+    const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate };
 
     static void LogCharacterFlags() {
         if (auto* controller = RE::PlayerCharacter::GetSingleton()->GetCharController()) {
