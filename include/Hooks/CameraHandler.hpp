@@ -222,7 +222,7 @@ void Hooks::CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this) {
 }
 void Hooks::CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
     // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
-    Parkouring::OngoingParkourInvalidateVars();
+    Parkouring::InvalidateVars();
 
     OG::_End(a_this);
 }
@@ -268,7 +268,7 @@ void Hooks::CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this) {
 }
 void Hooks::CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this) {
     // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
-    Parkouring::OngoingParkourInvalidateVars();
+    Parkouring::InvalidateVars();
 
     OG::_End(a_this);
 }

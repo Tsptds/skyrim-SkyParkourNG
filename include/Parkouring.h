@@ -10,7 +10,7 @@ namespace Parkouring {
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds);
     void StopInterpolatingRef(const RE::Actor *actor);
     void CalculateStartingPosition(const RE::Actor *actor, int ledgeType, RE::NiPoint3 &out);
-    void OngoingParkourInvalidateVars();
+    void InvalidateVars();
     bool TryActivateParkour();
     void UpdateParkourPoint();
     void ParkourReadyRun(int32_t ledgeType, bool isSwimming);
