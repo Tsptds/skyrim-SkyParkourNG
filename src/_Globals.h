@@ -44,7 +44,7 @@ namespace SkyParkourUtil {
     enum class COL_LAYER_EXTEND {
         kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
         kClimbObstruction = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
-        kVaultDown = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
+        kVaultDown = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
         kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
         kVaultUp = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
     };
