@@ -46,7 +46,7 @@ namespace SkyParkourUtil {
         kClimbObstruction = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
         kVaultDown = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
         kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
-        kVaultUp = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
+        kVaultPostLedgeObstruction = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
     };
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate };

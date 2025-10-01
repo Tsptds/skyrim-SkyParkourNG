@@ -2,6 +2,8 @@
 
 namespace ModSettings {
 
+    bool _Debug_Draw_Lines = false;
+
     bool Use_Preset_Parkour_Key = true;
     int Preset_Parkour_Key = PARKOUR_PRESET_KEYS::kJump;
     uint32_t Custom_Parkour_Key = 0;

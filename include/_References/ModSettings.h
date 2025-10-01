@@ -1,6 +1,7 @@
 #pragma once
 
 namespace ModSettings {
+    extern bool _Debug_Draw_Lines;
     extern bool Use_Preset_Parkour_Key;
     extern int Preset_Parkour_Key;
     extern uint32_t Custom_Parkour_Key;

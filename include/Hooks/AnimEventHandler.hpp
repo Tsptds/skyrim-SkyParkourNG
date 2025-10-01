@@ -5,6 +5,7 @@
 
 #include "Parkouring.h"
 #include "Util/ParkourUtility.h"
+#include "API/API_Handles.h"
 
 namespace Hooks {
 
@@ -141,6 +142,22 @@ bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_
 }
 
 bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
+    if (a_eventName == "sppf_debug") {
+        if (API_Handles::TrueHUD::Get()) {
+            auto& draw = ModSettings::_Debug_Draw_Lines;
+            draw = !draw;
+            const char* msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
+            LOG("{}", msg);
+            RE::DebugNotification(msg);
+            return true;
+        }
+        else {
+            WARN("Can't enable debug line drawing, TrueHud handle not found");
+            RE::DebugNotification("TrueHUD not found, SkyParkour debugging isn't available");
+            return false;
+        }
+    }
+
     if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
         /* If stop event is sent forcibly, flow to correct graph state. */
         const_cast<RE::BSFixedString&>(a_eventName) = SPPF_INTERRUPT;

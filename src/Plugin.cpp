@@ -9,6 +9,7 @@
 #include "Hooks/InputHandler.hpp"
 #include "Hooks/AnimEventHandler.hpp"
 #include "Hooks/CameraHandler.hpp"
+#include "API/API_Handles.h"
 
 bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);
@@ -72,13 +73,15 @@ bool RegisterIndicators() {
 void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::SetupModCompatibility();
-
+        
         if (!RuntimeMethods::ReadPluginConfigFromINI()) {
             /* Ini does not exist and failed to create */
             return;
         }
-
+        
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
+        
+        API_Handles::TrueHUD::RequestTrueHUDAPI();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         if (!RuntimeMethods::CheckESPLoaded()) {

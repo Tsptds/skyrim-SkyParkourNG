@@ -7,4 +7,5 @@ namespace RuntimeMethods {
     extern bool CheckESPLoaded();
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
     extern bool ReadPluginConfigFromINI();
+    extern bool RequestTrueHUDAPI();
 }  // namespace RuntimeMethods

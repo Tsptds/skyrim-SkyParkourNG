@@ -11,14 +11,16 @@
 #include "_References/HardcodedVariables.h"
 #include "_References/RuntimeMethods.h"
 
+#include "API/API_Handles.h"
+#include "API/TrueHUDAPI.h"
+
 using namespace ParkourUtility;
 
 int Parkouring::GetLedgePoint() {
     using namespace GameReferences;
     using namespace ModSettings;
 
-    const auto player = GET_PLAYER;
-    //const auto playerPos = player->GetPosition();
+    const auto &player = GET_PLAYER;
 
     RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
 
@@ -26,7 +28,7 @@ int Parkouring::GetLedgePoint() {
     int selectedLedgeType = ParkourType::NoLedge;
     RE::NiPoint3 ledgePoint;
 
-    constexpr int vaultLength = 120;
+    constexpr int vaultLength = 100;
     constexpr int maxElevationIncrease = 80;
 
     selectedLedgeType = VaultCheck(ledgePoint, playerDirFlat, vaultLength, maxElevationIncrease * RuntimeVariables::PlayerScale,
@@ -54,6 +56,21 @@ int Parkouring::GetLedgePoint() {
     RuntimeVariables::ledgePoint = ledgePoint;
     RuntimeVariables::playerDirFlat = playerDirFlat;
 
+    /* DEBUG LINES */
+    if (ModSettings::_Debug_Draw_Lines) {
+        const auto &TH = API_Handles::TrueHUD::Get();
+        if (TH) {
+            if (selectedLedgeType == ParkourType::Vault) {
+                TH->DrawArrow(ledgePoint, ledgePoint + 20 * playerDirFlat, 10.f, 0.f, 0x27E7F555, 8.f);
+            }
+            else {
+                const auto &pPos = player->GetPosition();
+                const auto &lp = ledgePoint;
+                TH->DrawArrow(RE::NiPoint3(lp.x, lp.y, pPos.z), lp, 10.f, 0.f, 0x27F55755, 8.f);
+            }
+        }
+    }
+    /***********************************/
     return selectedLedgeType;
 }
 
@@ -77,6 +94,14 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, COL_LAYER_EXTEND::kClimbObstruction);
 
     if (upRay.distance < minUpCheck) {
+        /* DEBUG LINES */
+        if (ModSettings::_Debug_Draw_Lines) {
+            const auto &TH = API_Handles::TrueHUD::Get();
+            if (TH) {
+                TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFFF000FF, 1.f);
+            }
+        }
+        /***********************************/
         return ParkourType::NoLedge;
     }
 
@@ -122,11 +147,22 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
 
         // Check for obstructions behind the Ledge point
-        RE::NiPoint3 obstructionCheckStart = fwdRayStart + checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
+        const auto obsCheckDir = checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
+
+        RE::NiPoint3 obstructionCheckStart = fwdRayStart + obsCheckDir;
         const float minSpaceRequired = 15.0f * RuntimeVariables::PlayerScale;
         RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kClimbObstruction);
 
         if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(obstructionCheckStart, obstructionCheckStart + checkDir * obsRay.distance, 10.f, 0.f, 0xFFFF00FF, 4.f);
+                }
+            }
+            /*********************************/
+
             continue;  // Obstruction behind the ledge point
         }
 
@@ -145,6 +181,15 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, COL_LAYER_EXTEND::kClimbObstruction);
 
     if (headroomRay.distance < headroomPlayerDiff) {
+        /* DEBUG LINES */
+        if (ModSettings::_Debug_Draw_Lines) {
+            const auto &TH = API_Handles::TrueHUD::Get();
+            if (TH) {
+                TH->DrawArrow(headroomRayStart, headroomRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFFFF00FF, 1.f);
+            }
+        }
+        /*************************************/
+
         return ParkourType::NoLedge;
     }
 
@@ -267,18 +312,92 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         }
     }
 
-    // Check if the structure is like a railing by casting an upwards ray on the valid ledge
-    const RE::NiPoint3 upRayDir(0, 0, 1);
-    const float halfPlayerHeight = headHeight * 0.5f;
-    const RayCastResult upRay = RayCast(ledgePoint, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kVaultUp);
-
-    if (upRay.didHit) {
-        return ParkourType::NoLedge;
-    }
-
-    // Final validation for vault
+    // Vaulter & Landing exist
     if (foundVaulter && foundLanding && foundLandingHeight < maxElevationIncrease) {
         ledgePoint.z = playerPos.z + foundVaultHeight;
+
+        /* Check if there's enough room */
+        // Check if the structure is like a railing by casting an upwards ray on the valid ledge
+        const RE::NiPoint3 upRayDir(0, 0, 1);
+        const float halfPlayerHeight = 80 * RuntimeVariables::PlayerScale;
+        const auto &upRayStart = ledgePoint + RE::NiPoint3(0, 0, 5);
+        const RayCastResult upRay = RayCast(upRayStart, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
+
+        if (upRay.didHit) {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
+                }
+            }
+            /**************************************/
+
+            return ParkourType::NoLedge;
+        }
+        else {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
+                }
+            }
+            /***********************************/
+        }
+
+        // Check if the structure is horizontally tiny by casting a sideways rays
+        const RE::NiPoint3 sideRayDirR = RuntimeVariables::playerDirFlat.Cross(upRayDir);
+        const RE::NiPoint3 sideRayDirL = -RuntimeVariables::playerDirFlat.Cross(upRayDir);
+        const float sideMaxCheck = 30 * RuntimeVariables::PlayerScale;
+        const auto &sideRayStart = upRayStart;
+        const RayCastResult sideRayR = RayCast(sideRayStart, sideRayDirR, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
+        const RayCastResult sideRayL = RayCast(sideRayStart, sideRayDirL, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
+
+        if (sideRayR.didHit) {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirR * sideRayR.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
+                }
+            }
+            /*********************************************/
+
+            return ParkourType::NoLedge;
+        }
+        else {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirR * sideRayR.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
+                }
+            }
+            /*******************************************/
+        }
+        if (sideRayL.didHit) {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirL * sideRayL.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
+                }
+            }
+            /***************************************/
+
+            return ParkourType::NoLedge;
+        }
+        else {
+            /* DEBUG LINES */
+            if (ModSettings::_Debug_Draw_Lines) {
+                const auto &TH = API_Handles::TrueHUD::Get();
+                if (TH) {
+                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirL * sideRayL.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
+                }
+                /**********************************************/
+            }
+        }
 
         return ParkourType::Vault;
     }
