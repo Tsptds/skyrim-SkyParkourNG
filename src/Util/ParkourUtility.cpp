@@ -9,7 +9,7 @@ bool ParkourUtility::IsParkourActive() {
         return false;
     }
 
-    const auto player = GET_PLAYER;
+    const auto &player = GET_PLAYER;
     if (IsChargenHandsBound(player)) {
         //LOG("PLAYER HANDS BOUND");
         return false;
@@ -138,14 +138,8 @@ bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
         return true;  // Feature disabled, always allow
     }
 
-    const auto &state = actor->AsActorState();
-
-    // Sprint state is locked behind a perk, handle it differently
-    if (state->IsSneaking()) {
-        return actor->IsMoving();  // Allow only if moving
-    }
-
-    return state->IsSprinting();  // Feature enabled & not sneaking, only allow if sprinting.
+    /* 3.2.0 Reverted the sprint only vault feature */
+    return actor->IsMoving();  // Feature enabled, allow only when moving
 }
 
 bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray) {
@@ -203,7 +197,7 @@ RE::NiPoint3 ParkourUtility::GetPlayerDirFlat(RE::Actor *player) {
 }
 
 RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask) {
-    const auto player = GET_PLAYER;
+    const auto &player = GET_PLAYER;
 
     RayCastResult result{};
     result.distance = maxDist;
@@ -211,17 +205,17 @@ RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir
     if (!player) {
         return result;
     }
-    const auto cell = player->GetParentCell();
+    const auto &cell = player->GetParentCell();
     if (!cell) {
         return result;
     }
-    const auto bhkWorld = cell->GetbhkWorld();
+    const auto &bhkWorld = cell->GetbhkWorld();
     if (!bhkWorld) {
         return result;
     }
 
     RE::bhkPickData pickData;
-    const auto havokWorldScale = RE::bhkWorld::GetWorldScale();
+    const auto &havokWorldScale = RE::bhkWorld::GetWorldScale();
 
     // Set ray start and end points (scaled to Havok world)
     pickData.rayInput.from = rayStart * havokWorldScale;

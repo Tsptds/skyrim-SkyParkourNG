@@ -7,6 +7,8 @@
 #include "Util/ParkourUtility.h"
 #include "API/API_Handles.h"
 
+#include "HUD/Scaleform/SkyParkourMenu.h"
+
 namespace Hooks {
 
     class AnimationEventHook {
@@ -148,12 +150,12 @@ bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHold
             draw = !draw;
             const char* msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
             LOG("{}", msg);
-            RE::DebugNotification(msg);
+            RE::ConsoleLog::GetSingleton()->Print(msg);
             return true;
         }
         else {
             WARN("Can't enable debug line drawing, TrueHud handle not found");
-            RE::DebugNotification("TrueHUD not found, SkyParkour debugging isn't available");
+            RE::ConsoleLog::GetSingleton()->Print("TrueHUD not found, SkyParkour debugging isn't available");
             return false;
         }
     }

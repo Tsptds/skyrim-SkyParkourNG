@@ -3,6 +3,7 @@
 #include "Util/ParkourUtility.h"
 #include "_References/IniSettings.h"
 #include "Parkouring.h"
+#include "HUD/Scaleform/SkyParkourMenu.h"
 
 namespace SkyParkour_Papyrus {
 
@@ -40,6 +41,19 @@ namespace SkyParkour_Papyrus {
         save(ini);
 
         Use_Indicators = value;
+
+        if (!Use_Indicators) {
+            using sppf = Scaleform::SkyParkourMenu;
+            const auto &ui = RE::UI::GetSingleton();
+            if (!ui)
+                return;
+
+            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+            if (!menu)
+                return;
+                
+            menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
+        }
     }
     void Setters::SetPlaybackSpeed(RE::StaticFunctionTag *, float value) {
         auto ini = GetINI();

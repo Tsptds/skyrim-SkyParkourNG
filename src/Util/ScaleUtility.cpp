@@ -86,9 +86,7 @@ namespace ScaleUtility {
     }
 
     [[nodiscard]] float GetScale() {
-        const auto player = GET_PLAYER;
-        if (!player)
-            return false;
+        const auto& player = GET_PLAYER;
 
         float TargetScale = 1.0f;
         TargetScale *= GetModelScale(player);                    // Model scale, Scaling done by game

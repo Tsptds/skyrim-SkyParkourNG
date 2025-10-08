@@ -2,23 +2,23 @@
 
 namespace ParkourType {
     // 8
-    extern const int Highest;
+    constexpr int Highest{8};
     // 7
-    extern const int High;
+    constexpr int High{7};
     // 6
-    extern const int Medium;
+    constexpr int Medium{6};
     // 5
-    extern const int Low;
+    constexpr int Low{5};
     // 4
-    extern int const StepHigh;
+    constexpr int StepHigh{4};
     // 3
-    extern int const StepLow;
+    constexpr int StepLow{3};
     // 2
-    extern int const Vault;
+    constexpr int Vault{2};
     // 1
-    extern int const Grab;
+    constexpr int Grab{1};
     // 0
-    extern int const Failed;
+    constexpr int Failed{0};
     // -1
-    extern const int NoLedge;
+    constexpr int NoLedge{-1};
 }  // namespace ParkourType

@@ -1,46 +1,30 @@
 #pragma once
 
 namespace HardCodedVariables {
-    // 250
-    extern const float climbMaxHeight;
-    // 30
-    extern const float climbMinHeight;
+    // Lower - upper limits for ledge - vault - grab detection.
+    constexpr float climbMaxHeight{250};
+    constexpr float climbMinHeight{30};
 
-    // 120
-    extern const float vaultMaxHeight;
-    // 40.5
-    extern const float vaultMinHeight;
+    constexpr float vaultMaxHeight{120};
+    constexpr float vaultMinHeight{40.5};
 
-    // 110
-    extern const float grabPlayerBelowLedgeMaxDiff;
-    // -35
-    extern const float grabPlayerAboveLedgeMaxDiff;
+    constexpr float grabPlayerBelowLedgeMaxDiff{110};
+    constexpr float grabPlayerAboveLedgeMaxDiff{-35};
 
-    // 220
-    extern const float highestLedgeLimit;
-    // 170
-    extern const float highLedgeLimit;
-    // 130
-    extern const float medLedgeLimit;
-    // 80
-    extern const float lowLedgeLimit;
-    // 60
-    extern const float highStepLimit;
+    // These are the height ranges for parkour type selection, represent low limits.
+    constexpr float highestLedgeLimit{220};
+    constexpr float highLedgeLimit{170};
+    constexpr float medLedgeLimit{130};
+    constexpr float lowLedgeLimit{80};
+    constexpr float highStepLimit{60};
 
-    // 250
-    extern const float highestLedgeElevation;
-    // 200
-    extern const float highLedgeElevation;
-    // 153
-    extern const float medLedgeElevation;
-    // 110
-    extern const float lowLedgeElevation;
-    // 70
-    extern const float stepHighElevation;
-    // 50
-    extern const float stepLowElevation;
-    // 60
-    extern const float vaultElevation;  // This is exception, vault needs to put player further below. Elevation is 20, plus 40 adjustment
-    // 60
-    extern const float grabElevation;
+    // These are the ending heights for each animation, they are dependent on animmotion data.
+    constexpr float highestLedgeElevation{250};
+    constexpr float highLedgeElevation{200};
+    constexpr float medLedgeElevation{153};
+    constexpr float lowLedgeElevation{110};
+    constexpr float stepHighElevation{70};
+    constexpr float stepLowElevation{50};
+    constexpr float vaultElevation{60};  // This is exception, vault needs to put player further below. Elevation is 20, plus 40 adjustment
+    constexpr float grabElevation{60};
 }  // namespace HardCodedVariables

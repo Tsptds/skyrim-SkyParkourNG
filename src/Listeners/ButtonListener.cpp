@@ -43,7 +43,7 @@ uint32_t ButtonStates::MapToCKIfPossible(uint32_t dxcode) {
     return dxcode;  // Return default value if key not found
 }
 void ButtonStates::RegisterActivation(RE::InputEvent* event) {
-    const auto buttonEvent = event->AsButtonEvent();
+    const auto& buttonEvent = event->AsButtonEvent();
 
     // Delay Threshold Passed
     if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
@@ -75,7 +75,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
         return RE::BSEventNotifyControl::kContinue;
 
     for (auto event = *a_event; event; event = event->next) {
-        if (const auto buttonEvent = event->AsButtonEvent()) {
+        if (const auto& buttonEvent = event->AsButtonEvent()) {
             if (ModSettings::Use_Preset_Parkour_Key) {
                 auto& userEventName = event->QUserEvent();
                 //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);

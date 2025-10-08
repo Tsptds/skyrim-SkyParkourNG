@@ -4,7 +4,6 @@
 #include "Listeners/MenuListener.h"
 #include "Util/ScaleUtility.h"
 
-#include "_References/GameReferences.h"
 #include "_References/ModSettings.h"
 #include "_References/ParkourType.h"
 #include "_References/RuntimeVariables.h"
@@ -14,10 +13,11 @@
 #include "API/API_Handles.h"
 #include "API/TrueHUDAPI.h"
 
+#include "HUD/Scaleform/SkyParkourMenu.h"
+
 using namespace ParkourUtility;
 
 int Parkouring::GetLedgePoint() {
-    using namespace GameReferences;
     using namespace ModSettings;
 
     const auto &player = GET_PLAYER;
@@ -243,7 +243,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 }
 int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease,
                            float minVaultHeight, float maxVaultHeight) {
-    const auto player = GET_PLAYER;
+    const auto &player = GET_PLAYER;
 
     if (!IsSupportGrounded(player)) {
         return ParkourType::NoLedge;
@@ -253,7 +253,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         return ParkourType::NoLedge;
     }
 
-    const auto playerPos = player->GetPosition();
+    const auto &playerPos = player->GetPosition();
     float headHeight = 120 * RuntimeVariables::PlayerScale;
 
     /* Forward raycast to check if there is an obstruction at head level in vaultLength */
@@ -288,6 +288,11 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         downRayStart.z = fwdRayStart.z;
 
         downRay = RayCast(downRayStart, downRayDir, vaultableGap, COL_LAYER_EXTEND::kVaultDown);
+
+        // If vault point is invalid layer, ignore
+        if (LAYERS_VAULT_DOWN_RAY.contains(downRay.layer)) {
+            continue;
+        }
 
         float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 
@@ -349,8 +354,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         // Check if the structure is horizontally tiny by casting a sideways rays
         const RE::NiPoint3 sideRayDirR = RuntimeVariables::playerDirFlat.Cross(upRayDir);
         const RE::NiPoint3 sideRayDirL = -RuntimeVariables::playerDirFlat.Cross(upRayDir);
+
         const float sideMaxCheck = 30 * RuntimeVariables::PlayerScale;
-        const auto &sideRayStart = upRayStart;
+        const auto &sideRayStart = upRayStart + RE::NiPoint3(0, 0, 5);
+
         const RayCastResult sideRayR = RayCast(sideRayStart, sideRayDirR, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
         const RayCastResult sideRayL = RayCast(sideRayStart, sideRayDirL, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
 
@@ -363,8 +370,6 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 }
             }
             /*********************************************/
-
-            return ParkourType::NoLedge;
         }
         else {
             /* DEBUG LINES */
@@ -376,6 +381,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             }
             /*******************************************/
         }
+
         if (sideRayL.didHit) {
             /* DEBUG LINES */
             if (ModSettings::_Debug_Draw_Lines) {
@@ -385,8 +391,6 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 }
             }
             /***************************************/
-
-            return ParkourType::NoLedge;
         }
         else {
             /* DEBUG LINES */
@@ -397,6 +401,10 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                 }
                 /**********************************************/
             }
+        }
+
+        if (sideRayL.didHit || sideRayR.didHit) {
+            return ParkourType::NoLedge;
         }
 
         return ParkourType::Vault;
@@ -432,67 +440,6 @@ void Parkouring::OnStartStop(bool isStop) {
     const auto &ctrlMap = RE::ControlMap::GetSingleton();
     ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop);
     ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
-}
-
-bool Parkouring::PlaceAndShowIndicator() {
-    const bool useIndicators = ModSettings::Use_Indicators;
-    if (!useIndicators) {
-        return false;
-    }
-
-    const bool enableStamina = ModSettings::Enable_Stamina_Consumption;
-    const bool hasStamina = PlayerHasEnoughStamina();
-    const auto ledgeType = RuntimeVariables::selectedLedgeType;
-
-    const bool useRed = useIndicators && enableStamina && !hasStamina && !CheckActionRequiresLowEffort(ledgeType);
-
-    auto blueRef = GameReferences::indicatorRef_Blue;
-    auto redRef = GameReferences::indicatorRef_Red;
-    if (!blueRef || !redRef) {
-        return false;
-    }
-
-    auto &currentRef = GameReferences::currentIndicatorRef;
-    currentRef = useRed ? redRef : blueRef;
-
-    if (useRed) {
-        if (blueRef)
-            blueRef->Disable();
-    }
-    else {
-        if (redRef)
-            redRef->Disable();
-    }
-
-    if (!currentRef) {
-        return false;
-    }
-
-    const auto &player = GET_PLAYER;
-    if (!player) {
-        return false;
-    }
-
-    const auto &playerCell = player->GetParentCell();
-    if (!playerCell) {
-        return false;
-    }
-
-    if (currentRef->GetParentCell() != playerCell) {
-        currentRef->SetParentCell(playerCell);
-    }
-
-    currentRef->SetPosition(RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8.0f));
-    currentRef->Update3DPosition(true);
-
-    if (RuntimeVariables::IsParkourActive) {
-        currentRef->Enable(false);
-    }
-    else {
-        currentRef->Disable();
-    }
-
-    return true;
 }
 
 void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds) {
@@ -646,9 +593,53 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
 }
 
 void Parkouring::InvalidateVars() {
-    if (GameReferences::currentIndicatorRef)
-        GameReferences::currentIndicatorRef->Disable();
     RuntimeVariables::selectedLedgeType = -1;
+
+    using sppf = Scaleform::SkyParkourMenu;
+    const auto &ui = RE::UI::GetSingleton();
+    if (!ui)
+        return;
+
+    const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+    if (!menu)
+        return;
+
+    if (RuntimeVariables::ParkourInProgress) {
+        menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
+    }
+}
+
+void Parkouring::UpdateIndicatorMenu() {
+    if (!ModSettings::Use_Indicators) {
+        return;
+    }
+
+    using sppf = Scaleform::SkyParkourMenu;
+    const auto &ui = RE::UI::GetSingleton();
+    if (!ui)
+        return;
+
+    const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+    if (!menu || !menu->IsOpen())
+        return;
+
+    sppf::IndicatorType indic;
+    const auto ledge = RuntimeVariables::selectedLedgeType;
+
+    switch (ledge) {
+        case ParkourType::NoLedge:
+            indic = sppf::IndicatorType::kInvisible;
+            break;
+        case ParkourType::Failed:
+            indic = sppf::IndicatorType::kOutOfStamina;
+            break;
+        case ParkourType::Vault:
+            indic = sppf::IndicatorType::kVault;
+            break;
+        default:
+            indic = sppf::IndicatorType::kClimb;
+    }
+    menu->SetActiveIndicatorType(indic);
 }
 
 void Parkouring::UpdateParkourPoint() {
@@ -662,18 +653,14 @@ void Parkouring::UpdateParkourPoint() {
         RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
     });
 
-    if (!RuntimeVariables::ParkourInProgress) {
-        /*Avoid updating the ledge if parkour already started*/
-        RuntimeVariables::selectedLedgeType = GetLedgePoint();
-    }
+    RuntimeVariables::selectedLedgeType = GetLedgePoint();
 
-    // Indicator stuff
-    PlaceAndShowIndicator();
+    UpdateIndicatorMenu();
 }
 
 bool Parkouring::TryActivateParkour() {
-    const auto player = GET_PLAYER;
-    const auto LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
+    const auto &player = GET_PLAYER;
+    const auto &LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
 
     if (LedgeTypeToProcess == ParkourType::NoLedge) {
         return false;
@@ -699,7 +686,7 @@ bool Parkouring::TryActivateParkour() {
     const bool isSwimming = PlayerIsSwimming();
     // const bool isSprinting = player->IsSprinting();
 
-    const auto fallTime = player->GetCharController()->fallTime;
+    const auto &fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
     const bool avoidMidairParkour = fallTime < 0.17f;
     //LOG(">> Fall time: {}", fallTime);
@@ -820,9 +807,5 @@ void Parkouring::SetParkourOnOff(bool turnOn) {
         }
 
         RuntimeMethods::ResetRuntimeVariables();
-
-        if (GameReferences::currentIndicatorRef) {
-            GameReferences::currentIndicatorRef->Disable();
-        }
     }
 }

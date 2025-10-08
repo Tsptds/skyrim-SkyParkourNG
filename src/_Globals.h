@@ -13,8 +13,9 @@ namespace SkyParkourUtil {
 
     /* Mark ledge point layers that are considered invalid for climbing */
     static const std::unordered_set<COL_LAYER> ClimbLayerExclusionList{
-        COL_LAYER::kNonCollidable, COL_LAYER::kCharController, COL_LAYER::kAnimStatic, COL_LAYER::kWeapon,
-        COL_LAYER::kProjectile,    COL_LAYER::kTransparent,    COL_LAYER::kClutter,    COL_LAYER::kBiped};
+        COL_LAYER::kNonCollidable, COL_LAYER::kCharController, /*COL_LAYER::kAnimStatic,*/ COL_LAYER::kWeapon,
+        COL_LAYER::kProjectile,    COL_LAYER::kTransparent,    COL_LAYER::kClutter,
+        COL_LAYER::kBiped};
 
     /* Head Level Check Layers. If hit, consider vault has obstruction behind */
     static const std::unordered_set<COL_LAYER> VaultForwardRayList{
@@ -22,9 +23,8 @@ namespace SkyParkourUtil {
         COL_LAYER::kTrees,  COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
 
     /* Ledge Point Layers. If hit, consider vault point invalid. */
-    static const std::unordered_set<COL_LAYER> VaultDownRayList{
-        COL_LAYER::kGround,         COL_LAYER::kTerrain,       COL_LAYER::kWeapon,  COL_LAYER::kProjectile,
-        COL_LAYER::kCharController, COL_LAYER::kNonCollidable, COL_LAYER::kClutter, COL_LAYER::kBiped};
+    static const std::unordered_set<COL_LAYER> VaultDownRayList{COL_LAYER::kWeapon,  COL_LAYER::kProjectile, COL_LAYER::kCharController,
+                                                                COL_LAYER::kClutter, COL_LAYER::kBiped,      COL_LAYER::kDeadBip};
 
     static ThreadPool threads;
     static RE::hkVector4 zeroVector{0, 0, 0, 0};

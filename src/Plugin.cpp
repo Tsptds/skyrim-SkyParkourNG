@@ -2,7 +2,6 @@
 #include "Listeners/RaceChangeListener.h"
 #include "Listeners/MenuListener.h"
 #include "_References/Compatibility.h"
-#include "_References/GameReferences.h"
 #include "_References/IniSettings.h"
 #include "Papyrus/PapyrusInterface.h"
 #include "PCH.h"
@@ -10,6 +9,7 @@
 #include "Hooks/AnimEventHandler.hpp"
 #include "Hooks/CameraHandler.hpp"
 #include "API/API_Handles.h"
+#include "HUD/Scaleform/SkyParkourMenu.h"
 
 bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);
@@ -28,59 +28,25 @@ void Install_Hooks_And_Listeners() {
 
     Hooks::CameraHandler::InstallCamStateHooks();
 }
-
-bool RegisterIndicators() {
-    auto ini = IniSettings::GetIniHandle();
-    int blueForm = 0x000014;
-    int redForm = 0x00000C;
-
-    if (ini) {
-        const char* blueStr = ini->GetValue("ESP", "iBlueMarkerRefID");
-        const char* redStr = ini->GetValue("ESP", "iRedMarkerRefID");
-
-        char* endBlue = nullptr;
-        char* endRed = nullptr;
-
-        const int blueParse = std::strtol(blueStr, &endBlue, 16);
-        const int redParse = std::strtol(redStr, &endRed, 16);
-
-        if (!blueStr || endBlue == blueStr || *endBlue != '\0' || !redStr || endRed == redStr || *endRed != '\0' || !blueParse ||
-            !redParse) {
-            ERROR("Indicator refs in INI are corrupt: Blue='{}', Red='{}'", blueStr, redStr);
-            WARN("Using Default Indicator Refs");
-        }
-        else {
-            blueForm = blueParse;
-            redForm = redParse;
-        }
+void ShowSkyParkourMenu() {
+    using menu = Scaleform::SkyParkourMenu;
+    const auto& ui = RE::UI::GetSingleton();
+    if (ui) {
+        const auto& sppf = ui->GetMenu<menu>(menu::MENU_NAME);
+        sppf->Show();
     }
-
-    GameReferences::indicatorRef_Blue =
-        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(blueForm, IniSettings::ESP_NAME));
-    GameReferences::indicatorRef_Red =
-        RE::NiPointer(RE::TESDataHandler::GetSingleton()->LookupForm<RE::TESObjectREFR>(redForm, IniSettings::ESP_NAME));
-
-    if (!GameReferences::indicatorRef_Blue || !GameReferences::indicatorRef_Red) {
-        ERROR("!Indicator Refs Are Null!");
-        return false;
-    }
-
-    GameReferences::currentIndicatorRef = GameReferences::indicatorRef_Blue;
-    LOG("Indicators: Registered");
-    return true;
 }
-
 void MessageEvent(SKSE::MessagingInterface::Message* message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::SetupModCompatibility();
-        
+
         if (!RuntimeMethods::ReadPluginConfigFromINI()) {
             /* Ini does not exist and failed to create */
             return;
         }
-        
+
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
-        
+
         API_Handles::TrueHUD::RequestTrueHUDAPI();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
@@ -112,16 +78,14 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
             return;
         }
 
-        RegisterIndicators();
         Install_Hooks_And_Listeners();
-
-        LOG("|>_SkyParkour Loaded_<|");
+        ShowSkyParkourMenu();
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        auto player = GET_PLAYER;
+        const auto& player = GET_PLAYER;
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
             WARN("Fix: Save with ongoing parkour");
@@ -132,6 +96,9 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
     }
     else if (message->type == SKSE::MessagingInterface::kNewGame) {
         RuntimeMethods::ResetRuntimeVariables();
+    }
+    else if (message->type == SKSE::MessagingInterface::kInputLoaded) {
+        Scaleform::SkyParkourMenu::Register();
     }
 }
 

@@ -3,14 +3,10 @@
 namespace IniSettings {
     std::string INIPath = "./Data/SKSE/Plugins/SkyParkourNG.ini";
     std::string ESP_NAME = "SkyParkour.esp";
-    std::string Blue_Indicator_RefID = "0x000014";
-    std::string Red_Indicator_RefID = "0x00000C";
 
     void CreateDefault(std::unique_ptr<CSimpleIniA> &ini) {
         // Set default values here
         ini->SetValue("ESP", "sEspName", IniSettings::ESP_NAME.c_str());
-        ini->SetValue("ESP", "iBlueMarkerRefID", IniSettings::Blue_Indicator_RefID.c_str());
-        ini->SetValue("ESP", "iRedMarkerRefID", IniSettings::Red_Indicator_RefID.c_str());
 
         ini->SetValue("MCM", "bEnableMod", "true");
         ini->SetValue("MCM", "bShowIndicators", "true");

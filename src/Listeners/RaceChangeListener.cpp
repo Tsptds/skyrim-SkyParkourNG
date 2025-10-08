@@ -23,8 +23,8 @@ void RaceChangeListener::Unregister() {
     }
 }
 
-RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRaceCompleteEvent* ev,
-                                                          RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) {
+RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRaceCompleteEvent *ev,
+                                                          RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent> *) {
     auto actorRef = ev->subject.get();
     if (!actorRef)
         return RE::BSEventNotifyControl::kContinue;
@@ -36,7 +36,7 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     /* On race switch graph vars reset, fix it */
     player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
 
-    const auto playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
+    const auto &playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {
         //LOG(">> Entering Beast Form");
         Parkouring::SetParkourOnOff(false);
