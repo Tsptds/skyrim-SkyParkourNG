@@ -143,7 +143,7 @@ namespace Scaleform {
                 if (!_view)
                     return;
 
-                if (RuntimeVariables::IsMenuOpen) {
+                if (RuntimeVariables::IsMenuOpen || !RuntimeVariables::IsParkourActive) {
                     if (_lastIndic != IndicatorType::kInvisible) {
                         SetActiveIndicatorType(IndicatorType::kInvisible);
                     }
