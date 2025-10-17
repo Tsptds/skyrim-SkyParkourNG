@@ -2,6 +2,7 @@
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/Compatibility.h"
+#include "HUD/Scaleform/SkyParkourMenu.h"
 
 namespace Hooks {
 
@@ -224,11 +225,31 @@ void Hooks::CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
     // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
     Parkouring::InvalidateVars();
 
+    const auto &ui = RE::UI::GetSingleton();
+    if (ui) {
+        using sppf = Scaleform::SkyParkourMenu;
+        const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+
+        if (menu) {
+            menu->ScaleToFirstPerson();
+        }
+    }
+
     OG::_End(a_this);
 }
 void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
     if (ModSettings::Mod_Enabled) {
         Parkouring::UpdateParkourPoint();
+    }
+
+    const auto &ui = RE::UI::GetSingleton();
+    if (ui) {
+        using sppf = Scaleform::SkyParkourMenu;
+        const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+
+        if (menu) {
+            menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
+        }
     }
 
     if (RuntimeVariables::ParkourInProgress) {

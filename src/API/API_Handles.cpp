@@ -15,7 +15,7 @@ namespace API_Handles {
 
         const auto &res = TRUEHUD_API::RequestPluginAPI();
         if (res) {
-            LOG("TrueHUD API found, click on player and 'sae sppf_debug' in console to toggle");
+            LOG("TrueHUD Found: Click on player and type 'sae sppf_debug' in console to toggle");
             Handle = res;
             return true;
         }

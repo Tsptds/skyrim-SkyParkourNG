@@ -1,5 +1,6 @@
 #pragma once
 #include "_References/RuntimeVariables.h"
+#include "_References/ParkourType.h"
 
 namespace Scaleform {
     class SkyParkourMenu : public RE::IMenu {
@@ -31,9 +32,68 @@ namespace Scaleform {
                 if (_lastIndic == type)
                     return;
 
+                // Start at the ledge point, don't travel from the previous ledge
+                if (_lastIndic == IndicatorType::kInvisible) {
+                    SetScreenPosition(true);
+                }
+
                 _lastIndic = type;
                 RE::GFxValue arg(static_cast<int>(type));
                 _view->Invoke("_root.SetIndicatorType", nullptr, &arg, 1);
+            }
+
+            void ScaleToThirdPersonZoom(float zoom) {
+                if (!_view)
+                    return;
+                if (_lastIndic == IndicatorType::kInvisible)
+                    return;
+
+                zoom = 1 - std::clamp(zoom, 0.0f, 1.0f) * 0.3f;
+
+                RE::GFxValue arg(zoom);
+                _view->Invoke("_root.ScaleIndicator", nullptr, &arg, 1);
+            }
+
+            void ScaleToFirstPerson() {
+                if (!_view)
+                    return;
+
+                const float zoom = 1.0f;
+
+                RE::GFxValue arg(zoom);
+                _view->Invoke("_root.ScaleIndicator", nullptr, &arg, 1);
+            }
+
+            void SetScreenPosition(bool instant = false) {
+                auto targetPos = WorldToScreen(RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8));
+                ClampToScreen(targetPos);
+
+                RE::GFxValue args[2];
+                if (!instant) {
+                    if (_lastScreenPosition.x < 0.f && _lastScreenPosition.y < 0.f) {
+                        _lastScreenPosition = targetPos;
+                    }
+
+                    RE::NiPoint2 _velocity{0.f, 0.f};
+                    constexpr float damping = 0.5f;          // 0.1 = very soft, 1 = very stiff
+                    constexpr float smoothingFactor = 0.3f;  // how fast it follows the target
+
+                    // Compute the difference and apply damping
+                    RE::NiPoint2 delta = targetPos - _lastScreenPosition;
+                    _velocity = (_velocity + delta * smoothingFactor) * damping;
+
+                    _lastScreenPosition += _velocity;
+
+                    args[0] = RE::GFxValue(static_cast<int>(_lastScreenPosition.x));
+                    args[1] = RE::GFxValue(static_cast<int>(_lastScreenPosition.y));
+                }
+                else {
+                    _lastScreenPosition = targetPos;
+                    args[0] = RE::GFxValue(static_cast<int>(targetPos.x));
+                    args[1] = RE::GFxValue(static_cast<int>(targetPos.y));
+                }
+
+                _view->Invoke("_root.SetScreenPosition", nullptr, args, 2);
             }
 
             // Get GFx view
@@ -142,6 +202,8 @@ namespace Scaleform {
             void AdvanceMovie(float, std::uint32_t) override {
                 if (!_view)
                     return;
+                if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge)
+                    return;
 
                 if (RuntimeVariables::IsMenuOpen || !RuntimeVariables::IsParkourActive) {
                     if (_lastIndic != IndicatorType::kInvisible) {
@@ -150,30 +212,8 @@ namespace Scaleform {
                     return;
                 }
 
-                _view->Advance(1.0f / 60.0f);  // Advance at ~60 FPS
-
-                auto targetPos = WorldToScreen(RuntimeVariables::ledgePoint);
-                ClampToScreen(targetPos);
-
-                if (_lastScreenPosition.x < 0.f && _lastScreenPosition.y < 0.f) {
-                    _lastScreenPosition = targetPos;
-                }
-
-                RE::NiPoint2 _velocity{0.f, 0.f};
-                constexpr float damping = 0.3f;          // 0 = very soft, 1 = very stiff
-                constexpr float smoothingFactor = 0.2f;  // how fast it follows the target
-
-                // Compute the difference and apply damping
-                RE::NiPoint2 delta = targetPos - _lastScreenPosition;
-                _velocity = (_velocity + delta * smoothingFactor) * damping;
-
-                _lastScreenPosition += _velocity;
-
-                RE::GFxValue args[2];
-                args[0] = RE::GFxValue(static_cast<int>(_lastScreenPosition.x));
-                args[1] = RE::GFxValue(static_cast<int>(_lastScreenPosition.y));
-
-                _view->Invoke("_root.SetScreenPosition", nullptr, args, 2);
+                SetScreenPosition();
+                _view->Advance(RE::GetSecondsSinceLastFrame());
             }
 
             RE::NiPoint2 WorldToScreen(const RE::NiPoint3& a_worldPos) const {
@@ -193,7 +233,7 @@ namespace Scaleform {
 
             void ClampToScreen(RE::NiPoint2& a_point) {
                 constexpr float maxOvershoot_Top = -5.f;
-                constexpr float maxOvershoot_Bot = -20.f;
+                constexpr float maxOvershoot_Bot = -10.f;
 
                 /* Horizontal is buggy for some reason, probably windows problems idk */
                 // if (a_point.x < 0.f) {
