@@ -42,13 +42,25 @@ uint32_t ButtonStates::MapToCKIfPossible(uint32_t dxcode) {
     }
     return dxcode;  // Return default value if key not found
 }
-void ButtonStates::RegisterActivation(RE::InputEvent* event) {
-    const auto& buttonEvent = event->AsButtonEvent();
-
+void ButtonStates::Parkour(RE::ButtonEvent *buttonEvent) {
     // Delay Threshold Passed
     if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
         if (ModSettings::Parkour_Delay <= buttonEvent->heldDownSecs) {
             Parkouring::TryActivateParkour();
+        }
+    }
+}
+
+void ButtonStates::CrouchSlide(RE::ButtonEvent *buttonEvent) {
+    if (!ModSettings::Crouch_Slide_Enabled) return;
+
+    if (buttonEvent->IsDown()) {
+        const auto &pl = GET_PLAYER;
+        const auto &state = pl->AsActorState();
+        if (state->actorState1.sneaking) return;
+
+        if (state->IsSprinting()) {
+            pl->NotifyAnimationGraph(SPPF_NOTIFY_SLIDE);
         }
     }
 }
@@ -70,14 +82,21 @@ void ButtonEventListener::Unregister() {
     }
 }
 
-RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const* a_event, RE::BSTEventSource<RE::InputEvent*>*) {
-    if (!a_event)
-        return RE::BSEventNotifyControl::kContinue;
+RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent *const *a_event, RE::BSTEventSource<RE::InputEvent *> *) {
+    if (!a_event) return RE::BSEventNotifyControl::kContinue;
+
+    const auto &UE = RE::UserEvents::GetSingleton();
 
     for (auto event = *a_event; event; event = event->next) {
-        if (const auto& buttonEvent = event->AsButtonEvent()) {
-            if (ModSettings::Use_Preset_Parkour_Key) {
-                auto& userEventName = event->QUserEvent();
+        if (const auto &buttonEvent = event->AsButtonEvent()) {
+            const auto &userEventName = event->QUserEvent();
+            // LOG("{}", userEventName.c_str());
+
+            if (userEventName == UE->sneak) {
+                ButtonStates::CrouchSlide(buttonEvent);
+            }
+
+            else if (ModSettings::Use_Preset_Parkour_Key) {
                 //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
@@ -85,13 +104,13 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
 
                 switch (ModSettings::Preset_Parkour_Key) {
                     case PARKOUR_PRESET_KEYS::kJump:
-                        expectedEvent = RE::UserEvents::GetSingleton()->jump;
+                        expectedEvent = UE->jump;
                         break;
                     case PARKOUR_PRESET_KEYS::kSprint:
-                        expectedEvent = RE::UserEvents::GetSingleton()->sprint;
+                        expectedEvent = UE->sprint;
                         break;
                     case PARKOUR_PRESET_KEYS::kActivate:
-                        expectedEvent = RE::UserEvents::GetSingleton()->activate;
+                        expectedEvent = UE->activate;
                         break;
                     default:
                         break;
@@ -101,7 +120,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                     if (RuntimeVariables::ParkourInProgress) {
                         continue;
                     }
-                    ButtonStates::RegisterActivation(event);
+                    ButtonStates::Parkour(buttonEvent);
                 }
             }
             else {
@@ -121,7 +140,7 @@ RE::BSEventNotifyControl ButtonEventListener::ProcessEvent(RE::InputEvent* const
                         continue;
                     }
 
-                    ButtonStates::RegisterActivation(event);
+                    ButtonStates::Parkour(buttonEvent);
                 }
             }
         }

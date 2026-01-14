@@ -2,7 +2,8 @@
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/Compatibility.h"
-#include "HUD/Scaleform/SkyParkourMenu.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
+#include "Util/HookingUtil.hpp"
 
 namespace Hooks {
 
@@ -11,9 +12,18 @@ namespace Hooks {
             static bool InstallCamStateHooks();
 
         private:
-            struct TPP {
+            class TPP {
+                private:
                     inline static float TDM_Pitch_Clamp = 0.1f;
 
+                    struct Signatures {
+                            using Begin_t = void(RE::ThirdPersonState *a_this);
+                            using End_t = void(RE::ThirdPersonState *a_this);
+                            using Update_t = void(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState);
+                            using CanProcess_t = bool(RE::ThirdPersonState *a_this, RE::InputEvent *a_event);
+                    };
+
+                public:
                     struct Install {
                             /* TesCameraState */
                             static bool Begin();
@@ -25,23 +35,32 @@ namespace Hooks {
                     };
 
                     struct Callback {
-                            static void Begin(RE::ThirdPersonState *a_this);
-                            static void End(RE::ThirdPersonState *a_this);
-                            static void Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState);
-                            static bool CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event);
+                            static Signatures::Begin_t Begin;
+                            static Signatures::End_t End;
+                            static Signatures::Update_t Update;
+                            static Signatures::CanProcess_t CanProcess;
                     };
 
                     struct OG {
-                            static inline REL::Relocation<decltype(Callback::Begin)> _Begin;
-                            static inline REL::Relocation<decltype(Callback::End)> _End;
-                            static inline REL::Relocation<decltype(Callback::CanProcess)> _CanProcess;
-                            static inline REL::Relocation<decltype(Callback::Update)> _Update;
+                            static inline REL::Relocation<Signatures::Begin_t *> _Begin;
+                            static inline REL::Relocation<Signatures::End_t *> _End;
+                            static inline REL::Relocation<Signatures::CanProcess_t *> _CanProcess;
+                            static inline REL::Relocation<Signatures::Update_t *> _Update;
                     };
             };
 
-            struct FPP {
+            class FPP {
+                private:
                     inline static const float Vertical_Clamp_Angle = 1.0f;
 
+                    struct Signatures {
+                            using Begin_t = void(RE::FirstPersonState *a_this);
+                            using End_t = void(RE::FirstPersonState *a_this);
+                            using Update_t = void(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState);
+                            using CanProcess_t = bool(RE::FirstPersonState *a_this, RE::InputEvent *a_event);
+                    };
+
+                public:
                     struct Install {
                             /* TesCameraState */
                             static bool Begin();
@@ -53,269 +72,252 @@ namespace Hooks {
                     };
 
                     struct Callback {
-                            static void Begin(RE::FirstPersonState *a_this);
-                            static void End(RE::FirstPersonState *a_this);
-                            static void Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState);
-                            static bool CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event);
+                        private:
+                            using _S = Signatures;
+
+                        public:
+                            static _S::Begin_t Begin;
+                            static _S::End_t End;
+                            static _S::Update_t Update;
+                            static _S::CanProcess_t CanProcess;
                     };
 
                     struct OG {
-                            static inline REL::Relocation<decltype(Callback::Begin)> _Begin;
-                            static inline REL::Relocation<decltype(Callback::End)> _End;
-                            static inline REL::Relocation<decltype(Callback::Update)> _Update;
-                            static inline REL::Relocation<decltype(Callback::CanProcess)> _CanProcess;
-                    };
-            };
+                        private:
+                            using _S = Signatures;
 
-            struct FreeCam { /* UNUSED */
-                    struct Install {
-                            static bool Begin();
-                            static bool End();
-                    };
-
-                    struct Callback {
-                            static void Begin(RE::FreeCameraState *a_this);
-                            static void End(RE::FreeCameraState *a_this);
-                    };
-
-                    struct OG {
-                            static inline REL::Relocation<decltype(Callback::Begin)> _Begin;
-                            static inline REL::Relocation<decltype(Callback::End)> _End;
+                        public:
+                            static inline REL::Relocation<_S::Begin_t *> _Begin;
+                            static inline REL::Relocation<_S::End_t *> _End;
+                            static inline REL::Relocation<_S::CanProcess_t *> _CanProcess;
+                            static inline REL::Relocation<_S::Update_t *> _Update;
                     };
             };
     };
+
+#pragma region  // Install All
+
+    bool CameraHandler::InstallCamStateHooks() {
+        bool res = true;
+
+        // res &= TPP::Install::Begin();
+        res &= TPP::Install::End();
+        res &= TPP::Install::Update();
+        res &= TPP::Install::CanProcess();
+
+        // res &= FPP::Install::Begin();
+        res &= FPP::Install::End();
+        res &= FPP::Install::Update();
+        res &= FPP::Install::CanProcess();
+
+        return res;
+    }
+
+#pragma endregion
+
+#pragma region  // TPP Install
+
+    bool CameraHandler::TPP::Install::CanProcess() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[1]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcess, &Callback::CanProcess);
+        if (!res) CRITICAL("TPP CanProcess Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::TPP::Install::Begin() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_Begin, &Callback::Begin);
+        if (!res) CRITICAL("TPP Begin Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::TPP::Install::End() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x2, OG::_End, &Callback::End);
+        if (!res) CRITICAL("TPP End Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::TPP::Install::Update() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x3, OG::_Update, &Callback::Update);
+        if (!res) CRITICAL("TPP Update Hook Not Installed");
+
+        return res;
+    }
+
+#pragma endregion
+
+#pragma region  // FPP Install
+
+    bool CameraHandler::FPP::Install::CanProcess() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[1]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcess, &Callback::CanProcess);
+        if (!res) CRITICAL("FPP State Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::FPP::Install::Begin() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_Begin, &Callback::Begin);
+        if (!res) CRITICAL("FPP Begin Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::FPP::Install::End() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x2, OG::_End, &Callback::End);
+        if (!res) CRITICAL("FPP End Hook Not Installed");
+
+        return res;
+    }
+    bool CameraHandler::FPP::Install::Update() {
+        /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
+
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x3, OG::_Update, &Callback::Update);
+        if (!res) CRITICAL("FPP Update Hook Not Installed");
+
+        return res;
+    }
+
+#pragma endregion
+
+#pragma region  // TPP Callback
+
+    bool CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event) {
+        if (ModSettings::Mod_Enabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return OG::_CanProcess(a_this, a_event);
+    }
+    void CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this) {
+        OG::_Begin(a_this);
+    }
+    void CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
+        // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
+        Parkouring::InvalidateVars();
+
+        const auto &ui = RE::UI::GetSingleton();
+        if (ui) {
+            using sppf = Scaleform::SkyParkourMenu;
+            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+
+            if (menu) {
+                menu->ScaleToFirstPerson();
+            }
+        }
+
+        OG::_End(a_this);
+    }
+    void CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+        if (ModSettings::Mod_Enabled) {
+            Parkouring::UpdateParkourPoint();
+        }
+
+        const auto &ui = RE::UI::GetSingleton();
+        if (ui) {
+            using sppf = Scaleform::SkyParkourMenu;
+            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
+
+            if (menu) {
+                menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
+            }
+        }
+
+        if (RuntimeVariables::ParkourInProgress) {
+            const auto &ctrl = GET_PLAYER->GetCharController();
+
+            /* TDM swim pitch angle thing */
+            if (Compatibility::TrueDirectionalMovement::found) {
+                float pitch = ctrl->pitchAngle;
+                if (pitch > TDM_Pitch_Clamp) {
+                    ctrl->pitchAngle = TDM_Pitch_Clamp;
+                }
+                else if (pitch < -TDM_Pitch_Clamp) {
+                    ctrl->pitchAngle = -TDM_Pitch_Clamp;
+                }
+            }
+
+            a_this->targetZoomOffset = a_this->currentZoomOffset;
+            a_this->stateNotActive = false;
+        }
+
+        OG::_Update(a_this, a_nextState);
+    }
+
+#pragma endregion
+
+#pragma region  // FPP Callback
+
+    bool CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
+        if (ModSettings::Mod_Enabled) {
+            if (RuntimeVariables::ParkourInProgress) {
+                return false;
+            }
+        }
+
+        return OG::_CanProcess(a_this, a_event);
+    }
+    void CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this) {
+        OG::_Begin(a_this);
+    }
+    void CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this) {
+        // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
+        Parkouring::InvalidateVars();
+
+        OG::_End(a_this);
+    }
+    void CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+        if (ModSettings::Mod_Enabled) {
+            Parkouring::UpdateParkourPoint();
+        }
+
+        if (RuntimeVariables::ParkourInProgress) {
+            /* Clamp Player looking angle to prevent weird visuals */
+            const auto &player = GET_PLAYER;
+
+            /* Vert */
+            auto &vertAngle = player->data.angle.x;
+            if (vertAngle > Vertical_Clamp_Angle) {
+                vertAngle = Vertical_Clamp_Angle;
+            }
+            else if (vertAngle < -Vertical_Clamp_Angle) {
+                vertAngle = -Vertical_Clamp_Angle;
+            }
+
+            /* Horz */
+            auto &camAngle = a_this->sittingRotation;
+            camAngle = 0.0f;
+        }
+
+        OG::_Update(a_this, a_nextState);
+    }
+
+#pragma endregion
 }  // namespace Hooks
-
-// Install
-
-bool Hooks::CameraHandler::InstallCamStateHooks() {
-    bool res = false;
-
-    // res &= TPP::Install::Begin();
-    res &= TPP::Install::End();
-    res &= TPP::Install::Update();
-    res &= TPP::Install::CanProcess();
-
-    // res &= FPP::Install::Begin();
-    res &= FPP::Install::End();
-    res &= FPP::Install::Update();
-    res &= FPP::Install::CanProcess();
-
-    return res;
-}
-
-/* Third person */
-bool Hooks::CameraHandler::TPP::Install::CanProcess() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtblInput{RE::VTABLE_ThirdPersonState[1]};
-    OG::_CanProcess = vtblInput.write_vfunc(0x1, &Callback::CanProcess);
-
-    if (!OG::_CanProcess.address()) {
-        CRITICAL("TPP CanProcess Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::TPP::Install::Begin() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
-    OG::_Begin = vtbl.write_vfunc(0x1, &Callback::Begin);
-
-    if (!OG::_Begin.address()) {
-        CRITICAL("TPP Begin Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::TPP::Install::End() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
-    OG::_End = vtbl.write_vfunc(0x2, &Callback::End);
-
-    if (!OG::_End.address()) {
-        CRITICAL("TPP End Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::TPP::Install::Update() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtblInput{RE::VTABLE_ThirdPersonState[0]};
-    OG::_Update = vtblInput.write_vfunc(0x3, &Callback::Update);
-
-    if (!OG::_Update.address()) {
-        CRITICAL("TPP Update Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-/* ------------------------------------------------------------- */
-
-/* First person */
-bool Hooks::CameraHandler::FPP::Install::CanProcess() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_FirstPersonState[1]};
-    OG::_CanProcess = vtblPlayer.write_vfunc(0x1, &Callback::CanProcess);
-
-    if (!OG::_CanProcess.address()) {
-        CRITICAL("FPP State Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::FPP::Install::Begin() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
-    OG::_Begin = vtbl.write_vfunc(0x1, &Callback::Begin);
-
-    if (!OG::_Begin.address()) {
-        CRITICAL("FPP Begin Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::FPP::Install::End() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
-    OG::_End = vtbl.write_vfunc(0x2, &Callback::End);
-
-    if (!OG::_End.address()) {
-        CRITICAL("FPP End Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-bool Hooks::CameraHandler::FPP::Install::Update() {
-    /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
-
-    REL::Relocation<uintptr_t> vtblInput{RE::VTABLE_FirstPersonState[0]};
-    OG::_Update = vtblInput.write_vfunc(0x3, &Callback::Update);
-
-    if (!OG::_Update.address()) {
-        CRITICAL("FPP Update Hook Not Installed");
-        return false;
-    }
-    return true;
-}
-/* ------------------------------------------------------------- */
-
-// Callbacks
-
-/* Third person */
-bool Hooks::CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event) {
-    if (ModSettings::Mod_Enabled) {
-        if (RuntimeVariables::ParkourInProgress) {
-            return false;
-        }
-    }
-
-    return OG::_CanProcess(a_this, a_event);
-}
-void Hooks::CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this) {
-    OG::_Begin(a_this);
-}
-void Hooks::CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
-    // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
-    Parkouring::InvalidateVars();
-
-    const auto &ui = RE::UI::GetSingleton();
-    if (ui) {
-        using sppf = Scaleform::SkyParkourMenu;
-        const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-
-        if (menu) {
-            menu->ScaleToFirstPerson();
-        }
-    }
-
-    OG::_End(a_this);
-}
-void Hooks::CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-    if (ModSettings::Mod_Enabled) {
-        Parkouring::UpdateParkourPoint();
-    }
-
-    const auto &ui = RE::UI::GetSingleton();
-    if (ui) {
-        using sppf = Scaleform::SkyParkourMenu;
-        const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-
-        if (menu) {
-            menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
-        }
-    }
-
-    if (RuntimeVariables::ParkourInProgress) {
-        const auto &ctrl = GET_PLAYER->GetCharController();
-
-        /* TDM swim pitch angle thing */
-        if (Compatibility::TrueDirectionalMovement) {
-            float pitch = ctrl->pitchAngle;
-            if (pitch > TDM_Pitch_Clamp) {
-                ctrl->pitchAngle = TDM_Pitch_Clamp;
-            }
-            else if (pitch < -TDM_Pitch_Clamp) {
-                ctrl->pitchAngle = -TDM_Pitch_Clamp;
-            }
-        }
-
-        a_this->targetZoomOffset = a_this->currentZoomOffset;
-        a_this->stateNotActive = false;
-    }
-
-    OG::_Update(a_this, a_nextState);
-}
-/* ------------------------------------------------------------- */
-
-/* First person */
-bool Hooks::CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
-    if (ModSettings::Mod_Enabled) {
-        if (RuntimeVariables::ParkourInProgress) {
-            return false;
-        }
-    }
-
-    return OG::_CanProcess(a_this, a_event);
-}
-void Hooks::CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this) {
-    OG::_Begin(a_this);
-}
-void Hooks::CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this) {
-    // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
-    Parkouring::InvalidateVars();
-
-    OG::_End(a_this);
-}
-void Hooks::CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-    if (ModSettings::Mod_Enabled) {
-        Parkouring::UpdateParkourPoint();
-    }
-
-    if (RuntimeVariables::ParkourInProgress) {
-        /* Clamp Player looking angle to prevent weird visuals */
-        const auto &player = GET_PLAYER;
-
-        /* Vert */
-        auto &vertAngle = player->data.angle.x;
-        if (vertAngle > Vertical_Clamp_Angle) {
-            vertAngle = Vertical_Clamp_Angle;
-        }
-        else if (vertAngle < -Vertical_Clamp_Angle) {
-            vertAngle = -Vertical_Clamp_Angle;
-        }
-
-        /* Horz */
-        auto &camAngle = a_this->sittingRotation;
-        camAngle = 0.0f;
-    }
-
-    OG::_Update(a_this, a_nextState);
-}
-/* ------------------------------------------------------------- */

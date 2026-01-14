@@ -1,7 +1,6 @@
 #include "_References/Localized_ini.h"
 
 namespace Localized_ini {
-    std::string INIPath = "./Data/SKSE/Plugins/SkyParkourNG_Localization.ini";
 
     std::unique_ptr<CSimpleIniA> GetIniHandle() {
         const auto &path = INIPath.c_str();
@@ -18,4 +17,4 @@ namespace Localized_ini {
 
         return ini;
     }
-}
+}  // namespace Localized_ini

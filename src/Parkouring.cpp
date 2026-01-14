@@ -3,8 +3,10 @@
 #include "Listeners/ButtonListener.h"
 #include "Listeners/MenuListener.h"
 #include "Util/ScaleUtility.h"
+#include "Util/HavokUtil.hpp"
 
 #include "_References/ModSettings.h"
+#include "_References/Compatibility.h"
 #include "_References/ParkourType.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/HardcodedVariables.h"
@@ -13,7 +15,10 @@
 #include "API/API_Handles.h"
 #include "API/TrueHUDAPI.h"
 
-#include "HUD/Scaleform/SkyParkourMenu.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
+
+static std::mutex g_ParkourActivateLock;
+static std::mutex g_UpdateLock;
 
 using namespace ParkourUtility;
 
@@ -22,7 +27,7 @@ int Parkouring::GetLedgePoint() {
 
     const auto &player = GET_PLAYER;
 
-    RE::NiPoint3 playerDirFlat = GetPlayerDirFlat(player);
+    const auto &playerDirFlat = RuntimeVariables::playerDirFlat;
 
     // Perform ledge or vault checks
     int selectedLedgeType = ParkourType::NoLedge;
@@ -54,29 +59,15 @@ int Parkouring::GetLedgePoint() {
     }
 
     RuntimeVariables::ledgePoint = ledgePoint;
-    RuntimeVariables::playerDirFlat = playerDirFlat;
 
-    /* DEBUG LINES */
-    if (ModSettings::_Debug_Draw_Lines) {
-        const auto &TH = API_Handles::TrueHUD::Get();
-        if (TH) {
-            if (selectedLedgeType == ParkourType::Vault) {
-                TH->DrawArrow(ledgePoint, ledgePoint + 20 * playerDirFlat, 10.f, 0.f, 0x27E7F555, 8.f);
-            }
-            else {
-                const auto &pPos = player->GetPosition();
-                const auto &lp = ledgePoint;
-                TH->DrawArrow(RE::NiPoint3(lp.x, lp.y, pPos.z), lp, 10.f, 0.f, 0x27F55755, 8.f);
-            }
-        }
-    }
-    /***********************************/
     return selectedLedgeType;
 }
 
 int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight) {
     const auto &player = GET_PLAYER;
     const auto &playerPos = player->GetPosition();
+    constexpr RE::NiPoint3 upDir(0, 0, 1);
+    constexpr RE::NiPoint3 downDir(0, 0, -1);
 
     // Constants adjusted for player scale
     const float startZOffset = 100 * RuntimeVariables::PlayerScale;
@@ -88,17 +79,15 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     const float minLedgeFlatness = 0.5;                            //0.5
 
     // Raycast above player, is there enough room
-    RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, startZOffset);
-    RE::NiPoint3 upRayDir(0, 0, 1);
-
-    RayCastResult upRay = RayCast(upRayStart, upRayDir, maxUpCheck, COL_LAYER_EXTEND::kClimbObstruction);
+    RE::NiPoint3 upRayStart = playerPos + RE::NiPoint3(0, 0, playerHeight);  // Fixed using startZOffset instead of playerHeight
+    RayCastResult upRay = RayCast(upRayStart, upDir, maxUpCheck, COL_LAYER_EXTEND::kClimbObstruction);
 
     if (upRay.distance < minUpCheck) {
         /* DEBUG LINES */
         if (ModSettings::_Debug_Draw_Lines) {
             const auto &TH = API_Handles::TrueHUD::Get();
             if (TH) {
-                TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFFF000FF, 1.f);
+                TH->DrawArrow(upRayStart, upRayStart + upDir * upRay.distance, 10.f, 0.f, 0xFFF000FF, 1.f);
             }
         }
         /***********************************/
@@ -106,8 +95,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     // Forward raycast initialization
-    RE::NiPoint3 fwdRayStart = upRayStart + upRayDir * (upRay.distance - 10);
-    RE::NiPoint3 ledgeRayDir(0, 0, -1);
+    RE::NiPoint3 fwdRayStart = upRayStart + upDir * (upRay.distance - 10);
 
     RayCastResult ledgeRay;
     bool foundLedge = false;
@@ -127,7 +115,7 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 
         // Downward raycast to detect ledge point
         RE::NiPoint3 ledgeRayStart = fwdRayStart + checkDir * fwdRay.distance;
-        ledgeRay = RayCast(ledgeRayStart, ledgeRayDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
+        ledgeRay = RayCast(ledgeRayStart, downDir, startZOffset + maxUpCheck, COL_LAYER_EXTEND::kClimbLedge);
 
 #ifdef LOG_CLIMB
         LOG("Ledge Down: {}", PRINT_LAYER(ledgeRay.layer));
@@ -137,33 +125,50 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             continue;
         }
 
-        ledgePoint = ledgeRayStart + ledgeRayDir * ledgeRay.distance;
+        ledgePoint = ledgeRayStart + downDir * ledgeRay.distance;
         normalZ = ledgeRay.normalOut.quad.m128_f32[2];
 
         // Validate ledge based on height and flatness
-        if (ledgePoint.z < playerPos.z + minLedgeHeight || ledgePoint.z > playerPos.z + maxLedgeHeight || ledgeRay.distance < 10 ||
-            normalZ < minLedgeFlatness) {
-            continue;
-        }
+        if (ledgeRay.distance < 10) continue;
+        if (normalZ < minLedgeFlatness) continue;
+        if (ledgePoint.z < playerPos.z + minLedgeHeight) continue;
+        if (ledgePoint.z > playerPos.z + maxLedgeHeight) continue;
 
         // Check for obstructions behind the Ledge point
-        const auto obsCheckDir = checkDir * (fwdRay.distance - 2) + RE::NiPoint3(0, 0, 5);
+        const bool obsFound = [ledgePoint, checkDir] {
+            constexpr float obsBackOffset = 15.f;
+            const float ray1MaxDist = obsBackOffset + 15.f;
+            const float minSpaceRequired = (obsBackOffset + 3.f) * RuntimeVariables::PlayerScale;
 
-        RE::NiPoint3 obstructionCheckStart = fwdRayStart + obsCheckDir;
-        const float minSpaceRequired = 15.0f * RuntimeVariables::PlayerScale;
-        RayCastResult obsRay = RayCast(obstructionCheckStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kClimbObstruction);
+            const RE::NiPoint3 obsCheckStart = RE::NiPoint3(ledgePoint.x, ledgePoint.y, ledgePoint.z + 5.f) - checkDir * obsBackOffset;
 
-        if (obsRay.didHit && obsRay.distance < minSpaceRequired) {
+            RayCastResult obsRay1 = RayCast(obsCheckStart, checkDir, ray1MaxDist, COL_LAYER_EXTEND::kClimbObstruction);
+
+            auto normalizedDir = -VEC4_TO_VEC3(obsRay1.normalOut);
+            normalizedDir.z = 0;
+            RayCastResult obsRay2 = RayCast(obsCheckStart, normalizedDir, minSpaceRequired, COL_LAYER_EXTEND::kClimbObstruction);
+
             /* DEBUG LINES */
             if (ModSettings::_Debug_Draw_Lines) {
                 const auto &TH = API_Handles::TrueHUD::Get();
                 if (TH) {
-                    TH->DrawArrow(obstructionCheckStart, obstructionCheckStart + checkDir * obsRay.distance, 10.f, 0.f, 0xFFFF00FF, 4.f);
+                    TH->DrawArrow(obsCheckStart, obsCheckStart + checkDir * obsRay1.distance, 10.f, 0.f,
+                                  obsRay1.distance < minSpaceRequired ? 0xFF0000FF : 0x00FF00FF, 1.f);
+                    TH->DrawArrow(obsCheckStart, obsCheckStart + normalizedDir * obsRay2.distance, 10.f, 0.f,
+                                  obsRay2.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
                 }
             }
             /*********************************/
 
-            continue;  // Obstruction behind the ledge point
+            if (obsRay2.didHit || obsRay1.distance < minSpaceRequired) {
+                return true;  // Obstruction behind the ledge point
+            }
+
+            return false;
+        }();
+
+        if (obsFound) {
+            continue;
         }
 
         foundLedge = true;
@@ -174,73 +179,137 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         return ParkourType::NoLedge;
     }
 
-    // Ensure there is sufficient headroom for the player to stand
-    const float headroomBuffer = 10 * RuntimeVariables::PlayerScale;
-    const float headroomPlayerDiff = playerHeight - headroomBuffer;
-    RE::NiPoint3 headroomRayStart = ledgePoint + upRayDir * headroomBuffer;
-    RayCastResult headroomRay = RayCast(headroomRayStart, upRayDir, headroomPlayerDiff, COL_LAYER_EXTEND::kClimbObstruction);
-
-    if (headroomRay.distance < headroomPlayerDiff) {
-        /* DEBUG LINES */
-        if (ModSettings::_Debug_Draw_Lines) {
-            const auto &TH = API_Handles::TrueHUD::Get();
-            if (TH) {
-                TH->DrawArrow(headroomRayStart, headroomRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFFFF00FF, 1.f);
-            }
+    {
+        // DON'T CLIMB ON DOORS FFS
+        using ft = RE::FormType;
+        const auto &ref = ledgeRay.hitObjectRef;
+        if (ref) {
+            // LOG("Climb point ref is: {}", RE::FormTypeToString(ref->GetObjectReference()->GetFormType()));
+            if (ref->GetObjectReference()->GetFormType() == ft::Door) return ParkourType::NoLedge;
         }
-        /*************************************/
+    }
 
+    const RE::NiPoint3 headRoomRayStart = RE::NiPoint3(playerPos.x, playerPos.y, ledgePoint.z - 5);  // On player at ledge height
+    const RE::NiPoint3 sideDir = checkDir.Cross(upDir);
+
+    // side rays
+    // const float check_height = 121.85f * RuntimeVariables::PlayerScale;  // 120 vert, 80 degrees
+    // constexpr float horz_angle = 0.1736f;                                // cos80
+    // constexpr float vert_angle = 0.9848f;                                // sin80
+
+    // const RE::NiPoint3 dir_L = (-sideDir * horz_angle + upDir * vert_angle);
+    // const RE::NiPoint3 dir_R = (sideDir * horz_angle + upDir * vert_angle);
+    // const auto midStart = ledgePoint + RE::NiPoint3(0, 0, 5);
+    const auto leftStart = headRoomRayStart - sideDir * 15.f;
+    const auto rightStart = headRoomRayStart + sideDir * 15.f;
+
+    // const RE::NiPoint3 dir_M = upDir;
+    const RE::NiPoint3 dir_L = upDir;
+    const RE::NiPoint3 dir_R = upDir;
+
+    // RayCastResult headRoomRay_M = RayCast(midStart, dir_M, playerHeight, COL_LAYER_EXTEND::kClimbObstruction);
+    RayCastResult headRoomRay_L = RayCast(leftStart, dir_L, playerHeight, COL_LAYER_EXTEND::kClimbObstruction);
+    RayCastResult headRoomRay_R = RayCast(rightStart, dir_R, playerHeight, COL_LAYER_EXTEND::kClimbObstruction);
+
+    /* DEBUG LINES */
+    if (ModSettings::_Debug_Draw_Lines) {
+        const auto &TH = API_Handles::TrueHUD::Get();
+        if (TH) {
+            TH->DrawArrow(leftStart, leftStart + dir_L * headRoomRay_L.distance, 10.f, 0.f, headRoomRay_L.didHit ? 0xFF0000FF : 0x00FF00FF,
+                          1.f);
+            // TH->DrawArrow(midStart, midStart + dir_M * headRoomRay_M.distance, 10.f, 0.f, headRoomRay_M.didHit ? 0xFF0000FF : 0x00FF00FF,
+            //               1.f);
+            TH->DrawArrow(rightStart, rightStart + dir_R * headRoomRay_R.distance, 10.f, 0.f,
+                          headRoomRay_R.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
+        }
+    }
+    /*********************************/
+
+    if (headRoomRay_L.didHit || /*headRoomRay_M.didHit ||*/ headRoomRay_R.didHit) {
         return ParkourType::NoLedge;
     }
 
+    return Parkouring::ChooseClimbHeight(player, playerHeight, ledgePoint, playerPos, ledgeRay);
+}
+int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, RE::NiPoint3 &ledgePoint, const RE::NiPoint3 &playerPos,
+                                  RayCastResult &ledgeRay) {
     const float ledgePlayerDiff = ledgePoint.z - playerPos.z;
     if (IsSupportGroundedOrSliding(player) || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
-            if (ShouldReplaceMarkerWithFailed()) {
+            // Highest ledge
+            const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
+                return ParkourType::NoLedge;
+            }
+
+            if (ShouldClimbActionFail()) {
                 return ParkourType::Failed;
             }
-            return ParkourType::Highest;  // Highest ledge
+            return ParkourType::Highest;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
-            if (ShouldReplaceMarkerWithFailed()) {
+            // High ledge
+            const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
+                return ParkourType::NoLedge;
+            }
+
+            if (ShouldClimbActionFail()) {
                 return ParkourType::Failed;
             }
-            return ParkourType::High;  // High ledge
+            return ParkourType::High;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
-            return ParkourType::Medium;  // Medium ledge
+            // Medium ledge
+            const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
+                return ParkourType::NoLedge;
+            }
+
+            return ParkourType::Medium;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
+            // Low ledge
             if (PlayerIsSwimming()) {
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
-            return ParkourType::Low;  // Low ledge
+            return ParkourType::Low;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
+            // High Step
             if (PlayerIsSwimming()) {
+                player->SetGraphVariableBool(SPPF_Grab_Variant, false);
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
             if (StepsExtraChecks(player, ledgeRay)) {
-                return ParkourType::StepHigh;  // High Step
+                return ParkourType::StepHigh;
             }
         }
         else {
+            // Low Step
             if (PlayerIsSwimming()) {
-                return ParkourType::Grab;  // Grab ledge out of water, don't step out
+                player->SetGraphVariableBool(SPPF_Grab_Variant, false);
+                return ParkourType::Grab;  // Grab ledge out of water
             }
 
             if (StepsExtraChecks(player, ledgeRay)) {
-                return ParkourType::StepLow;  // Low Step
+                return ParkourType::StepLow;
             }
         }
     }
-    else if (IsSupportUnsupported(player) && GrabExtraChecks(ledgePlayerDiff, ledgeRay)) {
-        return ParkourType::Grab;
+    else if (IsSupportUnsupported(player)) {
+        // We are midair, check for grab
+        bool grabHighVariant = false;
+        if (GrabExtraChecks(ledgePlayerDiff, ledgeRay, grabHighVariant)) {
+            player->SetGraphVariableBool(SPPF_Grab_Variant, grabHighVariant);
+            return ParkourType::Grab;
+        }
     }
     return ParkourType::NoLedge;
 }
+
 int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease,
                            float minVaultHeight, float maxVaultHeight) {
     const auto &player = GET_PLAYER;
@@ -254,12 +323,12 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     const auto &playerPos = player->GetPosition();
-    float headHeight = 120 * RuntimeVariables::PlayerScale;
+    const float playerHeight = 120 * RuntimeVariables::PlayerScale;
 
     /* Forward raycast to check if there is an obstruction at head level in vaultLength */
 
-    RE::NiPoint3 fwdRayStart = playerPos + RE::NiPoint3(0, 0, headHeight);
-    float minSpaceRequired = 2 * vaultLength * RuntimeVariables::PlayerScale;
+    const RE::NiPoint3 fwdRayStart = playerPos + RE::NiPoint3(0, 0, playerHeight);
+    const float minSpaceRequired = 2 * vaultLength * RuntimeVariables::PlayerScale;
 
     RayCastResult fwdRay = RayCast(fwdRayStart, checkDir, minSpaceRequired, COL_LAYER_EXTEND::kVaultForward);
 #ifdef LOG_VAULT
@@ -271,7 +340,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     }
 
     /* Move forward by this steps, and RayCast downwards. If a valid layer is found, mark it. */
-    int downIterations = 20;
+    constexpr int downIterations = 20;
     RE::NiPoint3 downRayDir(0, 0, -1);
     RayCastResult downRay;
 
@@ -279,7 +348,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     float foundVaultHeight = -10000.0f;
     bool foundLanding = false;
     float foundLandingHeight = 10000.0f;
-    float vaultableGap = headHeight + 100.0f * RuntimeVariables::PlayerScale;
+    float vaultableGap = playerHeight + 100.0f * RuntimeVariables::PlayerScale;
 
     // Incremental downward raycasts
     for (int i = 0; i < downIterations; i++) {
@@ -294,7 +363,17 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
             continue;
         }
 
-        float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
+        {
+            // DON'T CLIMB ON DOORS FFS
+            using ft = RE::FormType;
+            const auto &ref = downRay.hitObjectRef;
+            if (ref) {
+                // LOG("Vault point ref is: {}", RE::FormTypeToString(ref->GetObjectReference()->GetFormType()));
+                if (ref->GetObjectReference()->GetFormType() == ft::Door) continue;
+            }
+        }
+
+        const float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
 
         // Check hit height for vaultable surfaces
         if (hitHeight > maxVaultHeight) {
@@ -314,6 +393,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         else if (foundVaulter && hitHeight < minVaultHeight) {
             foundLandingHeight = std::min(hitHeight, foundLandingHeight);
             foundLanding = true;
+            break;
         }
     }
 
@@ -324,84 +404,51 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         /* Check if there's enough room */
         // Check if the structure is like a railing by casting an upwards ray on the valid ledge
         const RE::NiPoint3 upRayDir(0, 0, 1);
-        const float halfPlayerHeight = 80 * RuntimeVariables::PlayerScale;
+        const float halfPlayerHeight = playerHeight * 0.5f;
         const auto &upRayStart = ledgePoint + RE::NiPoint3(0, 0, 5);
         const RayCastResult upRay = RayCast(upRayStart, upRayDir, halfPlayerHeight, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
 
-        if (upRay.didHit) {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
-                }
+        /* DEBUG LINES */
+        if (ModSettings::_Debug_Draw_Lines) {
+            const auto &TH = API_Handles::TrueHUD::Get();
+            if (TH) {
+                TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, upRay.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
             }
-            /**************************************/
-
-            return ParkourType::NoLedge;
         }
-        else {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(upRayStart, upRayStart + upRayDir * upRay.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
-                }
-            }
-            /***********************************/
-        }
+        /**************************************/
 
         // Check if the structure is horizontally tiny by casting a sideways rays
         const RE::NiPoint3 sideRayDirR = RuntimeVariables::playerDirFlat.Cross(upRayDir);
         const RE::NiPoint3 sideRayDirL = -RuntimeVariables::playerDirFlat.Cross(upRayDir);
 
-        const float sideMaxCheck = 30 * RuntimeVariables::PlayerScale;
-        const auto &sideRayStart = upRayStart + RE::NiPoint3(0, 0, 5);
+        float sideMaxCheckOffset;
+        if (upRay.didHit) {
+            if (upRay.distance < 55.f * RuntimeVariables::PlayerScale) return ParkourType::NoLedge;
 
+            sideMaxCheckOffset = 30.f;
+        }
+        else {
+            sideMaxCheckOffset = 15.f;
+        }
+
+        const auto &sideRayStart = upRayStart + RE::NiPoint3(0, 0, 5);
+        const float sideMaxCheck = sideMaxCheckOffset * RuntimeVariables::PlayerScale;
         const RayCastResult sideRayR = RayCast(sideRayStart, sideRayDirR, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
         const RayCastResult sideRayL = RayCast(sideRayStart, sideRayDirL, sideMaxCheck, COL_LAYER_EXTEND::kVaultPostLedgeObstruction);
 
-        if (sideRayR.didHit) {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirR * sideRayR.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
-                }
+        /* DEBUG LINES */
+        if (ModSettings::_Debug_Draw_Lines) {
+            const auto &TH = API_Handles::TrueHUD::Get();
+            if (TH) {
+                TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirL * sideRayL.distance, 10.f, 0.f,
+                              sideRayL.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
             }
-            /*********************************************/
-        }
-        else {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirR * sideRayR.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
-                }
-            }
-            /*******************************************/
-        }
-
-        if (sideRayL.didHit) {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirL * sideRayL.distance, 10.f, 0.f, 0xFF0000FF, 1.f);
-                }
-            }
-            /***************************************/
-        }
-        else {
-            /* DEBUG LINES */
-            if (ModSettings::_Debug_Draw_Lines) {
-                const auto &TH = API_Handles::TrueHUD::Get();
-                if (TH) {
-                    TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirL * sideRayL.distance, 10.f, 0.f, 0x00FF00FF, 1.f);
-                }
-                /**********************************************/
+            if (TH) {
+                TH->DrawArrow(sideRayStart, sideRayStart + sideRayDirR * sideRayR.distance, 10.f, 0.f,
+                              sideRayR.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
             }
         }
+        /*********************************************/
 
         if (sideRayL.didHit || sideRayR.didHit) {
             return ParkourType::NoLedge;
@@ -426,6 +473,13 @@ void Parkouring::OnStartStop(bool isStop) {
         // The other graph doesn't see the current graph, interrupt on stop to notify all
         // DO NOT SEND SPPF_STOP OR IT WILL RECURSE INFINITELY, STACK OVERFLOW AND CRASH
         player->NotifyAnimationGraph(SPPF_INTERRUPT);
+
+        using JA = Compatibility::JumpingAttack;
+        if (JA::found) {
+            if (ParkourUtility::IsActorWeaponOut(player)) {
+                player->NotifyAnimationGraph(JA::event);
+            }
+        }
 
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::ParkourInProgress = false;
@@ -462,6 +516,9 @@ void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoin
 
     auto speed = seconds <= 0 ? 5000 : diff.Length() / seconds;  // Snap to pos if 0 or negative seconds
     speed *= mult;
+
+    const auto time_mult_clamped = *g_gameTimeMult <= 0 ? 1 : *g_gameTimeMult;
+    speed *= (1 / time_mult_clamped);  // This invalidates the SGTM factor of TranslateTo
 
     // Wrap movingRef in a Papyrus handle
     auto policy = vm->GetObjectHandlePolicy();
@@ -545,6 +602,7 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
     switch (ledgeType) {
         case 8:  // Highest Ledge
             z = HardCodedVariables::highestLedgeElevation - 5;
+            backOffset = 62.f;
             break;
 
         case 7:  // High ledge
@@ -574,7 +632,9 @@ void Parkouring::CalculateStartingPosition(const RE::Actor *actor, int ledgeType
             break;
 
         case 1:  // Grab (Midair or Out of Water)
-            z = HardCodedVariables::grabElevation - 5;
+            bool grabHighVariant;
+            actor->GetGraphVariableBool(SPPF_Grab_Variant, grabHighVariant);
+            z = (grabHighVariant ? HardCodedVariables::grabHighElevation : HardCodedVariables::grabElevation) - 5;
             backOffset = 45;  // Override backward offset
             break;
 
@@ -597,16 +657,12 @@ void Parkouring::InvalidateVars() {
 
     using sppf = Scaleform::SkyParkourMenu;
     const auto &ui = RE::UI::GetSingleton();
-    if (!ui)
-        return;
+    if (!ui) return;
 
     const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-    if (!menu)
-        return;
+    if (!menu) return;
 
-    if (RuntimeVariables::ParkourInProgress) {
-        menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
-    }
+    menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
 }
 
 void Parkouring::UpdateIndicatorMenu() {
@@ -616,12 +672,10 @@ void Parkouring::UpdateIndicatorMenu() {
 
     using sppf = Scaleform::SkyParkourMenu;
     const auto &ui = RE::UI::GetSingleton();
-    if (!ui)
-        return;
+    if (!ui) return;
 
     const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-    if (!menu || !menu->IsOpen())
-        return;
+    if (!menu || !menu->IsOpen()) return;
 
     sppf::IndicatorType indic;
     const auto ledge = RuntimeVariables::selectedLedgeType;
@@ -648,17 +702,29 @@ void Parkouring::UpdateParkourPoint() {
         return;
     }
 
-    _THREAD_POOL.enqueue([]() {
-        RuntimeVariables::IsParkourActive = IsParkourActive();
-        RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
-    });
-
     RuntimeVariables::selectedLedgeType = GetLedgePoint();
+
+    _THREAD_POOL.enqueue([]() {
+        std::unique_lock<std::mutex> lock(g_UpdateLock, std::try_to_lock);
+        if (!lock.owns_lock()) {
+            return;
+        }
+
+        const auto &player = GET_PLAYER;
+        RuntimeVariables::IsParkourActive = IsParkourActiveFor(player);
+        RuntimeVariables::PlayerScale = ScaleUtility::GetScale();
+        RuntimeVariables::playerDirFlat = GetActorDirFlat(player);
+    });
 
     UpdateIndicatorMenu();
 }
 
 bool Parkouring::TryActivateParkour() {
+    std::unique_lock<std::mutex> lock(g_ParkourActivateLock, std::try_to_lock);
+    if (!lock.owns_lock()) {
+        return false;
+    }
+
     const auto &player = GET_PLAYER;
     const auto &LedgeTypeToProcess = RuntimeVariables::selectedLedgeType;
 
@@ -688,7 +754,7 @@ bool Parkouring::TryActivateParkour() {
 
     const auto &fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
-    const bool avoidMidairParkour = fallTime < 0.17f;
+    const bool avoidMidairParkour = fallTime < 0.17f;  // Timeout activation immediately after jumping
     //LOG(">> Fall time: {}", fallTime);
 
     if (LedgeTypeToProcess != ParkourType::Grab) {
@@ -709,6 +775,8 @@ bool Parkouring::TryActivateParkour() {
         }
     }
 
+    if (!HavokUtil::ValidateBehaviorPatch(player)) return false;
+
     RuntimeVariables::ParkourInProgress = true;
 
     /* Also pass swimming state for stamina calculation logic */
@@ -722,10 +790,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //LOG("Dist: {}", dist);
 
-    /* Another guard for multiple activations */
-    if (RuntimeVariables::EnableNotifyWindow) {
-        return;
-    }
     RuntimeVariables::EnableNotifyWindow = true;
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
 
@@ -746,7 +810,15 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
         } while (elapsedMS < 100 && (player->GetPosition().GetDistance(startPos) >= 1.0f));
 
         _TASK_Q([player, ctrl, ledgeType, isSwimming] {
-            bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
+            if (IsActorWeaponOut(player) && (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow)) {
+                player->SetGraphVariableBool(SPPF_Lower_Body_Only, true);
+            }
+            else {
+                player->SetGraphVariableBool(SPPF_Lower_Body_Only, false);
+            }
+
+            const bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
+
             RuntimeVariables::EnableNotifyWindow = false;
             ctrl->gravity = 1;
             StopInterpolatingRef(player);
@@ -797,13 +869,13 @@ void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
         if (!ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Register();
-            LOG("Processing On");
+            LOG("Processing: < ON >");
         }
     }
     else {
         if (ButtonEventListener::GetSingleton()->SinkRegistered) {
             ButtonEventListener::Unregister();
-            LOG("Processing Off");
+            LOG("Processing: < Off >");
         }
 
         RuntimeMethods::ResetRuntimeVariables();

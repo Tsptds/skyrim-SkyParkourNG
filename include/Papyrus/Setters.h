@@ -13,6 +13,7 @@ namespace SkyParkour_Papyrus {
             static void SetEnableMod(RE::StaticFunctionTag *, bool value);
             static void SetShowIndicators(RE::StaticFunctionTag *, bool value);
             static void SetPlaybackSpeed(RE::StaticFunctionTag *, float value);
+            static void SetEnableCrouchSlide(RE::StaticFunctionTag *, bool value);
             static void SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value);
             static void SetMustHaveStamina(RE::StaticFunctionTag *, bool value);
             static void SetBaseStaminaDamage(RE::StaticFunctionTag *, float value);

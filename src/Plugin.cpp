@@ -8,37 +8,88 @@
 #include "Hooks/InputHandler.hpp"
 #include "Hooks/AnimEventHandler.hpp"
 #include "Hooks/CameraHandler.hpp"
+// #include "Hooks/HavokHandler.hpp"
 #include "API/API_Handles.h"
-#include "HUD/Scaleform/SkyParkourMenu.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
 
-bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine* vm) {
+bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);
     return true;
 }
+void HandleMissingESPWarning() {
+    ERROR("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
 
+    std::string err;
+
+    /* ESP not loaded by the game, check if game is pre 1.6.1130 */
+    const auto IsPreExtendedEslVersion = REL::Module::get().version() < SKSE::RUNTIME_SSE_1_6_1130;
+    if (IsPreExtendedEslVersion) {
+        const auto BEES = GetModuleHandleA("BackportedESLSupport.dll");
+
+        if (BEES) {
+            Compatibility::BackportedESLSupport = true;
+            LOG("BEES found on a pre-extended ESL Skyrim version");
+
+            err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded by Skyrim." +
+                  "\n\n'Backported Extended ESL Support' is installed on your pre 1.6.1130 Skyrim version, so it's not the problem." +
+                  "\n\nMake sure SkyParkour ESP is enabled in your load order." + "\nMod will not function properly.";
+        }
+        else {
+            ERROR("BEES not installed on a pre-extended ESL Skyrim version");
+
+            err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded by Skyrim." +
+                  "\n\nThis could be caused by not having 'Backported Extended ESL Support' installed." +
+                  "\n\nIt's a required mod for ESL plugins made with the latest Creation Kit on pre 1.6.1130 Skyrim versions." +
+                  "\n\nMod will not function properly.";
+
+            // RE::DebugMessageBox(err.c_str());
+        }
+    }
+    else {
+        err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded by Skyrim." +
+              "\n\nMake sure SkyParkour ESP is enabled in your load order." + "\n\nMod will not function properly.";
+    }
+
+    // RE::DebugMessageBox(err.c_str());
+    ERROR("----SkyParkour Failed To Load Due To Missing ESP----");
+    SKSE::stl::report_and_error(err);
+}
 void Install_Hooks_And_Listeners() {
     RaceChangeListener::Register();
     MenuListener::Register();
     //ButtonEventListener::Register();  // Do it when player loads, unregister inside Menu Listener
 
-    Hooks::InputHandlerEx::InstallInputHooks();
+    if (Hooks::InputHandler::InstallInputHooks()) {
+        LOG("Installed Hooks: |Input|");
+    }
 
-    Hooks::AnimationEventHook::InstallAnimEventHook();
-    Hooks::NotifyGraphHandler::InstallGraphNotifyHook();
+    if (Hooks::AnimationEventHook::InstallAnimEventHook()) {
+        LOG("Installed Hooks: |AnimEvent|");
+    }
 
-    Hooks::CameraHandler::InstallCamStateHooks();
+    if (Hooks::NotifyGraphHandler::InstallGraphNotifyHook()) {
+        LOG("Installed Hooks: |NotifyGraph|");
+    }
+
+    if (Hooks::CameraHandler::InstallCamStateHooks()) {
+        LOG("Installed Hooks: |Camera|");
+    }
+
+    // if (Hooks::HavokHandler::InstallHooks()) {
+    //     LOG("Installed Hooks: |Havok|");
+    // }
 }
 void ShowSkyParkourMenu() {
     using menu = Scaleform::SkyParkourMenu;
-    const auto& ui = RE::UI::GetSingleton();
+    const auto &ui = RE::UI::GetSingleton();
     if (ui) {
-        const auto& sppf = ui->GetMenu<menu>(menu::MENU_NAME);
+        const auto &sppf = ui->GetMenu<menu>(menu::MENU_NAME);
         sppf->Show();
     }
 }
-void MessageEvent(SKSE::MessagingInterface::Message* message) {
+void MessageEvent(SKSE::MessagingInterface::Message *message) {
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
-        RuntimeMethods::SetupModCompatibility();
+        RuntimeMethods::SetupDLLCompatibility();
 
         if (!RuntimeMethods::ReadPluginConfigFromINI()) {
             /* Ini does not exist and failed to create */
@@ -50,42 +101,21 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
         API_Handles::TrueHUD::RequestTrueHUDAPI();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
-        if (!RuntimeMethods::CheckESPLoaded()) {
-            ERROR("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
-
-            /* ESP not loaded by the game, check if game is pre 1.6.1130 */
-            auto IsPreExtendedEslVersion = REL::Module::get().version() < SKSE::RUNTIME_SSE_1_6_1130;
-            if (IsPreExtendedEslVersion) {
-                auto BEES = GetModuleHandleA("BackportedESLSupport.dll");
-                if (BEES) {
-                    Compatibility::BackportedESLSupport = true;
-                    LOG("BEES found on a pre-extended ESL Skyrim version");
-                }
-                else {
-                    ERROR("BEES not installed on a pre-extended ESL Skyrim version");
-                    const std::string err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded." +
-                                            "\n\n'Backported Extended ESL Support' is required on pre 1.6.1130 Skyrim versions." +
-                                            "\n\nMod is disabled.";
-                    RE::DebugMessageBox(err.c_str());
-                    return;
-                }
-            }
-
-            const std::string err =
-                "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " is not enabled in your load order." + "\nMod is disabled.";
-
-            RE::DebugMessageBox(err.c_str());
+        if (!RuntimeMethods::IsESPLoaded()) {
+            HandleMissingESPWarning();
             return;
         }
 
+        RuntimeMethods::SetupESPCompatibility();
         Install_Hooks_And_Listeners();
-        ShowSkyParkourMenu();
+
+        LOG("|>_SkyParkour Loaded_<|");
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetRuntimeVariables();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        const auto& player = GET_PLAYER;
+        const auto &player = GET_PLAYER;
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
             WARN("Fix: Save with ongoing parkour");
@@ -99,6 +129,7 @@ void MessageEvent(SKSE::MessagingInterface::Message* message) {
     }
     else if (message->type == SKSE::MessagingInterface::kInputLoaded) {
         Scaleform::SkyParkourMenu::Register();
+        ShowSkyParkourMenu();
     }
 }
 
@@ -165,7 +196,7 @@ namespace plugin {
     }
 }  // namespace plugin
 
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface* skse) {
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
     plugin::InitializeLogging();
 
     Init(skse, false);

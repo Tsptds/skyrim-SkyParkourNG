@@ -1,9 +1,6 @@
 #include "_References/IniSettings.h"
 
 namespace IniSettings {
-    std::string INIPath = "./Data/SKSE/Plugins/SkyParkourNG.ini";
-    std::string ESP_NAME = "SkyParkour.esp";
-
     void CreateDefault(std::unique_ptr<CSimpleIniA> &ini) {
         // Set default values here
         ini->SetValue("ESP", "sEspName", IniSettings::ESP_NAME.c_str());
@@ -11,6 +8,7 @@ namespace IniSettings {
         ini->SetValue("MCM", "bEnableMod", "true");
         ini->SetValue("MCM", "bShowIndicators", "true");
         ini->SetValue("MCM", "fPlaybackSpeed", "1.15");
+        ini->SetValue("MCM", "bEnableCrouchSlide", "true");
 
         ini->SetValue("MCM", "bUsePresetKey", "true");
         ini->SetValue("MCM", "iPresetKeyIndex", "0");

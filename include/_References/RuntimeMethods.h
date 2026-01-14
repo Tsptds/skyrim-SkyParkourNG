@@ -1,10 +1,12 @@
 #pragma once
 
 namespace RuntimeMethods {
-    extern void SetupModCompatibility();
+    extern const RE::TESFile *GetPlugin(RE::TESDataHandler *const &dh, std::string_view esp_name);
+    extern void SetupDLLCompatibility();
+    extern void SetupESPCompatibility();
     extern void SwapLegs();
     extern void ResetRuntimeVariables();
-    extern bool CheckESPLoaded();
+    extern bool IsESPLoaded();
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
     extern bool ReadPluginConfigFromINI();
     extern bool RequestTrueHUDAPI();

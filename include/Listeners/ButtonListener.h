@@ -6,7 +6,8 @@ namespace ButtonStates {
 
     extern uint32_t MapToCKIfPossible(uint32_t dxcode);
 
-    extern void RegisterActivation(RE::InputEvent* event);
+    extern void Parkour(RE::ButtonEvent* event);
+    extern void CrouchSlide(RE::ButtonEvent* event);
 }  // namespace ButtonStates
 
 class ButtonEventListener : public RE::BSTEventSink<RE::InputEvent*> {

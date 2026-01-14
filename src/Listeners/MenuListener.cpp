@@ -61,6 +61,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         if (Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = true;
+            Parkouring::InvalidateVars();
         }
 
         if (!RuntimeVariables::IsInMainMenu && Menus::MainMenuShowing()) {

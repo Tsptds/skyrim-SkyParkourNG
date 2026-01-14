@@ -6,6 +6,16 @@
 #include "_References/Compatibility.h"
 
 namespace RuntimeMethods {
+    const RE::TESFile *GetPlugin(RE::TESDataHandler *const &dh, std::string_view esp_name) {
+        if (!dh) {
+            return nullptr;
+        }
+
+        if (auto file = dh->GetSingleton()->LookupLoadedLightModByName(esp_name)) {
+            return file;
+        }
+        return dh->GetSingleton()->LookupLoadedModByName(esp_name);
+    }
 
     void SwapLegs() {
         RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
@@ -21,20 +31,22 @@ namespace RuntimeMethods {
         RuntimeVariables::EnableNotifyWindow = false;
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
-        auto player = GET_PLAYER;
+        const auto &player = GET_PLAYER;
         if (player) {
             player->SetGraphVariableInt(SPPF_Ledge, -1);
             player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
         }
+
+        RuntimeVariables::SlideOngoing = false;
     }
-    bool CheckESPLoaded() {
-        auto dh = RE::TESDataHandler::GetSingleton();
+    bool IsESPLoaded() {
+        const auto &dh = RE::TESDataHandler::GetSingleton();
         return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
                       dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
     }
 
     bool ReadPluginConfigFromINI() {
-        auto ini = IniSettings::GetIniHandle();
+        const auto &ini = IniSettings::GetIniHandle();
         if (!ini) {
             ERROR("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
             return false;
@@ -50,11 +62,20 @@ namespace RuntimeMethods {
         return true;
     }
 
-    void SetupModCompatibility() {
-        auto TDM = GetModuleHandleA("TrueDirectionalMovement.dll");
+    void SetupDLLCompatibility() {
+        const auto &TDM = GetModuleHandleA(Compatibility::TrueDirectionalMovement::dll_name);
         if (TDM) {
-            Compatibility::TrueDirectionalMovement = true;
+            Compatibility::TrueDirectionalMovement::found = true;
             LOG("Patch: True Directional Movement |360|Swim Pitch|");
+        }
+    }
+
+    void SetupESPCompatibility() {
+        const auto &dh = RE::TESDataHandler::GetSingleton();
+        const auto &JA = GetPlugin(dh, Compatibility::JumpingAttack::esp_name);
+        if (JA) {
+            Compatibility::JumpingAttack::found = true;
+            LOG("Patch: Jumping Attack |Weapon State Fix|");
         }
     }
 }  // namespace RuntimeMethods

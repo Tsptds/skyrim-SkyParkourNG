@@ -3,7 +3,7 @@
 #include "Util/ParkourUtility.h"
 #include "_References/IniSettings.h"
 #include "Parkouring.h"
-#include "HUD/Scaleform/SkyParkourMenu.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
 
 namespace SkyParkour_Papyrus {
 
@@ -13,6 +13,7 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("SetEnableMod", className, SetEnableMod);
         vm->RegisterFunction("SetShowIndicators", className, SetShowIndicators);
         vm->RegisterFunction("SetPlaybackSpeed", className, SetPlaybackSpeed);
+        vm->RegisterFunction("SetEnableCrouchSlide", className, SetEnableCrouchSlide);
         vm->RegisterFunction("SetEnableStaminaSystem", className, SetEnableStaminaSystem);
         vm->RegisterFunction("SetMustHaveStamina", className, SetMustHaveStamina);
         vm->RegisterFunction("SetBaseStaminaDamage", className, SetBaseStaminaDamage);
@@ -63,6 +64,13 @@ namespace SkyParkour_Papyrus {
         Playback_Speed = value;
         /* Set the graph variable as well, above is internal */
         GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
+    }
+    void Setters::SetEnableCrouchSlide(RE::StaticFunctionTag *, bool value) {
+        auto ini = GetINI();
+        ini->SetBoolValue(Section, "bEnableCrouchSlide", value);
+        save(ini);
+
+        Crouch_Slide_Enabled = value;
     }
     void Setters::SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();

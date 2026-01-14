@@ -4,18 +4,19 @@
 namespace SkyParkour_Papyrus {
 
     void Translations::RegisterFuncs(RE::BSScript::IVirtualMachine *vm) {
-        const auto pf_core = "Core_"s;
-        const auto pf_input = "Input_"s;
-        const auto pf_stamina = "Stamina_"s;
-        const auto pf_smart = "SmartParkour_"s;
-        const auto pf_tooltip = "Tooltip_"s;
-        const auto pf_warn = "Warn_"s;
+        constexpr auto pf_core = "Core_"s;
+        constexpr auto pf_input = "Input_"s;
+        constexpr auto pf_stamina = "Stamina_"s;
+        constexpr auto pf_smart = "SmartParkour_"s;
+        constexpr auto pf_tooltip = "Tooltip_"s;
+        constexpr auto pf_warn = "Warn_"s;
 
         // Core Settings
         vm->RegisterFunction(pf_core + "Header", className, Core::Header);
         vm->RegisterFunction(pf_core + "OnOff", className, Core::OnOff);
         vm->RegisterFunction(pf_core + "Indicator", className, Core::Indicator);
         vm->RegisterFunction(pf_core + "PlaybackSpeed", className, Core::PlaybackSpeed);
+        vm->RegisterFunction(pf_core + "CrouchSlide", className, Core::CrouchSlide);
 
         // Input Settings
         vm->RegisterFunction(pf_input + "Header", className, Input::Header);
@@ -43,6 +44,7 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction(pf_tooltip + "OnOff", className, MCM_Info::OnOff);
         vm->RegisterFunction(pf_tooltip + "Indicator", className, MCM_Info::Indicator);
         vm->RegisterFunction(pf_tooltip + "PlaybackSpeed", className, MCM_Info::PlaybackSpeed);
+        vm->RegisterFunction(pf_tooltip + "CrouchSlide", className, MCM_Info::CrouchSlide);
         vm->RegisterFunction(pf_tooltip + "UsePresetKey", className, MCM_Info::UsePresetKey);
         vm->RegisterFunction(pf_tooltip + "CustomKey", className, MCM_Info::CustomKey);
         vm->RegisterFunction(pf_tooltip + "Delay", className, MCM_Info::Delay);
@@ -81,6 +83,12 @@ namespace SkyParkour_Papyrus {
         const auto &ini = Localized_ini::GetIniHandle();
 
         const auto &val = ini->GetValue(Section, "PlaybackSpeed");
+        return RE::BSFixedString(val);
+    }
+    RE::BSFixedString Translations::Core::CrouchSlide(RE::StaticFunctionTag *) {
+        const auto &ini = Localized_ini::GetIniHandle();
+
+        const auto &val = ini->GetValue(Section, "CrouchSlide");
         return RE::BSFixedString(val);
     }
 
@@ -203,6 +211,12 @@ namespace SkyParkour_Papyrus {
         const auto &ini = Localized_ini::GetIniHandle();
 
         const auto &val = ini->GetValue(Section, "PlaybackSpeed");
+        return RE::BSFixedString(val);
+    }
+    RE::BSFixedString Translations::MCM_Info::CrouchSlide(RE::StaticFunctionTag *) {
+        const auto &ini = Localized_ini::GetIniHandle();
+
+        const auto &val = ini->GetValue(Section, "CrouchSlide");
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::UsePresetKey(RE::StaticFunctionTag *) {

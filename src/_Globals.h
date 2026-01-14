@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Util/ThreadPool.hpp"
+#include "_References/BehaviorGraph.h"
+
 #ifdef _DEBUG
 #include "_Logging.h"
 #endif
@@ -27,36 +29,39 @@ namespace SkyParkourUtil {
                                                                 COL_LAYER::kClutter, COL_LAYER::kBiped,      COL_LAYER::kDeadBip};
 
     static ThreadPool threads;
-    static RE::hkVector4 zeroVector{0, 0, 0, 0};
+    static hkVector4 zeroVector{0, 0, 0, 0};
 
     struct RayCastResult {
             float distance = -1.0f;
-            RE::COL_LAYER layer = RE::COL_LAYER::kUnidentified;
-            RE::hkVector4 normalOut = RE::hkVector4(0, 0, 0, 0);
+            COL_LAYER layer = COL_LAYER::kUnidentified;
+            hkVector4 normalOut = hkVector4(0, 0, 0, 0);
             bool didHit = false;
+
+            // Do a null check before using this
+            TESObjectREFR *hitObjectRef = nullptr;
 
             RayCastResult() = default;
 
-            RayCastResult(float d, RE::COL_LAYER l, const RE::hkVector4& n, bool h)
-                : distance(d), layer(l), normalOut(n), didHit(h) {}
+            RayCastResult(float d, COL_LAYER l, const hkVector4 &n, bool h, TESObjectREFR *r)
+                : distance(d), layer(l), normalOut(n), didHit(h), hitObjectRef(r) {}
     };
 
     enum class COL_LAYER_EXTEND {
-        kClimbLedge = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
-        kClimbObstruction = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
-        kVaultDown = static_cast<uint32_t>(RE::COL_LAYER::kCustomPick1),
-        kVaultForward = static_cast<uint32_t>(RE::COL_LAYER::kTransparent),
-        kVaultPostLedgeObstruction = static_cast<uint32_t>(RE::COL_LAYER::kLOS),
+        kClimbLedge = static_cast<uint32_t>(COL_LAYER::kLOS),
+        kClimbObstruction = static_cast<uint32_t>(COL_LAYER::kCustomPick1),
+        kVaultDown = static_cast<uint32_t>(COL_LAYER::kCustomPick1),
+        kVaultForward = static_cast<uint32_t>(COL_LAYER::kTransparent),
+        kVaultPostLedgeObstruction = static_cast<uint32_t>(COL_LAYER::kLOS),
     };
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate };
 
     static void LogCharacterFlags() {
-        if (auto* controller = RE::PlayerCharacter::GetSingleton()->GetCharController()) {
+        if (auto *controller = PlayerCharacter::GetSingleton()->GetCharController()) {
             auto flags = controller->flags;
 
             struct FlagInfo {
-                    const char* name;
+                    const char *name;
                     std::uint32_t mask;
             };
             static constexpr FlagInfo table[] = {{"kQuadruped", 1 << 0},
@@ -92,8 +97,8 @@ namespace SkyParkourUtil {
                                                  {"kShapeRequiresZRot", 1 << 30},
                                                  {"kSwimAtWaterSurface", 1u << 31}};
 
-            for (auto& f: table) {
-                if (flags.any(static_cast<RE::CHARACTER_FLAGS>(f.mask))) {
+            for (auto &f: table) {
+                if (flags.any(static_cast<CHARACTER_FLAGS>(f.mask))) {
                     logger::info(" - {}", f.name);
                 }
             }
@@ -103,6 +108,13 @@ namespace SkyParkourUtil {
         }
     }
 
+    static NiPoint3 Vec4_To_Vec3(hkVector4 vec) {
+        return NiPoint3(vec.quad.m128_f32[0], vec.quad.m128_f32[1], vec.quad.m128_f32[2]);
+    }
+
+    static hkVector4 Vec3_To_Vec4(NiPoint3 vec) {
+        return hkVector4(vec.x, vec.y, vec.z, 0);
+    }
 }  // namespace SkyParkourUtil
 
 /* Log macros */
@@ -118,6 +130,10 @@ namespace SkyParkourUtil {
 /* Generic Stuff */
 #define GET_PLAYER RE::PlayerCharacter::GetSingleton()
 #define ZERO_VECTOR SkyParkourUtil::zeroVector
+
+#define VEC3_TO_VEC4 SkyParkourUtil::Vec3_To_Vec4
+#define VEC4_TO_VEC3 SkyParkourUtil::Vec4_To_Vec3
+
 #define RayCastResult SkyParkourUtil::RayCastResult
 #define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
 #define PARKOUR_PRESET_KEYS SkyParkourUtil::ParkourKeyOptions
@@ -126,20 +142,3 @@ namespace SkyParkourUtil {
 #define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
 #define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList
 #define LAYERS_VAULT_FORWARD_RAY SkyParkourUtil::VaultForwardRayList
-
-/* Anim Events */
-#define SPPF_NOTIFY "SkyParkour"
-#define SPPF_START "SkyParkour_Start"
-#define SPPF_STOP "SkyParkour_Stop"
-#define SPPF_RECOVERY "SkyParkour_Recovery"
-#define SPPF_INTERRUPT "SkyParkour_Interrupt"
-
-/* Graph Variables */
-#define SPPF_Ledge "SkyParkourLedge"
-#define SPPF_Leg "SkyParkourStepLeg"
-#define SPPF_ONGOING "SkyparkourOngoing"
-#define SPPF_SPEEDMULT "SkyParkourSpeedMult"
-
-/* Bool def for OnStartStop func */
-#define IS_STOP true
-#define IS_START false

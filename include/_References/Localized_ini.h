@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Localized_ini {
-    extern std::string INIPath;
+    inline std::string INIPath{"./Data/SKSE/Plugins/SkyParkourNG_Localization.ini"};
 
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
 }

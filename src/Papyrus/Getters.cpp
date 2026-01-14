@@ -10,6 +10,7 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("GetEnableMod", className, GetEnableMod);
         vm->RegisterFunction("GetShowIndicators", className, GetShowIndicators);
         vm->RegisterFunction("GetPlaybackSpeed", className, GetPlaybackSpeed);
+        vm->RegisterFunction("GetEnableCrouchSlide", className, GetEnableCrouchSlide);
         vm->RegisterFunction("GetEnableStaminaSystem", className, GetEnableStaminaSystem);
         vm->RegisterFunction("GetMustHaveStamina", className, GetMustHaveStamina);
         vm->RegisterFunction("GetBaseStaminaDamage", className, GetBaseStaminaDamage);
@@ -30,6 +31,9 @@ namespace SkyParkour_Papyrus {
     }
     float Getters::GetPlaybackSpeed(RE::StaticFunctionTag *) {
         return Playback_Speed;
+    }
+    bool Getters::GetEnableCrouchSlide(RE::StaticFunctionTag *) {
+        return Crouch_Slide_Enabled;
     }
     bool Getters::GetEnableStaminaSystem(RE::StaticFunctionTag *) {
         return Enable_Stamina_Consumption;

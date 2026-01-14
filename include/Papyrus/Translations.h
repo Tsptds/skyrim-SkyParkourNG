@@ -16,6 +16,7 @@ namespace SkyParkour_Papyrus {
                     static RE::BSFixedString OnOff(RE::StaticFunctionTag *);
                     static RE::BSFixedString Indicator(RE::StaticFunctionTag *);
                     static RE::BSFixedString PlaybackSpeed(RE::StaticFunctionTag *);
+                    static RE::BSFixedString CrouchSlide(RE::StaticFunctionTag *);
             };
 
             struct Input {
@@ -55,6 +56,7 @@ namespace SkyParkour_Papyrus {
                     static RE::BSFixedString OnOff(RE::StaticFunctionTag *);
                     static RE::BSFixedString Indicator(RE::StaticFunctionTag *);
                     static RE::BSFixedString PlaybackSpeed(RE::StaticFunctionTag *);
+                    static RE::BSFixedString CrouchSlide(RE::StaticFunctionTag *);
                     static RE::BSFixedString UsePresetKey(RE::StaticFunctionTag *);
                     static RE::BSFixedString CustomKey(RE::StaticFunctionTag *);
                     static RE::BSFixedString Delay(RE::StaticFunctionTag *);

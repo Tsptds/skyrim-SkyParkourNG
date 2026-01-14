@@ -1,6 +1,14 @@
 #pragma once
 
 namespace Compatibility {
-    extern bool TrueDirectionalMovement;
-    extern bool BackportedESLSupport;
+    inline bool BackportedESLSupport{false};
+    struct TrueDirectionalMovement {
+            inline static bool found{false};
+            inline static constexpr const char *dll_name{"TrueDirectionalMovement.dll"};
+    };
+    struct JumpingAttack {
+            inline static bool found{false};
+            inline static constexpr const char *esp_name{"JumpAttack.esp"};
+            inline static constexpr const char *event{"JumpAtkEquip"};
+    };
 }  // namespace Compatibility

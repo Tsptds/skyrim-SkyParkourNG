@@ -5,91 +5,31 @@
 
 #include "Parkouring.h"
 #include "Util/ParkourUtility.h"
+#include "Util/HookingUtil.hpp"
 #include "API/API_Handles.h"
 
-#include "HUD/Scaleform/SkyParkourMenu.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
 
 namespace Hooks {
 
     class AnimationEventHook {
         public:
-            static bool InstallAnimEventHook() {
-                // This is the Event notify hook, equivalent of an event sink. Event will go regardless. Don't return anything in this except the OG func.
-                auto vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_BSAnimationGraphManager[0]);
-                constexpr std::size_t idx = 0x1;
-                _ProcessEvent = vtbl.write_vfunc(idx, &Hook);
-
-                if (!_ProcessEvent.address()) {
-                    CRITICAL("AnimEvent Hook Not Installed");
-                    return false;
-                }
-                return true;
-            }
-
-            static void GetGraphs(RE::Actor* actor) {
-                if (actor) {
-                    RE::BSAnimationGraphManagerPtr graphMgr;
-                    if (actor->GetAnimationGraphManager(graphMgr)) {
-                        for (auto& graph: graphMgr->graphs) {
-                            if (!graph)
-                                continue;
-                            bool out;
-                            graph->GetGraphVariableBool(SPPF_ONGOING, out);
-
-                            // Debug print to see which is which
-                            logger::info("Ongoing {} in {}", out, graph->projectName);  // DefaultMale or DefaultFemale, FirstPerson
-                        }
-                    }
-                }
-            }
+            static bool InstallAnimEventHook();
 
         private:
-            static inline RE::BSEventNotifyControl Hook(RE::BSAnimationGraphManager* a_this, const RE::BSAnimationGraphEvent* a_event,
-                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent>* a_eventSource) {
-                if (!a_event || !ModSettings::Mod_Enabled) {
-                    return _ProcessEvent(a_this, a_event, a_eventSource);
-                }
+            struct Signatures {
+                    using ProcessEvent_t = RE::BSEventNotifyControl(RE::BSAnimationGraphManager *a_this,
+                                                                    const RE::BSAnimationGraphEvent *a_event,
+                                                                    RE::BSTEventSource<RE::BSAnimationGraphEvent> *a_eventSource);
+            };
 
-                auto actor = a_event->holder;
-                if (!actor || !actor->IsPlayerRef()) {
-                    return _ProcessEvent(a_this, a_event, a_eventSource);
-                }
+            struct Callback {
+                    static Signatures::ProcessEvent_t ProcessEvent;
+            };
 
-                if (a_event->tag == "GetUpExit") {
-                    /* Reset vars on ragdoll exit */
-                    RuntimeMethods::ResetRuntimeVariables();
-                }
-
-                if (RuntimeVariables::ParkourInProgress) {
-                    //LOG(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
-
-                    if (a_event->tag == SPPF_START) {
-                        Parkouring::OnStartStop(IS_START);
-                    }
-                    else if (a_event->tag == SPPF_RECOVERY) {
-                        RuntimeVariables::RecoveryFramesActive = true;
-
-                        /* If not close to ground on recovery window, end early */
-                        /* TODO: Maybe move this to graph, check dist and fire stop event */
-                        const auto& player = GET_PLAYER;
-
-                        const RE::NiPoint3 start{player->GetPosition()};
-                        constexpr RE::NiPoint3 dir{0, 0, -1};
-                        constexpr float dist = 50.0f;
-                        constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
-
-                        if (!ParkourUtility::RayCast(start, dir, dist, mask).didHit) {
-                            player->NotifyAnimationGraph(SPPF_STOP);
-                        }
-                    }
-                    else if (a_event->tag == SPPF_STOP) {
-                        Parkouring::OnStartStop(IS_STOP);
-                    }
-                }
-                return _ProcessEvent(a_this, a_event, a_eventSource);
-            }
-
-            static inline REL::Relocation<decltype(Hook)> _ProcessEvent;  // 01
+            struct OG {
+                    static inline REL::Relocation<Signatures::ProcessEvent_t *> _ProcessEvent;  // 01
+            };
     };
 
     class NotifyGraphHandler {
@@ -97,92 +37,196 @@ namespace Hooks {
             static bool InstallGraphNotifyHook();
 
         private:
-            // Our hook callbacks
-            static bool OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
-            static bool OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
-            static bool OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName);
+            struct Signatures {
+                    using Notify_TESObjectRefr_t = bool(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName);
+                    using Notify_Character_t = bool(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName);
+                    using Notify_PlayerCharacter_t = bool(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName);
+            };
 
-            // Originals
-            static inline REL::Relocation<decltype(OnTESObjectREFR)> _origTESObjectREFR;
-            static inline REL::Relocation<decltype(OnCharacter)> _origCharacter;
-            static inline REL::Relocation<decltype(OnPlayerCharacter)> _origPlayerCharacter;
+            struct Callback {
+                    static Signatures::Notify_TESObjectRefr_t Notify_TESObjectRefr;
+                    static Signatures::Notify_Character_t Notify_Character;
+                    static Signatures::Notify_PlayerCharacter_t Notify_PlayerCharacter;
+            };
+
+            struct OG {
+                    static inline REL::Relocation<Signatures::Notify_TESObjectRefr_t *> _Notify_TESObjectRefr;
+                    static inline REL::Relocation<Signatures::Notify_Character_t *> _Notify_Character;
+                    static inline REL::Relocation<Signatures::Notify_PlayerCharacter_t *> _Notify_PlayerCharacter;
+            };
     };
-}  // namespace Hooks
 
-bool Hooks::NotifyGraphHandler::InstallGraphNotifyHook() {
-    // TESObjectREFR
-    //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
-    //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
+#pragma region  // AnimEvent
+    bool AnimationEventHook::InstallAnimEventHook() {
+        // This is the anim event hook, global event sink for everyone. Event will go regardless. Don't return anything in this except the OG func.
+        // Sink gets destroyed when graph deletes, so using this
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_BSAnimationGraphManager[0]};
 
-    // Character
-    //REL::Relocation<uintptr_t> vtblChar{RE::VTABLE_Character[3]};
-    //_origCharacter = vtblChar.write_vfunc(0x1, OnCharacter);
-
-    // PlayerCharacter
-    REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_PlayerCharacter[3]};
-    _origPlayerCharacter = vtblPlayer.write_vfunc(0x1, OnPlayerCharacter);
-
-    if (!_origPlayerCharacter.address()) {
-        CRITICAL("Notify Hook Not Installed");
-        return false;
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_ProcessEvent, &Callback::ProcessEvent);
+        if (!res) CRITICAL("AnimEvent Hook Not Installed");
+        return res;
     }
-    return true;
-}
 
-bool Hooks::NotifyGraphHandler::OnTESObjectREFR(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    // pre‑hook logic...
-    bool result = _origTESObjectREFR(a_this, a_eventName);
-    // post‑hook logic...
-    LOG(">> Object Anim Event: {}", a_eventName.c_str());
-    return result;
-}
-
-bool Hooks::NotifyGraphHandler::OnCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    bool result = _origCharacter(a_this, a_eventName);
-    LOG(">> Char Anim Event: {}", a_eventName.c_str());
-    return result;
-}
-
-bool Hooks::NotifyGraphHandler::OnPlayerCharacter(RE::IAnimationGraphManagerHolder* a_this, const RE::BSFixedString& a_eventName) {
-    if (a_eventName == "sppf_debug") {
-        if (API_Handles::TrueHUD::Get()) {
-            auto& draw = ModSettings::_Debug_Draw_Lines;
-            draw = !draw;
-            const char* msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
-            LOG("{}", msg);
-            RE::ConsoleLog::GetSingleton()->Print(msg);
-            return true;
+    RE::BSEventNotifyControl AnimationEventHook::Callback::ProcessEvent(RE::BSAnimationGraphManager *a_this,
+                                                                        const RE::BSAnimationGraphEvent *a_event,
+                                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent> *a_eventSource) {
+        if (!a_event || !ModSettings::Mod_Enabled) {
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
-        else {
-            WARN("Can't enable debug line drawing, TrueHud handle not found");
-            RE::ConsoleLog::GetSingleton()->Print("TrueHUD not found, SkyParkour debugging isn't available");
-            return false;
+
+        const auto &actor = a_this->graphs[a_this->GetRuntimeData().activeGraph]->holder;
+
+        if (!actor || !actor->IsPlayerRef()) {
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
-    }
 
-    if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
-        /* If stop event is sent forcibly, flow to correct graph state. */
-        const_cast<RE::BSFixedString&>(a_eventName) = SPPF_INTERRUPT;
-    }
-
-    if (a_eventName == SPPF_NOTIFY &&
-        (!RuntimeVariables::IsParkourActive || (RuntimeVariables::ParkourInProgress && !RuntimeVariables::EnableNotifyWindow))) {
-        return false;
-    }
-
-    else if (a_eventName == "Ragdoll") {
-        if (RuntimeVariables::ParkourInProgress) {
-            /*Unlock controls on ragdoll*/
-
-            bool didRagdoll = _origPlayerCharacter(a_this, a_eventName);
-            if (didRagdoll) {
-                Parkouring::OnStartStop(IS_STOP);
+        if (RuntimeVariables::SlideOngoing) {
+            if (a_event->tag == SPPF_RECOVERY) {
+                RuntimeVariables::SlideOngoing = false;
+                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
             }
-            return didRagdoll;
+            else if (a_event->tag == SPPF_SLIDE_STOP) {
+                RuntimeVariables::SlideOngoing = false;
+                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+            }
         }
+
+        if (a_event->tag == SPPF_SLIDE_START) {
+            RuntimeVariables::SlideOngoing = true;
+
+            actor->SetGraphVariableInt("iIsInSneak", true);
+            actor->AsActorState()->actorState1.sneaking = true;
+
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+        }
+
+        if (a_event->tag == "GetUpExit") {
+            /* Reset vars on ragdoll exit */
+            RuntimeMethods::ResetRuntimeVariables();
+
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+        }
+
+        if (RuntimeVariables::ParkourInProgress) {
+            //LOG(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
+
+            if (a_event->tag == SPPF_START) {
+                constexpr bool Start = false;
+                Parkouring::OnStartStop(Start);
+            }
+            else if (a_event->tag == SPPF_RECOVERY) {
+                RuntimeVariables::RecoveryFramesActive = true;
+
+                const bool closeToGround = [actor] {
+                    const RE::NiPoint3 start{actor->GetPosition()};
+                    constexpr RE::NiPoint3 dir{0, 0, -1};
+                    constexpr float dist = 35.0f;
+                    constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
+
+                    return ParkourUtility::RayCast(start, dir, dist, mask).didHit;
+                }();
+
+                if (!closeToGround) actor->NotifyAnimationGraph(SPPF_STOP);
+            }
+            else if (a_event->tag == SPPF_STOP) {
+                constexpr bool Stop = true;
+                Parkouring::OnStartStop(Stop);
+            }
+        }
+
+        return OG::_ProcessEvent(a_this, a_event, a_eventSource);
     }
-    else if (a_eventName == SPPF_STOP) {
-        Parkouring::OnStartStop(IS_STOP);
+
+#pragma endregion
+
+#pragma region  // NotifyGraph
+    bool NotifyGraphHandler::InstallGraphNotifyHook() {
+        // TESObjectREFR
+        //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
+        //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
+
+        // Character
+        //REL::Relocation<uintptr_t> vtblChar{RE::VTABLE_Character[3]};
+        //_origCharacter = vtblChar.write_vfunc(0x1, OnCharacter);
+
+        // PlayerCharacter
+        REL::Relocation<uintptr_t> vtblPlayer{RE::VTABLE_PlayerCharacter[3]};
+
+        const bool res = Hooking::InstallVFuncHook(vtblPlayer, 0x1, OG::_Notify_PlayerCharacter, &Callback::Notify_PlayerCharacter);
+        if (!res) CRITICAL("Notify Hook Not Installed");
+        return res;
     }
-    return _origPlayerCharacter(a_this, a_eventName);
-}
+
+    bool NotifyGraphHandler::Callback::Notify_TESObjectRefr(RE::IAnimationGraphManagerHolder *a_this,
+                                                            const RE::BSFixedString &a_eventName) {
+        bool result = OG::_Notify_TESObjectRefr(a_this, a_eventName);
+
+        LOG(">> Object Anim Event: {}", a_eventName.c_str());
+        return result;
+    }
+
+    bool NotifyGraphHandler::Callback::Notify_Character(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName) {
+        bool result = OG::_Notify_Character(a_this, a_eventName);
+
+        LOG(">> Char Anim Event: {}", a_eventName.c_str());
+        return result;
+    }
+
+    bool NotifyGraphHandler::Callback::Notify_PlayerCharacter(RE::IAnimationGraphManagerHolder *a_this,
+                                                              const RE::BSFixedString &a_eventName) {
+        if (a_eventName == "sppf_debug") {
+            if (API_Handles::TrueHUD::Get()) {
+                auto &draw = ModSettings::_Debug_Draw_Lines;
+                draw = !draw;
+                const char *msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
+                LOG("{}", msg);
+                RE::ConsoleLog::GetSingleton()->Print(msg);
+
+                return true;
+            }
+            else {
+                WARN("Can't enable debug line drawing, TrueHud handle not found");
+                RE::ConsoleLog::GetSingleton()->Print("TrueHUD not found, SkyParkour debugging isn't available");
+
+                return false;
+            }
+        }
+
+        if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
+            /* If stop event is sent forcibly, flow to correct graph state. */
+            const_cast<RE::BSFixedString &>(a_eventName) = SPPF_INTERRUPT;
+
+            return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+        }
+
+        // if (a_eventName == SPPF_NOTIFY &&
+        //     (!RuntimeVariables::IsParkourActive || (RuntimeVariables::ParkourInProgress && !RuntimeVariables::EnableNotifyWindow))) {
+        //     return false;
+        // }
+
+        if (a_eventName == "Ragdoll") {
+            if (RuntimeVariables::ParkourInProgress) {
+                /*Unlock controls on ragdoll*/
+
+                bool didRagdoll = OG::_Notify_PlayerCharacter(a_this, a_eventName);
+                if (didRagdoll) {
+                    constexpr bool Stop = true;
+                    Parkouring::OnStartStop(Stop);
+                }
+                return didRagdoll;
+            }
+        }
+
+        if (a_eventName == SPPF_STOP) {
+            constexpr bool Start = true;
+            Parkouring::OnStartStop(Start);
+
+            return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+        }
+
+        return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+    }
+
+#pragma endregion
+
+}  // namespace Hooks

@@ -165,3 +165,4 @@ using namespace std::literals;
 namespace logger = SKSE::log;
 
 #include "_Globals.h"
+using namespace BehaviorGraph;

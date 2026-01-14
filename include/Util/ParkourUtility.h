@@ -1,14 +1,16 @@
 #pragma once
 
 namespace ParkourUtility {
-    bool IsParkourActive();
+    bool IsParkourActiveFor(RE::Actor *actor);
+    bool ClimbExtraChecks(RE::NiPoint3 start, const float check_height);
     bool StepsExtraChecks(RE::Actor *player, const RayCastResult ray);
     bool IsStepNormalValid(const RayCastResult ray, bool isMoving);
     bool VaultExtraChecks(RE::Actor *actor);
-    bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray);
+    bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &isGrabFromBelow);
     void StopInteractions(RE::Actor &actor);
-    RE::NiPoint3 GetPlayerDirFlat(RE::Actor *player);
-    RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask);
+    RE::NiPoint3 GetActorDirFlat(RE::Actor *actor);
+    RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask,
+                          RE::Actor *actor = GET_PLAYER);
     // Ragdoll & Get Up Sequence
     bool IsKnockedOut(RE::Actor *);
     bool IsPlayerAlreadyAnimationDriven(RE::Actor *);
@@ -23,12 +25,15 @@ namespace ParkourUtility {
     float CalculateParkourStamina(RE::Actor *);
     bool PlayerHasEnoughStamina();
     bool DamageActorStamina(RE::Actor *actor, float amount);
-    bool ShouldReplaceMarkerWithFailed();
+    bool ShouldClimbActionFail();
     bool CheckActionRequiresLowEffort(int32_t selectedLedgeType);
     bool IsSupportGroundedOrSliding(RE::Actor *);
     bool IsSupportUnsupported(RE::Actor *);
     bool IsSupportSliding(RE::Actor *);
     bool IsSupportGrounded(RE::Actor *);
     bool PlayerIsSwimming();
+    bool IsActorWeaponOut(RE::Actor *actor);
     bool IsInDrawSheath(RE::Actor *);
+    bool IsAttacking(RE::Actor *actor);
+    bool IsCrouchSliding(RE::Actor *actor);
 }  // namespace ParkourUtility

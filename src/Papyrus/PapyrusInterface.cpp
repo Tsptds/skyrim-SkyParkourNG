@@ -21,24 +21,25 @@ namespace SkyParkour_Papyrus {
         auto ini = IniSettings::GetIniHandle();
 
         /* Parkour Settings */
-        Mod_Enabled = ini->GetBoolValue(Section, "bEnableMod");
-        Use_Indicators = ini->GetBoolValue(Section, "bShowIndicators");
-        Playback_Speed = static_cast<float>(ini->GetDoubleValue(Section, "fPlaybackSpeed"));
+        Mod_Enabled = ini->GetBoolValue(Section, "bEnableMod", true);
+        Use_Indicators = ini->GetBoolValue(Section, "bShowIndicators", true);
+        Playback_Speed = static_cast<float>(ini->GetDoubleValue(Section, "fPlaybackSpeed", 1.15f));
+        Crouch_Slide_Enabled = ini->GetBoolValue(Section, "bEnableCrouchSlide", true);
 
         /* Stamina Settings */
-        Enable_Stamina_Consumption = ini->GetBoolValue(Section, "bEnableStaminaSystem");
-        Must_Have_Stamina = ini->GetBoolValue(Section, "bMustHaveStamina");
-        Stamina_Damage = static_cast<float>(ini->GetDoubleValue(Section, "iBaseStaminaDamage"));
+        Enable_Stamina_Consumption = ini->GetBoolValue(Section, "bEnableStaminaSystem", true);
+        Must_Have_Stamina = ini->GetBoolValue(Section, "bMustHaveStamina", true);
+        Stamina_Damage = static_cast<float>(ini->GetDoubleValue(Section, "iBaseStaminaDamage", 20.f));
 
         /* Input Settings */
-        Use_Preset_Parkour_Key = ini->GetBoolValue(Section, "bUsePresetKey");
-        Preset_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue(Section, "iPresetKeyIndex"));
-        Custom_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue(Section, "iCustomKeybind"));
-        Parkour_Delay = static_cast<float>(ini->GetDoubleValue(Section, "fInputDelay"));
+        Use_Preset_Parkour_Key = ini->GetBoolValue(Section, "bUsePresetKey", true);
+        Preset_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue(Section, "iPresetKeyIndex", 0));
+        Custom_Parkour_Key = static_cast<int32_t>(ini->GetDoubleValue(Section, "iCustomKeybind", 0));
+        Parkour_Delay = static_cast<float>(ini->GetDoubleValue(Section, "fInputDelay", 0));
 
-        Smart_Steps = ini->GetBoolValue(Section, "bSmartSteps");
-        Smart_Vault = ini->GetBoolValue(Section, "bSmartVault");
-        Smart_Climb = ini->GetBoolValue(Section, "bSmartClimb");
+        Smart_Steps = ini->GetBoolValue(Section, "bSmartSteps", true);
+        Smart_Vault = ini->GetBoolValue(Section, "bSmartVault", true);
+        Smart_Climb = ini->GetBoolValue(Section, "bSmartClimb", true);
     }
     void Internal::RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm) {
         // Maintenance calls this to start polling updates on player load

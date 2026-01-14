@@ -8,8 +8,8 @@ namespace HardCodedVariables {
     constexpr float vaultMaxHeight{120};
     constexpr float vaultMinHeight{40.5};
 
-    constexpr float grabPlayerBelowLedgeMaxDiff{110};
-    constexpr float grabPlayerAboveLedgeMaxDiff{-35};
+    constexpr float grabMaxHeight{125};
+    constexpr float grabHighVariantThreshold{75};
 
     // These are the height ranges for parkour type selection, represent low limits.
     constexpr float highestLedgeLimit{220};
@@ -26,5 +26,6 @@ namespace HardCodedVariables {
     constexpr float stepHighElevation{70};
     constexpr float stepLowElevation{50};
     constexpr float vaultElevation{60};  // This is exception, vault needs to put player further below. Elevation is 20, plus 40 adjustment
-    constexpr float grabElevation{60};
+    constexpr float grabElevation{55};
+    constexpr float grabHighElevation{100};
 }  // namespace HardCodedVariables

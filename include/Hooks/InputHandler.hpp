@@ -5,51 +5,74 @@
 #include "_References/Compatibility.h"
 
 #include "Util/ParkourUtility.h"
+#include "Util/HookingUtil.hpp"
 
 namespace Hooks {
 
-    class InputHandlerEx {
+    class InputHandler {
         public:
-            static InputHandlerEx* GetSingleton() {
-                static InputHandlerEx singleton;
-                return &singleton;
-            }
-
             static bool InstallInputHooks();
 
         private:
-            static bool InstallJumpHook();
-            static bool InstallProcessJumpHook();
-            static bool InstallSneakHook();
-            static bool InstallMovementHook();
-            static bool InstallActivateHook();
-            static bool InstallPOVHook();
-            static bool InstallWeaponHook();
-            static bool InstallLookHook();
+            struct Signatures {
+                    using ProcessButton_Jump_t = void(RE::JumpHandler *a_this, RE::ButtonEvent *a_event, RE::PlayerControlsData *a_data);
 
-            /* Callbacks */
-            static bool CanProcess_Jump(RE::JumpHandler* a_this, RE::InputEvent* a_event);
-            static void ProcessButton_Jump(RE::JumpHandler* a_this, RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data);
-            static bool CanProcess_Sneak(RE::SneakHandler* a_this, RE::InputEvent* a_event);
-            static bool CanProcess_Movement(RE::MovementHandler* a_this, RE::InputEvent* a_event);
-            static bool CanProcess_Activate(RE::ActivateHandler* a_this, RE::InputEvent* a_event);
-            static bool CanProcess_POV(RE::TogglePOVHandler* a_this, RE::InputEvent* a_event);
-            static bool CanProcess_Weapon(RE::ReadyWeaponHandler* a_this, RE::InputEvent* a_event);
-            static bool CanProcess_Look(RE::LookHandler* a_this, RE::InputEvent* a_event);
+                    using CanProcess_Jump_t = bool(RE::JumpHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Sneak_t = bool(RE::SneakHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Movement_t = bool(RE::MovementHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Activate_t = bool(RE::ActivateHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_POV_t = bool(RE::TogglePOVHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Weapon_t = bool(RE::ReadyWeaponHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Look_t = bool(RE::LookHandler *a_this, RE::InputEvent *a_event);
+            };
 
-            /* OG */
-            static inline REL::Relocation<decltype(CanProcess_Jump)> _CanProcessJump;
-            static inline REL::Relocation<decltype(ProcessButton_Jump)> _ProcessButtonJump;
-            static inline REL::Relocation<decltype(CanProcess_Sneak)> _CanProcessSneak;
-            static inline REL::Relocation<decltype(CanProcess_Movement)> _CanProcessMovement;
-            static inline REL::Relocation<decltype(CanProcess_Activate)> _CanProcessActivate;
-            static inline REL::Relocation<decltype(CanProcess_POV)> _CanProcessPOV;
-            static inline REL::Relocation<decltype(CanProcess_Weapon)> _CanProcessWeapon;
-            static inline REL::Relocation<decltype(CanProcess_Look)> _CanProcessLook;
+            struct Install {
+                    static bool ProcessButton_Jump();
+
+                    static bool CanProcess_Jump();
+                    static bool CanProcess_Sneak();
+                    static bool CanProcess_Movement();
+                    static bool CanProcess_Activate();
+                    static bool CanProcess_POV();
+                    static bool CanProcess_Weapon();
+                    static bool CanProcess_Look();
+            };
+
+            struct Callback {
+                private:
+                    using _S = Signatures;
+
+                public:
+                    static _S::ProcessButton_Jump_t ProcessButton_Jump;
+
+                    static _S::CanProcess_Jump_t CanProcess_Jump;
+                    static _S::CanProcess_Sneak_t CanProcess_Sneak;
+                    static _S::CanProcess_Movement_t CanProcess_Movement;
+                    static _S::CanProcess_Activate_t CanProcess_Activate;
+                    static _S::CanProcess_POV_t CanProcess_POV;
+                    static _S::CanProcess_Weapon_t CanProcess_Weapon;
+                    static _S::CanProcess_Look_t CanProcess_Look;
+            };
+
+            struct OG {
+                private:
+                    using _S = Signatures;
+
+                public:
+                    static inline REL::Relocation<_S::ProcessButton_Jump_t *> _ProcessButtonJump;
+
+                    static inline REL::Relocation<_S::CanProcess_Jump_t *> _CanProcessJump;
+                    static inline REL::Relocation<_S::CanProcess_Sneak_t *> _CanProcessSneak;
+                    static inline REL::Relocation<_S::CanProcess_Movement_t *> _CanProcessMovement;
+                    static inline REL::Relocation<_S::CanProcess_Activate_t *> _CanProcessActivate;
+                    static inline REL::Relocation<_S::CanProcess_POV_t *> _CanProcessPOV;
+                    static inline REL::Relocation<_S::CanProcess_Weapon_t *> _CanProcessWeapon;
+                    static inline REL::Relocation<_S::CanProcess_Look_t *> _CanProcessLook;
+            };
     };
 
-    /* Callbacks */
-    bool InputHandlerEx::CanProcess_Jump(RE::JumpHandler* a_this, RE::InputEvent* a_event) {
+#pragma region  // Callbacks
+    bool InputHandler::Callback::CanProcess_Jump(RE::JumpHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Mod_Enabled) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
                 ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
@@ -58,40 +81,39 @@ namespace Hooks {
                 return false;
             }
 
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
-            }
+            if (RuntimeVariables::ParkourInProgress) return false;
+            if (RuntimeVariables::SlideOngoing) return false;
         }
 
-        return _CanProcessJump(a_this, a_event);
+        return OG::_CanProcessJump(a_this, a_event);
     }
 
-    void InputHandlerEx::ProcessButton_Jump(RE::JumpHandler* a_this, RE::ButtonEvent* a_event, RE::PlayerControlsData* a_data) {
+    void InputHandler::Callback::ProcessButton_Jump(RE::JumpHandler *a_this, RE::ButtonEvent *a_event, RE::PlayerControlsData *a_data) {
         if (ModSettings::Mod_Enabled && !ParkourUtility::IsOnMount()) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
-                const auto& btn = a_event->AsButtonEvent();
+                const auto &btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
                     if (btn->IsDown()) {
                         return;
                     }
                     else if (btn->IsUp()) {
-                        const float& held = btn->HeldDuration();
-                        const auto& dev = btn->GetDevice();
-                        const auto& id = btn->GetIDCode();
+                        const float &held = btn->HeldDuration();
+                        const auto &dev = btn->GetDevice();
+                        const auto &id = btn->GetIDCode();
 
                         // create a delayed Down
-                        RE::ButtonEvent* downEvt =
+                        RE::ButtonEvent *downEvt =
                             (held < ModSettings::Parkour_Delay) ? RE::ButtonEvent::Create(dev, "Jump", id, 1.0f, 0.0f) : nullptr;
                         // for a tap, also create a delayed Up
-                        RE::ButtonEvent* upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
+                        RE::ButtonEvent *upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
 
                         if (downEvt || upEvt) {
                             if (downEvt) {
-                                _ProcessButtonJump(a_this, downEvt, a_data);
+                                OG::_ProcessButtonJump(a_this, downEvt, a_data);
                                 delete downEvt;
                             }
                             if (upEvt) {
-                                _ProcessButtonJump(a_this, upEvt, a_data);
+                                OG::_ProcessButtonJump(a_this, upEvt, a_data);
                                 delete upEvt;
                             }
 
@@ -102,26 +124,29 @@ namespace Hooks {
             }
         }
 
-        _ProcessButtonJump(a_this, a_event, a_data);
+        OG::_ProcessButtonJump(a_this, a_event, a_data);
     }
 
-    bool InputHandlerEx::CanProcess_Sneak(RE::SneakHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_Sneak(RE::SneakHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Mod_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
+            if (RuntimeVariables::ParkourInProgress) return false;
+            if (RuntimeVariables::SlideOngoing) return false;
+
+            if (ModSettings::Crouch_Slide_Enabled) {
+                if (GET_PLAYER->AsActorState()->IsSprinting()) return false;
             }
         }
 
-        return _CanProcessSneak(a_this, a_event);
+        return OG::_CanProcessSneak(a_this, a_event);
     }
 
-    bool InputHandlerEx::CanProcess_Movement(RE::MovementHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_Movement(RE::MovementHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Mod_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 /**/
                 /* Recovery Frame Early Exit Logic */
                 if (RuntimeVariables::RecoveryFramesActive) {
-                    bool res = _CanProcessMovement(a_this, a_event);
+                    bool res = OG::_CanProcessMovement(a_this, a_event);
                     if (res) {
                         GET_PLAYER->NotifyAnimationGraph(SPPF_INTERRUPT);
                     }
@@ -134,173 +159,137 @@ namespace Hooks {
             }
         }
 
-        return _CanProcessMovement(a_this, a_event);
+        return OG::_CanProcessMovement(a_this, a_event);
     }
 
-    bool InputHandlerEx::CanProcess_Activate(RE::ActivateHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_Activate(RE::ActivateHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Mod_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
-            }
+            if (RuntimeVariables::ParkourInProgress) return false;
+            if (RuntimeVariables::SlideOngoing) return false;
         }
 
-        return _CanProcessActivate(a_this, a_event);
+        return OG::_CanProcessActivate(a_this, a_event);
     }
 
-    bool InputHandlerEx::CanProcess_POV(RE::TogglePOVHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_POV(RE::TogglePOVHandler *a_this, RE::InputEvent *a_event) {
         /* This disables holding F and setting the zoom thing */
         if (ModSettings::Mod_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
-            }
+            if (RuntimeVariables::ParkourInProgress) return false;
         }
 
-        return _CanProcessPOV(a_this, a_event);
+        return OG::_CanProcessPOV(a_this, a_event);
     }
 
-    bool InputHandlerEx::CanProcess_Weapon(RE::ReadyWeaponHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_Weapon(RE::ReadyWeaponHandler *a_this, RE::InputEvent *a_event) {
         /* Stops Weapon Ready button process, mostly fixes weapon state getting stuck and redrawn */
         if (ModSettings::Mod_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
-            }
+            if (RuntimeVariables::ParkourInProgress) return false;
+            if (RuntimeVariables::SlideOngoing) return false;
         }
 
-        return _CanProcessWeapon(a_this, a_event);
+        return OG::_CanProcessWeapon(a_this, a_event);
     }
 
-    bool InputHandlerEx::CanProcess_Look(RE::LookHandler* a_this, RE::InputEvent* a_event) {
+    bool InputHandler::Callback::CanProcess_Look(RE::LookHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Mod_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
-                return false;
-            }
+            if (RuntimeVariables::ParkourInProgress) return false;
         }
 
-        return _CanProcessLook(a_this, a_event);
+        return OG::_CanProcessLook(a_this, a_event);
     }
 
-    /* Install */
-    bool InputHandlerEx::InstallInputHooks() {
-        bool res = false;
+#pragma endregion
 
-        res &= InstallJumpHook();
-        res &= InstallProcessJumpHook();
-        res &= InstallSneakHook();
-        res &= InstallMovementHook();
-        res &= InstallActivateHook();
-        res &= InstallPOVHook();
-        res &= InstallWeaponHook();
+#pragma region  // Install
+    bool InputHandler::InstallInputHooks() {
+        bool res = true;
 
-        if (!Compatibility::TrueDirectionalMovement) {
-            res &= Hooks::InputHandlerEx::InstallLookHook(); /* Block rotate camera, use for compatibility */
+        res &= Install::ProcessButton_Jump();
+
+        res &= Install::CanProcess_Jump();
+        res &= Install::CanProcess_Sneak();
+        res &= Install::CanProcess_Movement();
+        res &= Install::CanProcess_Activate();
+        res &= Install::CanProcess_POV();
+        res &= Install::CanProcess_Weapon();
+
+        if (!Compatibility::TrueDirectionalMovement::found) {
+            res &= Install::CanProcess_Look(); /* Block rotate camera, used for compatibility */
         }
 
         return res;
     }
 
-    bool InputHandlerEx::InstallJumpHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Jump() {
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_JumpHandler[0]};
 
-        _CanProcessJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Jump);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessJump, &Callback::CanProcess_Jump);
 
-        if (!_CanProcessJump.address()) {
-            CRITICAL("Jump Hook Not Installed");
-            return false;
-        }
-
-        return true;
+        if (!res) CRITICAL("Jump Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallProcessJumpHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_JumpHandler[0]);
-        std::uint64_t a_offset = 0x4;
+    bool InputHandler::Install::ProcessButton_Jump() {
+        REL::Relocation<uintptr_t> vtbl{RE::VTABLE_JumpHandler[0]};
 
-        _ProcessButtonJump = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::ProcessButton_Jump);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x4, OG::_ProcessButtonJump, &Callback::ProcessButton_Jump);
 
-        if (!_ProcessButtonJump.address()) {
-            CRITICAL("Jump Process Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Jump Process Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallSneakHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_SneakHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Sneak() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_SneakHandler[0]};
 
-        _CanProcessSneak = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Sneak);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessSneak, &Callback::CanProcess_Sneak);
 
-        if (!_CanProcessSneak.address()) {
-            CRITICAL("Sneak Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Sneak Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallMovementHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_MovementHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Movement() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_MovementHandler[0]};
 
-        _CanProcessMovement = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Movement);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessMovement, &Callback::CanProcess_Movement);
 
-        if (!_CanProcessMovement.address()) {
-            CRITICAL("Movement Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Movement Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallActivateHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_ActivateHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Activate() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_ActivateHandler[0]};
 
-        _CanProcessActivate = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Activate);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessActivate, &Callback::CanProcess_Activate);
 
-        if (!_CanProcessActivate.address()) {
-            CRITICAL("Movement Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Movement Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallPOVHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_TogglePOVHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_POV() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_TogglePOVHandler[0]};
 
-        _CanProcessPOV = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_POV);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessPOV, &Callback::CanProcess_POV);
 
-        if (!_CanProcessPOV.address()) {
-            CRITICAL("POV Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("POV Hook Not Installed");
+        return res;
     }
 
-    bool InputHandlerEx::InstallWeaponHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_ReadyWeaponHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Weapon() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_ReadyWeaponHandler[0]};
 
-        _CanProcessWeapon = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Weapon);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessWeapon, &Callback::CanProcess_Weapon);
 
-        if (!_CanProcessWeapon.address()) {
-            CRITICAL("Weapon Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Weapon Hook Not Installed");
+        return false;
     }
 
-    bool InputHandlerEx::InstallLookHook() {
-        auto a_vtbl = REL::Relocation<std::uintptr_t>(RE::VTABLE_LookHandler[0]);
-        std::uint64_t a_offset = 0x1;
+    bool InputHandler::Install::CanProcess_Look() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_LookHandler[0]};
 
-        _CanProcessLook = a_vtbl.write_vfunc(a_offset, &InputHandlerEx::CanProcess_Look);
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessLook, &Callback::CanProcess_Look);
 
-        if (!_CanProcessLook.address()) {
-            CRITICAL("Look Hook Not Installed");
-            return false;
-        }
-        return true;
+        if (!res) CRITICAL("Look Hook Not Installed");
+        return res;
     }
-
+#pragma endregion
 }  // namespace Hooks
