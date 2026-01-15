@@ -2,7 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(
         SkyParkourNG
-        VERSION 3.3.0
+        VERSION 3.3.1
         LANGUAGES CXX)
 set(PROJECT_LICENSE "AGPL-3.0")
 set(PROJECT_FRIENDLY_NAME ${PROJECT_NAME})

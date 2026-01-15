@@ -280,7 +280,7 @@ namespace Hooks {
         const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessWeapon, &Callback::CanProcess_Weapon);
 
         if (!res) CRITICAL("Weapon Hook Not Installed");
-        return false;
+        return res;
     }
 
     bool InputHandler::Install::CanProcess_Look() {

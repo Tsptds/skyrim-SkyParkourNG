@@ -81,11 +81,7 @@ namespace Hooks {
         }
 
         if (RuntimeVariables::SlideOngoing) {
-            if (a_event->tag == SPPF_RECOVERY) {
-                RuntimeVariables::SlideOngoing = false;
-                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-            }
-            else if (a_event->tag == SPPF_SLIDE_STOP) {
+            if (a_event->tag == SPPF_SLIDE_STOP) {
                 RuntimeVariables::SlideOngoing = false;
                 return OG::_ProcessEvent(a_this, a_event, a_eventSource);
             }
