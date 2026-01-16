@@ -54,9 +54,11 @@ void ButtonStates::Parkour(RE::ButtonEvent *buttonEvent) {
 void ButtonStates::CrouchSlide(RE::ButtonEvent *buttonEvent) {
     if (!ModSettings::Crouch_Slide_Enabled) return;
     if (RuntimeVariables::ParkourInProgress) return;
+    
+    const auto &pl = GET_PLAYER;
+    if (pl->IsInMidair()) return;
 
     if (buttonEvent->IsDown()) {
-        const auto &pl = GET_PLAYER;
         const auto &state = pl->AsActorState();
         if (state->actorState1.sneaking) return;
 
