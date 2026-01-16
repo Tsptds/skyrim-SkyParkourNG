@@ -53,6 +53,7 @@ void ButtonStates::Parkour(RE::ButtonEvent *buttonEvent) {
 
 void ButtonStates::CrouchSlide(RE::ButtonEvent *buttonEvent) {
     if (!ModSettings::Crouch_Slide_Enabled) return;
+    if (RuntimeVariables::ParkourInProgress) return;
 
     if (buttonEvent->IsDown()) {
         const auto &pl = GET_PLAYER;
