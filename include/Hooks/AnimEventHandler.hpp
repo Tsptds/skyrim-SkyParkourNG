@@ -220,6 +220,11 @@ namespace Hooks {
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
         }
 
+        if (a_eventName == SPPF_SLIDE_STOP) {
+            RuntimeVariables::SlideOngoing = false;
+            return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+        }
+
         return OG::_Notify_PlayerCharacter(a_this, a_eventName);
     }
 

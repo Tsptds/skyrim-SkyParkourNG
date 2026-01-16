@@ -1,5 +1,6 @@
 ﻿#include "Listeners/ButtonListener.h"
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 
@@ -52,19 +53,8 @@ void ButtonStates::Parkour(RE::ButtonEvent *buttonEvent) {
 }
 
 void ButtonStates::CrouchSlide(RE::ButtonEvent *buttonEvent) {
-    if (!ModSettings::Crouch_Slide_Enabled) return;
-    if (RuntimeVariables::ParkourInProgress) return;
-    
-    const auto &pl = GET_PLAYER;
-    if (pl->IsInMidair()) return;
-
     if (buttonEvent->IsDown()) {
-        const auto &state = pl->AsActorState();
-        if (state->actorState1.sneaking) return;
-
-        if (state->IsSprinting()) {
-            pl->NotifyAnimationGraph(SPPF_NOTIFY_SLIDE);
-        }
+        CrouchSliding::TrySprintSlide();
     }
 }
 
