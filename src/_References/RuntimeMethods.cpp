@@ -31,6 +31,9 @@ namespace RuntimeMethods {
         RuntimeVariables::EnableNotifyWindow = false;
         RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
+        RuntimeVariables::IsParkourActive = true;
+        RuntimeVariables::SlideOngoing = false;
+
         const auto &player = GET_PLAYER;
         if (player) {
             player->SetGraphVariableInt(SPPF_Ledge, -1);
