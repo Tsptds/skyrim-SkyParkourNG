@@ -83,6 +83,11 @@ namespace Hooks {
         if (RuntimeVariables::SlideOngoing) {
             if (a_event->tag == SPPF_SLIDE_STOP) {
                 RuntimeVariables::SlideOngoing = false;
+
+                /* Fix swimstart not triggerring if entered water through crouch slide */
+                const auto &ctrl = actor->GetCharController();
+                if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+
                 return OG::_ProcessEvent(a_this, a_event, a_eventSource);
             }
         }

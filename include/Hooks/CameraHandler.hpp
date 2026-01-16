@@ -298,7 +298,7 @@ namespace Hooks {
             Parkouring::UpdateParkourPoint();
         }
 
-        if (RuntimeVariables::ParkourInProgress) {
+        if (RuntimeVariables::ParkourInProgress || RuntimeVariables::SlideOngoing) {
             /* Clamp Player looking angle to prevent weird visuals */
             const auto &player = GET_PLAYER;
 
