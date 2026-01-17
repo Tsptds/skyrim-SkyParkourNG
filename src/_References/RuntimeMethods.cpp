@@ -28,8 +28,6 @@ namespace RuntimeMethods {
     // Things that are not handled by MCM and persistent throughout saves without being reset on game load
     void ResetRuntimeVariables() {
         RuntimeVariables::ParkourInProgress = false;
-        RuntimeVariables::EnableNotifyWindow = false;
-        RuntimeVariables::RecoveryFramesActive = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
         RuntimeVariables::IsParkourActive = true;
         RuntimeVariables::SlideOngoing = false;

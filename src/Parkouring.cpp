@@ -790,7 +790,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //LOG("Dist: {}", dist);
 
-    RuntimeVariables::EnableNotifyWindow = true;
     player->SetGraphVariableInt(SPPF_Ledge, ledgeType);
 
     RE::NiPoint3 startPos;
@@ -819,7 +818,6 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
             const bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
 
-            RuntimeVariables::EnableNotifyWindow = false;
             ctrl->gravity = 1;
             StopInterpolatingRef(player);
 

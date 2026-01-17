@@ -9,7 +9,6 @@ namespace RuntimeVariables {
     inline RE::NiPoint3 playerDirFlat{0, 0, 0};
 
     inline bool ParkourInProgress{false};
-    inline bool EnableNotifyWindow{false};
     inline bool RecoveryFramesActive{false};
     inline bool IsMenuOpen{false};
     inline bool IsInMainMenu{true};
