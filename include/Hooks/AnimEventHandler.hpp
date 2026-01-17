@@ -84,6 +84,9 @@ namespace Hooks {
             if (a_event->tag == SPPF_SLIDE_STOP) {
                 RuntimeVariables::SlideOngoing = false;
 
+                /* Other POV bugging out shit again, figures why bethesda stopped running both graphs FO4 and onwards */
+                actor->NotifyAnimationGraph(SPPF_SLIDE_STOP);
+
                 /* Fix swimstart not triggerring if entered water through crouch slide */
                 const auto &ctrl = actor->GetCharController();
                 if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
