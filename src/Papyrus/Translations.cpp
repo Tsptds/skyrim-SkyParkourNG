@@ -63,228 +63,264 @@ namespace SkyParkour_Papyrus {
     // Core Settings
     RE::BSFixedString Translations::Core::Header(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Header");
+        const auto &val = ini->GetValue(Section, "Header", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Core::OnOff(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "OnOff");
+        const auto &val = ini->GetValue(Section, "OnOff", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Core::Indicator(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Indicator");
+        const auto &val = ini->GetValue(Section, "Indicator", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Core::PlaybackSpeed(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PlaybackSpeed");
+        const auto &val = ini->GetValue(Section, "PlaybackSpeed", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Core::CrouchSlide(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "CrouchSlide");
+        const auto &val = ini->GetValue(Section, "CrouchSlide", defaultVal);
         return RE::BSFixedString(val);
     }
 
     // Input Settings
     RE::BSFixedString Translations::Input::Header(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Header");
+        const auto &val = ini->GetValue(Section, "Header", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::UsePresetKey(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "UsePresetKey");
+        const auto &val = ini->GetValue(Section, "UsePresetKey", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::PresetKeyIndex(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PresetKeyIndex");
+        const auto &val = ini->GetValue(Section, "PresetKeyIndex", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::PresetKey0(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PresetKey0");
+        const auto &val = ini->GetValue(Section, "PresetKey0", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::PresetKey1(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PresetKey1");
+        const auto &val = ini->GetValue(Section, "PresetKey1", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::PresetKey2(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PresetKey2");
+        const auto &val = ini->GetValue(Section, "PresetKey2", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::CustomKey(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "CustomKey");
+        const auto &val = ini->GetValue(Section, "CustomKey", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Input::Delay(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Delay");
+        const auto &val = ini->GetValue(Section, "Delay", defaultVal);
         return RE::BSFixedString(val);
     }
 
     // Stamina Settings
     RE::BSFixedString Translations::Stamina::Header(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Header");
+        const auto &val = ini->GetValue(Section, "Header", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Stamina::StaminaSystem(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "StaminaSystem");
+        const auto &val = ini->GetValue(Section, "StaminaSystem", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Stamina::MustHaveStamina(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "MustHaveStamina");
+        const auto &val = ini->GetValue(Section, "MustHaveStamina", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::Stamina::BaseStaminaCost(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "BaseStaminaCost");
+        const auto &val = ini->GetValue(Section, "BaseStaminaCost", defaultVal);
         return RE::BSFixedString(val);
     }
 
     // Smart Parkour Settings
     RE::BSFixedString Translations::SmartParkour::Header(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Header");
+        const auto &val = ini->GetValue(Section, "Header", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::SmartParkour::Steps(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Steps");
+        const auto &val = ini->GetValue(Section, "Steps", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::SmartParkour::Vault(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Vault");
+        const auto &val = ini->GetValue(Section, "Vault", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::SmartParkour::Climb(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Climb");
+        const auto &val = ini->GetValue(Section, "Climb", defaultVal);
         return RE::BSFixedString(val);
     }
 
     // MCM Tooltip Info
     RE::BSFixedString Translations::MCM_Info::OnOff(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "OnOff");
+        const auto &val = ini->GetValue(Section, "OnOff", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::Indicator(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Indicator");
+        const auto &val = ini->GetValue(Section, "Indicator", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::PlaybackSpeed(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "PlaybackSpeed");
+        const auto &val = ini->GetValue(Section, "PlaybackSpeed", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::CrouchSlide(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "CrouchSlide");
+        const auto &val = ini->GetValue(Section, "CrouchSlide", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::UsePresetKey(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "UsePresetKey");
+        const auto &val = ini->GetValue(Section, "UsePresetKey", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::CustomKey(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "CustomKey");
+        const auto &val = ini->GetValue(Section, "CustomKey", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::Delay(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "Delay");
+        const auto &val = ini->GetValue(Section, "Delay", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::StaminaSystem(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "StaminaSystem");
+        const auto &val = ini->GetValue(Section, "StaminaSystem", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::MustHaveStamina(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "MustHaveStamina");
+        const auto &val = ini->GetValue(Section, "MustHaveStamina", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::StaminaCost(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "StaminaCost");
+        const auto &val = ini->GetValue(Section, "StaminaCost", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::SmartSteps(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "SmartSteps");
+        const auto &val = ini->GetValue(Section, "SmartSteps", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::SmartVault(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "SmartVault");
+        const auto &val = ini->GetValue(Section, "SmartVault", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Info::SmartClimb(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "SmartClimb");
+        const auto &val = ini->GetValue(Section, "SmartClimb", defaultVal);
         return RE::BSFixedString(val);
     }
 
     // MCM Warnings
     RE::BSFixedString Translations::MCM_Warn::AreYouSure(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "AreYouSure");
+        const auto &val = ini->GetValue(Section, "AreYouSure", defaultVal);
         return RE::BSFixedString(val);
     }
     RE::BSFixedString Translations::MCM_Warn::KeyAlreadyMapped(RE::StaticFunctionTag *) {
         const auto &ini = Localized_ini::GetIniHandle();
+        if (!ini) return RE::BSFixedString(defaultVal);
 
-        const auto &val = ini->GetValue(Section, "KeyAlreadyMapped");
+        const auto &val = ini->GetValue(Section, "KeyAlreadyMapped", defaultVal);
         return RE::BSFixedString(val);
     }
 }  // namespace SkyParkour_Papyrus

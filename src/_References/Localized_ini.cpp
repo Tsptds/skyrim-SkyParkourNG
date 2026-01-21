@@ -10,7 +10,10 @@ namespace Localized_ini {
 
         SI_Error rc = ini->LoadFile(path);
         if (rc < 0) {
-            WARN("Localization file not found");
+            if (!fileDoesNotExistReported) {
+                ERROR("Localization file not found, make sure SKSE/Plugins/SkyParkourNG_Localization.ini exists");
+                fileDoesNotExistReported = true;
+            }
 
             return nullptr;
         }

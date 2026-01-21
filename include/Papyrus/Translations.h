@@ -8,6 +8,7 @@ namespace SkyParkour_Papyrus {
 
         private:
             inline static const std::string className = "SkyParkourLocalization"s;
+            inline static const char *defaultVal = "[Missing Translation]";
 
             struct Core {
                     inline static const char *Section = "Core";
