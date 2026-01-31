@@ -208,6 +208,10 @@ namespace Hooks {
         //     return false;
         // }
 
+        if (RuntimeVariables::ParkourInProgress && a_eventName == "Unequip") {
+            return false;
+        }
+
         if (a_eventName == "Ragdoll") {
             if (RuntimeVariables::ParkourInProgress) {
                 /*Unlock controls on ragdoll*/
