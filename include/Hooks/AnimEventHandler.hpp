@@ -80,6 +80,18 @@ namespace Hooks {
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
+        /* Sneak roll without perk fix, works on its own */
+        if (actor->IsSneaking()) {
+            if (a_event->tag == "JumpLandEnd") {
+                bool sprinting;
+                if (actor->GetGraphVariableBool("IsSprinting", sprinting) && sprinting) {
+                    actor->NotifyAnimationGraph("SprintStop");
+                }
+
+                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+            }
+        }
+
         if (RuntimeVariables::SlideOngoing) {
             if (a_event->tag == SPPF_SLIDE_STOP) {
                 RuntimeVariables::SlideOngoing = false;
