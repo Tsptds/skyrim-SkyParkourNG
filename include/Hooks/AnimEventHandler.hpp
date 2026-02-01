@@ -136,6 +136,12 @@ namespace Hooks {
                 constexpr bool Stop = true;
                 Parkouring::OnStartStop(Stop);
             }
+            else if (a_event->tag == SPPF_STAMINA_HIT) {
+                /* Steps don't consume stamina anymore */
+                const bool isLowEffort = a_event->payload == "LowEffort";
+                const bool isSwimming = actor->AsActorState()->IsSwimming();
+                Parkouring::PostParkourStaminaDamage(actor, isLowEffort, isSwimming);
+            }
         }
 
         return OG::_ProcessEvent(a_this, a_event, a_eventSource);
@@ -201,15 +207,6 @@ namespace Hooks {
             const_cast<RE::BSFixedString &>(a_eventName) = SPPF_INTERRUPT;
 
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
-        }
-
-        // if (a_eventName == SPPF_NOTIFY &&
-        //     (!RuntimeVariables::IsParkourActive || (RuntimeVariables::ParkourInProgress && !RuntimeVariables::EnableNotifyWindow))) {
-        //     return false;
-        // }
-
-        if (RuntimeVariables::ParkourInProgress && a_eventName == "Unequip") {
-            return false;
         }
 
         if (a_eventName == "Ragdoll") {

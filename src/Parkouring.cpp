@@ -242,7 +242,7 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
                 return ParkourType::NoLedge;
             }
 
-            if (ShouldClimbActionFail()) {
+            if (ShouldClimbActionFail(player)) {
                 return ParkourType::Failed;
             }
             return ParkourType::Highest;
@@ -254,7 +254,7 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
                 return ParkourType::NoLedge;
             }
 
-            if (ShouldClimbActionFail()) {
+            if (ShouldClimbActionFail(player)) {
                 return ParkourType::Failed;
             }
             return ParkourType::High;
@@ -780,13 +780,12 @@ bool Parkouring::TryActivateParkour() {
     RuntimeVariables::ParkourInProgress = true;
 
     /* Also pass swimming state for stamina calculation logic */
-    ParkourReadyRun(LedgeTypeToProcess, isSwimming);
+    ParkourReadyRun(LedgeTypeToProcess);
 
     return true;
 }
-void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
+void Parkouring::ParkourReadyRun(int32_t ledgeType) {
     const auto &player = GET_PLAYER;
-    const auto &ctrl = player->GetCharController();
     //auto dist = player->GetPosition().GetDistance(RuntimeVariables::ledgePoint);
     //LOG("Dist: {}", dist);
 
@@ -795,11 +794,10 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
     RE::NiPoint3 startPos;
     Parkouring::CalculateStartingPosition(player, ledgeType, startPos);
 
-    ctrl->gravity = 0;
     const float timeOfAdjust = ledgeType == ParkourType::Grab ? 0.1f : 0.15f; /* Grab's gotta be more precise */
     InterpolateRefToPosition(player, startPos, timeOfAdjust);
 
-    _THREAD_POOL.enqueue([player, ctrl, ledgeType, isSwimming, startPos] {
+    _THREAD_POOL.enqueue([player, ledgeType, startPos] {
         auto startTime = std::chrono::high_resolution_clock::now();
         long long elapsedMS;
         do {
@@ -808,7 +806,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
 
         } while (elapsedMS < 100 && (player->GetPosition().GetDistance(startPos) >= 1.0f));
 
-        _TASK_Q([player, ctrl, ledgeType, isSwimming] {
+        _TASK_Q([player, ledgeType] {
             if (IsActorWeaponOut(player) && (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow)) {
                 player->SetGraphVariableBool(SPPF_Lower_Body_Only, true);
             }
@@ -816,50 +814,42 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType, bool isSwimming) {
                 player->SetGraphVariableBool(SPPF_Lower_Body_Only, false);
             }
 
-            const bool success = player->NotifyAnimationGraph(SPPF_NOTIFY);
+            player->NotifyAnimationGraph(SPPF_NOTIFY);
 
-            ctrl->gravity = 1;
+            // ctrl->gravity = 1;
             StopInterpolatingRef(player);
 
-            if (success) {
-                /* Swap last leg (Step animations) */
-                if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
-                    RuntimeMethods::SwapLegs();
-                }
-                /* Steps don't consume stamina anymore */
-                else {
-                    const bool isLowEffort = ParkourUtility::CheckActionRequiresLowEffort(ledgeType);
-                    Parkouring::PostParkourStaminaDamage(player, isLowEffort, isSwimming);
-                }
-            }
-            else {
-                player->NotifyAnimationGraph(SPPF_STOP);
-                RuntimeVariables::ParkourInProgress = false;
+            /* Swap last leg (Step animations) */
+            if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
+                RuntimeMethods::SwapLegs();
             }
         });
     });
 }
-void Parkouring::PostParkourStaminaDamage(RE::PlayerCharacter *player, bool isLowEffort, bool isSwimming) {
+void Parkouring::PostParkourStaminaDamage(RE::Actor *actor, bool isLowEffort, bool isSwimming) {
     if (ModSettings::Enable_Stamina_Consumption) {
-        if (player->IsGodMode()) {
-            return;
+        if (actor->IsPlayerRef()) {
+            const RE::PlayerCharacter *pl = actor->As<RE::PlayerCharacter>();
+            if (pl->IsGodMode()) {
+                return;
+            }
         }
 
-        float cost = ParkourUtility::CalculateParkourStamina(player);
+        float cost = ParkourUtility::CalculateParkourStamina(actor);
 
         /* If swimming, fail animation won't play. So no need to flash the bar. Just consume half the stamina cost like low effort. */
         if (isLowEffort || isSwimming) {
             // LOG("cost{}", cost / 2);
-            DamageActorStamina(player, cost / 2);
+            DamageActorStamina(actor, cost / 2);
         }
-        else if (PlayerHasEnoughStamina()) {
+        else if (ActorHasEnoughStamina(actor)) {
             // LOG("cost{}", cost);
-            DamageActorStamina(player, cost);
+            DamageActorStamina(actor, cost);
         }
         else {
             RE::HUDMenu::FlashMeter(RE::ActorValue::kStamina);
         }
-        player->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
+        actor->UpdateRegenDelay(RE::ActorValue::kStamina, 2.0f);
     }
 }
 

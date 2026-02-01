@@ -326,11 +326,10 @@ float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
     return ModSettings::Stamina_Damage + (equip * 0.2f);
 }
 
-bool ParkourUtility::PlayerHasEnoughStamina() {
-    const auto &player = GET_PLAYER;
-    const auto &currentStamina = player->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
+bool ParkourUtility::ActorHasEnoughStamina(RE::Actor *actor) {
+    const auto &currentStamina = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
-    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(player) /* && ModSettings::Is_Stamina_Required */) {
+    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(actor) /* && ModSettings::Is_Stamina_Required */) {
         return true;
     }
     return false;
@@ -344,11 +343,11 @@ bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount) {
     return false;
 }
 
-bool ParkourUtility::ShouldClimbActionFail() {
+bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor) {
     // If stamina options are on, check if player has enough stamina. If not, play failed anim. If stamina is on but
     // isn't required or player is swimming, just deal stamina damage. Only for high & higher climbing, would get annoying otherwise.
-    if (ModSettings::Enable_Stamina_Consumption && !PlayerIsSwimming()) {
-        if (PlayerHasEnoughStamina() == false) {
+    if (ModSettings::Enable_Stamina_Consumption && !actor->AsActorState()->IsSwimming()) {
+        if (ActorHasEnoughStamina(actor) == false) {
             return true;
         }
     }

@@ -8,6 +8,7 @@ namespace BehaviorGraph {
     constexpr const char *SPPF_STOP = "SkyParkour_Stop";
     constexpr const char *SPPF_RECOVERY = "SkyParkour_Recovery";
     constexpr const char *SPPF_INTERRUPT = "SkyParkour_Interrupt";
+    constexpr const char *SPPF_STAMINA_HIT = "SkyParkour_HitStamina";
 
     // Graph Variables
     constexpr const char *SPPF_Ledge = "SkyParkourLedge";

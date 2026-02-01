@@ -23,9 +23,9 @@ namespace ParkourUtility {
     bool IsGamePaused();
     bool IsInSyncedAnimation(RE::Actor *);
     float CalculateParkourStamina(RE::Actor *);
-    bool PlayerHasEnoughStamina();
+    bool ActorHasEnoughStamina(RE::Actor*);
     bool DamageActorStamina(RE::Actor *actor, float amount);
-    bool ShouldClimbActionFail();
+    bool ShouldClimbActionFail(RE::Actor*);
     bool CheckActionRequiresLowEffort(int32_t selectedLedgeType);
     bool IsSupportGroundedOrSliding(RE::Actor *);
     bool IsSupportUnsupported(RE::Actor *);
