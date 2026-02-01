@@ -116,7 +116,7 @@ namespace Hooks {
 
             if (a_event->tag == SPPF_START) {
                 constexpr bool Start = false;
-                Parkouring::OnStartStop(Start);
+                Parkouring::OnStartStop(Start, actor);
             }
             else if (a_event->tag == SPPF_RECOVERY) {
                 RuntimeVariables::RecoveryFramesActive = true;
@@ -134,7 +134,7 @@ namespace Hooks {
             }
             else if (a_event->tag == SPPF_STOP) {
                 constexpr bool Stop = true;
-                Parkouring::OnStartStop(Stop);
+                Parkouring::OnStartStop(Stop, actor);
             }
             else if (a_event->tag == SPPF_STAMINA_HIT) {
                 /* Steps don't consume stamina anymore */
@@ -216,7 +216,8 @@ namespace Hooks {
                 bool didRagdoll = OG::_Notify_PlayerCharacter(a_this, a_eventName);
                 if (didRagdoll) {
                     constexpr bool Stop = true;
-                    Parkouring::OnStartStop(Stop);
+                    RE::Actor *actor = GET_PLAYER;
+                    Parkouring::OnStartStop(Stop, actor);
                 }
                 return didRagdoll;
             }
@@ -224,7 +225,8 @@ namespace Hooks {
 
         if (a_eventName == SPPF_STOP) {
             constexpr bool Start = true;
-            Parkouring::OnStartStop(Start);
+            RE::Actor *actor = GET_PLAYER;
+            Parkouring::OnStartStop(Start, actor);
 
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
         }

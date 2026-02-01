@@ -17,14 +17,6 @@ namespace RuntimeMethods {
         return dh->GetSingleton()->LookupLoadedModByName(esp_name);
     }
 
-    void SwapLegs() {
-        RuntimeVariables::shouldUseRightStep = !RuntimeVariables::shouldUseRightStep;
-        GET_PLAYER->SetGraphVariableBool(SPPF_Leg, RuntimeVariables::shouldUseRightStep);
-#ifdef LOG_STEPS
-        LOG("Next Step: {}", RuntimeVariables::shouldUseRightStep ? "Right" : "Left");
-#endif  // LOG_STEPS
-    }
-
     // Things that are not handled by MCM and persistent throughout saves without being reset on game load
     void ResetRuntimeVariables() {
         RuntimeVariables::ParkourInProgress = false;

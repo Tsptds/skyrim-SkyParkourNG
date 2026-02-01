@@ -460,24 +460,23 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     return ParkourType::NoLedge;  // Vault failed
 }
 
-void Parkouring::OnStartStop(bool isStop) {
+void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
     // IS_START true / IS_STOP false
 
-    const auto &player = GET_PLAYER;
-    const auto &ctrl = player->GetCharController();
+    const auto &ctrl = actor->GetCharController();
 
     if (isStop) {
         ctrl->flags.reset(RE::CHARACTER_FLAGS::kNoSim);
-        player->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
+        actor->SetGraphVariableInt(SPPF_Ledge, ParkourType::NoLedge);
 
         // The other graph doesn't see the current graph, interrupt on stop to notify all
         // DO NOT SEND SPPF_STOP OR IT WILL RECURSE INFINITELY, STACK OVERFLOW AND CRASH
-        player->NotifyAnimationGraph(SPPF_INTERRUPT);
+        actor->NotifyAnimationGraph(SPPF_INTERRUPT);
 
         using JA = Compatibility::JumpingAttack;
         if (JA::found) {
-            if (ParkourUtility::IsActorWeaponOut(player)) {
-                player->NotifyAnimationGraph(JA::event);
+            if (ParkourUtility::IsActorWeaponOut(actor)) {
+                actor->NotifyAnimationGraph(JA::event);
             }
         }
 
@@ -485,15 +484,17 @@ void Parkouring::OnStartStop(bool isStop) {
         RuntimeVariables::ParkourInProgress = false;
     }
     else /* if isStart */ {
-        ParkourUtility::StopInteractions(*player);
+        ParkourUtility::StopInteractions(*actor);
 
         // Disable simulation, fixes char controller taking over on hit
         ctrl->flags.set(RE::CHARACTER_FLAGS::kNoSim);
     }
 
-    const auto &ctrlMap = RE::ControlMap::GetSingleton();
-    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop);
-    ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
+    if (actor->IsPlayerRef()) {
+        const auto &ctrlMap = RE::ControlMap::GetSingleton();
+        ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop);
+        ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop);  // Player tab menu & equip. Gets stuck if player uses TFC.
+    }
 }
 
 void Parkouring::InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds) {
@@ -816,13 +817,7 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType) {
 
             player->NotifyAnimationGraph(SPPF_NOTIFY);
 
-            // ctrl->gravity = 1;
             StopInterpolatingRef(player);
-
-            /* Swap last leg (Step animations) */
-            if (ledgeType == ParkourType::StepHigh || ledgeType == ParkourType::StepLow) {
-                RuntimeMethods::SwapLegs();
-            }
         });
     });
 }

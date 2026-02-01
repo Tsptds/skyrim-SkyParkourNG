@@ -10,7 +10,7 @@ namespace Parkouring {
     int ChooseClimbHeight(RE::Actor *player, const float playerHeight, RE::NiPoint3 &ledgePoint, const RE::NiPoint3 &playerPos,
                           RayCastResult &ledgeRay);
     // Stop is true, start is false
-    void OnStartStop(bool isStop);
+    void OnStartStop(bool isStop, RE::Actor* actor);
     void InterpolateRefToPosition(const RE::Actor *movingRef, RE::NiPoint3 to, float seconds);
     void StopInterpolatingRef(const RE::Actor *actor);
     void CalculateStartingPosition(const RE::Actor *actor, int ledgeType, RE::NiPoint3 &out);
