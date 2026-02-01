@@ -484,9 +484,13 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
         if (ctrl->context.currentState != RE::hkpCharacterStateType::kOnGround) {
             [&ctrl] {
                 RE::hkVector4 out;
-                ctrl->GetLinearVelocityImpl(out);
-                out.quad.m128_f32[2] = 0;  // 0 the vert component (z)
-                out = out / (out.Length3() <= 0 ? 1 : out.Length3());
+                // ctrl->GetLinearVelocityImpl(out);
+                // out.quad.m128_f32[2] = 0;  // 0 the vert component (z)
+                // out = out / (out.Length3() <= 0 ? 1 : out.Length3());
+
+                const auto fwdVec3 = VEC4_TO_VEC3(ctrl->forwardVec * -1);
+                out = VEC3_TO_VEC4(fwdVec3);
+
                 ctrl->SetLinearVelocityImpl(out);
             }();
         }
@@ -499,7 +503,7 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
     else /* if isStart */ {
         ParkourUtility::StopInteractions(*actor);
 
-        // Disable simulation, fixes char controller taking over on hit
+        // Disable simulation, fixes char controller taking over on hit & enables vertical root motion
         ctrl->flags.set(RE::CHARACTER_FLAGS::kNoSim);
     }
 
