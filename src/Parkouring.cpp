@@ -480,8 +480,16 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
             }
         }
 
-        /* Prevent actor flinging away if char ctrl state is kInAir, grounded preserves horizontal velocity but thresholds vertical */
-        if (ctrl->context.currentState != RE::hkpCharacterStateType::kOnGround) ctrl->SetLinearVelocityImpl(ZERO_VECTOR);
+        /* Prevent actor flinging away if char ctrl state is kInAir */
+        if (ctrl->context.currentState != RE::hkpCharacterStateType::kOnGround) {
+            [ctrl]() {
+                RE::hkVector4 out;
+                ctrl->GetLinearVelocityImpl(out);
+                out.quad.m128_f32[2] = 0;  // 0 the vert component (z)
+                out = out / (out.Length3() == 0 ? 1 : out.Length3());
+                ctrl->SetLinearVelocityImpl(out);
+            };
+        }
 
         if (actor->IsPlayerRef()) {
             RuntimeVariables::RecoveryFramesActive = false;
@@ -493,7 +501,6 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
 
         // Disable simulation, fixes char controller taking over on hit
         ctrl->flags.set(RE::CHARACTER_FLAGS::kNoSim);
-        ctrl->context.currentState = RE::hkpCharacterStateType::kOnGround;
     }
 
     if (actor->IsPlayerRef()) {
