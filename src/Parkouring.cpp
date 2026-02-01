@@ -483,8 +483,10 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
         /* Prevent actor flinging away if char ctrl state is kInAir, grounded preserves horizontal velocity but thresholds vertical */
         if (ctrl->context.currentState != RE::hkpCharacterStateType::kOnGround) ctrl->SetLinearVelocityImpl(ZERO_VECTOR);
 
-        RuntimeVariables::RecoveryFramesActive = false;
-        RuntimeVariables::ParkourInProgress = false;
+        if (actor->IsPlayerRef()) {
+            RuntimeVariables::RecoveryFramesActive = false;
+            RuntimeVariables::ParkourInProgress = false;
+        }
     }
     else /* if isStart */ {
         ParkourUtility::StopInteractions(*actor);
