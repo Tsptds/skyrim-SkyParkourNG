@@ -24,7 +24,7 @@ namespace SkyParkour_Papyrus {
     }
 
     bool Getters::GetEnableMod(RE::StaticFunctionTag *) {
-        return Mod_Enabled;
+        return Parkour_Enabled;
     }
     bool Getters::GetShowIndicators(RE::StaticFunctionTag *) {
         return Use_Indicators;

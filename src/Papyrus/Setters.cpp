@@ -3,6 +3,7 @@
 #include "Util/ParkourUtility.h"
 #include "_References/IniSettings.h"
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 
 namespace SkyParkour_Papyrus {
@@ -31,10 +32,10 @@ namespace SkyParkour_Papyrus {
         ini->SetBoolValue(Section, "bEnableMod", value);
         save(ini);
 
-        Mod_Enabled = value;
+        Parkour_Enabled = value;
 
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
-        Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
+        Parkouring::SetParkourOnOff(Parkour_Enabled && !ParkourUtility::IsBeastForm());
     }
     void Setters::SetShowIndicators(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
@@ -46,13 +47,11 @@ namespace SkyParkour_Papyrus {
         if (!Use_Indicators) {
             using sppf = Scaleform::SkyParkourMenu;
             const auto &ui = RE::UI::GetSingleton();
-            if (!ui)
-                return;
+            if (!ui) return;
 
             const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-            if (!menu)
-                return;
-                
+            if (!menu) return;
+
             menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
         }
     }
@@ -71,6 +70,9 @@ namespace SkyParkour_Papyrus {
         save(ini);
 
         Crouch_Slide_Enabled = value;
+
+        // Turn on if setting is on and is not beast form. Same logic on race change listener.
+        CrouchSliding::SetSlideOnOff(Crouch_Slide_Enabled && !ParkourUtility::IsBeastForm());
     }
     void Setters::SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();

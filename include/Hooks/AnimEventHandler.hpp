@@ -70,9 +70,8 @@ namespace Hooks {
     RE::BSEventNotifyControl AnimationEventHook::Callback::ProcessEvent(RE::BSAnimationGraphManager *a_this,
                                                                         const RE::BSAnimationGraphEvent *a_event,
                                                                         RE::BSTEventSource<RE::BSAnimationGraphEvent> *a_eventSource) {
-        if (!a_event || !ModSettings::Mod_Enabled) {
-            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-        }
+        if (!a_event) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+        if (!ModSettings::Parkour_Enabled && !ModSettings::Crouch_Slide_Enabled) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
         const auto &actor = a_this->graphs[a_this->GetRuntimeData().activeGraph]->holder;
 
@@ -90,6 +89,13 @@ namespace Hooks {
 
                 return OG::_ProcessEvent(a_this, a_event, a_eventSource);
             }
+        }
+
+        if (a_event->tag == "GetUpExit") {
+            /* Reset vars on ragdoll exit */
+            RuntimeMethods::ResetAll();
+
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
         if (RuntimeVariables::SlideOngoing) {
@@ -112,13 +118,6 @@ namespace Hooks {
 
             actor->SetGraphVariableInt("iIsInSneak", true);
             actor->AsActorState()->actorState1.sneaking = true;
-
-            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-        }
-
-        if (a_event->tag == "GetUpExit") {
-            /* Reset vars on ragdoll exit */
-            RuntimeMethods::ResetRuntimeVariables();
 
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }

@@ -112,7 +112,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         LOG("|>_SkyParkour Loaded_<|");
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
-        RuntimeMethods::ResetRuntimeVariables();
+        RuntimeMethods::ResetAll();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         const auto &player = GET_PLAYER;
@@ -122,10 +122,10 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
             player->NotifyAnimationGraph(SPPF_STOP);
         }
 
-        RuntimeMethods::ResetRuntimeVariables();
+        RuntimeMethods::ResetAll();
     }
     else if (message->type == SKSE::MessagingInterface::kNewGame) {
-        RuntimeMethods::ResetRuntimeVariables();
+        RuntimeMethods::ResetAll();
     }
     else if (message->type == SKSE::MessagingInterface::kInputLoaded) {
         Scaleform::SkyParkourMenu::Register();

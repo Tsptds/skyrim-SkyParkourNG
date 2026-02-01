@@ -1,6 +1,8 @@
 #include "CrouchSliding.h"
+#include "Listeners/ButtonListener.h"
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
+#include "_References/RuntimeMethods.h"
 #include "Util/ParkourUtility.h"
 
 #include "API/API_Handles.h"
@@ -74,5 +76,22 @@ namespace CrouchSliding {
         }
 
         return true;
+    }
+
+    void SetSlideOnOff(bool turnOn) {
+        if (turnOn) {
+            if (!Buttons::SlideListener::GetSingleton()->SinkRegistered) {
+                Buttons::SlideListener::Register();
+                LOG("Slide: < ON >");
+            }
+        }
+        else {
+            if (Buttons::SlideListener::GetSingleton()->SinkRegistered) {
+                Buttons::SlideListener::Unregister();
+                LOG("Slide: < Off >");
+            }
+
+            RuntimeMethods::ResetSlide();
+        }
     }
 }  // namespace CrouchSliding

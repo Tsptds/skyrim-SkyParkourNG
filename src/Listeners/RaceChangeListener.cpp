@@ -3,6 +3,7 @@
 #include "Listeners/ButtonListener.h"
 #include "_References/ModSettings.h"
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 
 void RaceChangeListener::Register() {
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
@@ -26,12 +27,10 @@ void RaceChangeListener::Unregister() {
 RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRaceCompleteEvent *ev,
                                                           RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent> *) {
     auto actorRef = ev->subject.get();
-    if (!actorRef)
-        return RE::BSEventNotifyControl::kContinue;
+    if (!actorRef) return RE::BSEventNotifyControl::kContinue;
 
     auto player = GET_PLAYER;
-    if (actorRef->formID != player->formID)
-        return RE::BSEventNotifyControl::kContinue;
+    if (actorRef->formID != player->formID) return RE::BSEventNotifyControl::kContinue;
 
     /* On race switch graph vars reset, fix it */
     player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
@@ -40,12 +39,12 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     if (playerPreTransformData) {
         //LOG(">> Entering Beast Form");
         Parkouring::SetParkourOnOff(false);
+        CrouchSliding::SetSlideOnOff(false);
     }
     else {
         //LOG(">> Exiting Beast Form");
-        if (ModSettings::Mod_Enabled) {
-            Parkouring::SetParkourOnOff(true);
-        }
+        if (ModSettings::Parkour_Enabled) Parkouring::SetParkourOnOff(true);
+        if (ModSettings::Crouch_Slide_Enabled) CrouchSliding::SetSlideOnOff(true);
     }
     return RE::BSEventNotifyControl::kContinue;
 }

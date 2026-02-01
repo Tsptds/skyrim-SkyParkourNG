@@ -356,7 +356,16 @@ bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor) {
 
 // Return true if action should consume half the stamina cost
 bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
-    return ledge != ParkourType::High || ledge != ParkourType::Highest;
+    switch (ledge) {
+        case ParkourType::High:
+        case ParkourType::Highest:
+        case ParkourType::Failed:
+        case ParkourType::NoLedge:
+            return false;
+
+        default:
+            return true;
+    }
 }
 
 bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {

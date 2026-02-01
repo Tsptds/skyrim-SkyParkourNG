@@ -7,13 +7,15 @@
 #include "Util/ParkourUtility.h"
 #include "_References/IniSettings.h"
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 
 namespace SkyParkour_Papyrus {
     using namespace ModSettings;
 
     void Internal::AlertPlayerLoaded(RE::StaticFunctionTag *) {
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
-        Parkouring::SetParkourOnOff(Mod_Enabled && !ParkourUtility::IsBeastForm());
+        Parkouring::SetParkourOnOff(Parkour_Enabled && !ParkourUtility::IsBeastForm());
+        CrouchSliding::SetSlideOnOff(Crouch_Slide_Enabled && !ParkourUtility::IsBeastForm());
         GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, Playback_Speed);
     }
 
@@ -21,7 +23,7 @@ namespace SkyParkour_Papyrus {
         auto ini = IniSettings::GetIniHandle();
 
         /* Parkour Settings */
-        Mod_Enabled = ini->GetBoolValue(Section, "bEnableMod", true);
+        Parkour_Enabled = ini->GetBoolValue(Section, "bEnableMod", true);
         Use_Indicators = ini->GetBoolValue(Section, "bShowIndicators", true);
         Playback_Speed = static_cast<float>(ini->GetDoubleValue(Section, "fPlaybackSpeed", 1.15f));
         Crouch_Slide_Enabled = ini->GetBoolValue(Section, "bEnableCrouchSlide", true);

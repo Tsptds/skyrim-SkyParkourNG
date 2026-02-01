@@ -2,6 +2,7 @@
 #include "_References/RuntimeMethods.h"
 #include "_References/RuntimeVariables.h"
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 
 namespace Menus {
     // List of disqualifying menu names
@@ -55,7 +56,7 @@ bool MenuListener::Unregister() {
     return false;
 }
 
-RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent* ev, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) {
+RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent *ev, RE::BSTEventSource<RE::MenuOpenCloseEvent> *) {
     if (ev->opening) {
         //LOG("Menu {} opened", ev->menuName.c_str());
 
@@ -66,7 +67,8 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         if (!RuntimeVariables::IsInMainMenu && Menus::MainMenuShowing()) {
             Parkouring::SetParkourOnOff(false);
-            RuntimeMethods::ResetRuntimeVariables();
+            CrouchSliding::SetSlideOnOff(false);
+            RuntimeMethods::ResetAll();
 
             RuntimeVariables::IsInMainMenu = true;
 
@@ -85,7 +87,7 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
 
         // Racemenu closed, reset some stuff
         if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            RuntimeMethods::ResetRuntimeVariables();
+            RuntimeMethods::ResetAll();
         }
 
         if (!Menus::CheckMenuOpen()) {

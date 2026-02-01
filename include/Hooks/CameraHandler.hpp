@@ -208,7 +208,7 @@ namespace Hooks {
 #pragma region  // TPP Callback
 
     bool CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event) {
-        if (ModSettings::Mod_Enabled) {
+        if (ModSettings::Parkour_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -236,7 +236,7 @@ namespace Hooks {
         OG::_End(a_this);
     }
     void CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-        if (ModSettings::Mod_Enabled) {
+        if (ModSettings::Parkour_Enabled) {
             Parkouring::UpdateParkourPoint();
         }
 
@@ -276,7 +276,7 @@ namespace Hooks {
 #pragma region  // FPP Callback
 
     bool CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
-        if (ModSettings::Mod_Enabled) {
+        if (ModSettings::Parkour_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
             }
@@ -294,7 +294,7 @@ namespace Hooks {
         OG::_End(a_this);
     }
     void CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-        if (ModSettings::Mod_Enabled) {
+        if (ModSettings::Parkour_Enabled) {
             Parkouring::UpdateParkourPoint();
         }
 

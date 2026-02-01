@@ -3,7 +3,7 @@
 namespace ModSettings {
     inline bool _Debug_Draw_Lines{false};
 
-    inline bool Mod_Enabled{true};
+    inline bool Parkour_Enabled{true};
     inline bool Use_Indicators{true};
     inline float Playback_Speed{1.15f};
     

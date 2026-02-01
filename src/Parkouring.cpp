@@ -863,17 +863,17 @@ void Parkouring::PostParkourStaminaDamage(RE::Actor *actor, bool isLowEffort, bo
 
 void Parkouring::SetParkourOnOff(bool turnOn) {
     if (turnOn) {
-        if (!ButtonEventListener::GetSingleton()->SinkRegistered) {
-            ButtonEventListener::Register();
-            LOG("Processing: < ON >");
+        if (!Buttons::ParkourListener::GetSingleton()->SinkRegistered) {
+            Buttons::ParkourListener::Register();
+            LOG("Parkour: < ON >");
         }
     }
     else {
-        if (ButtonEventListener::GetSingleton()->SinkRegistered) {
-            ButtonEventListener::Unregister();
-            LOG("Processing: < Off >");
+        if (Buttons::ParkourListener::GetSingleton()->SinkRegistered) {
+            Buttons::ParkourListener::Unregister();
+            LOG("Parkour: < Off >");
         }
 
-        RuntimeMethods::ResetRuntimeVariables();
+        RuntimeMethods::ResetParkour();
     }
 }

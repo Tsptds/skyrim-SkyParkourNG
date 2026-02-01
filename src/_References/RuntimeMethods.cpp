@@ -18,11 +18,15 @@ namespace RuntimeMethods {
     }
 
     // Things that are not handled by MCM and persistent throughout saves without being reset on game load
-    void ResetRuntimeVariables() {
+    void ResetAll() {
+        ResetParkour();
+        ResetSlide();
+    }
+
+    void ResetParkour() {
         RuntimeVariables::ParkourInProgress = false;
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
         RuntimeVariables::IsParkourActive = true;
-        RuntimeVariables::SlideOngoing = false;
 
         const auto &player = GET_PLAYER;
         if (player) {
@@ -32,6 +36,11 @@ namespace RuntimeMethods {
 
         RuntimeVariables::SlideOngoing = false;
     }
+
+    void ResetSlide() {
+        RuntimeVariables::SlideOngoing = false;
+    }
+
     bool IsESPLoaded() {
         const auto &dh = RE::TESDataHandler::GetSingleton();
         return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
