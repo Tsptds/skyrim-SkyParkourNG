@@ -480,15 +480,15 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
             }
         }
 
-        /* Prevent actor flinging away if char ctrl state is kInAir */
+        /* Prevent actor flinging away if char ctrl state is kInAir by clamping velocity */
         if (ctrl->context.currentState != RE::hkpCharacterStateType::kOnGround) {
-            [ctrl]() {
+            [&ctrl] {
                 RE::hkVector4 out;
                 ctrl->GetLinearVelocityImpl(out);
                 out.quad.m128_f32[2] = 0;  // 0 the vert component (z)
-                out = out / (out.Length3() == 0 ? 1 : out.Length3());
+                out = out / (out.Length3() <= 0 ? 1 : out.Length3());
                 ctrl->SetLinearVelocityImpl(out);
-            };
+            }();
         }
 
         if (actor->IsPlayerRef()) {
