@@ -238,41 +238,34 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             // Highest ledge
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
-            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
-                return ParkourType::NoLedge;
-            }
 
-            if (ShouldClimbActionFail(player)) {
-                return ParkourType::Failed;
-            }
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) return ParkourType::NoLedge;
+            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
+            if (!SmartClimbCheck(player)) return ParkourType::NoLedge;
+
             return ParkourType::Highest;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::highLedgeLimit * RuntimeVariables::PlayerScale) {
             // High ledge
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
-            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
-                return ParkourType::NoLedge;
-            }
 
-            if (ShouldClimbActionFail(player)) {
-                return ParkourType::Failed;
-            }
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) return ParkourType::NoLedge;
+            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
+            if (!SmartClimbCheck(player)) return ParkourType::NoLedge;
+
             return ParkourType::High;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::medLedgeLimit * RuntimeVariables::PlayerScale) {
             // Medium ledge
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
-            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) {
-                return ParkourType::NoLedge;
-            }
+
+            if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) return ParkourType::NoLedge;
 
             return ParkourType::Medium;
         }
         else if (ledgePlayerDiff >= HardCodedVariables::lowLedgeLimit * RuntimeVariables::PlayerScale) {
             // Low ledge
-            if (PlayerIsSwimming()) {
-                return ParkourType::Grab;  // Grab ledge out of water
-            }
+            if (PlayerIsSwimming()) return ParkourType::Grab;  // Grab ledge out of water
 
             return ParkourType::Low;
         }
@@ -283,9 +276,7 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
-            if (StepsExtraChecks(player, ledgeRay)) {
-                return ParkourType::StepHigh;
-            }
+            if (StepsExtraChecks(player, ledgeRay)) return ParkourType::StepHigh;
         }
         else {
             // Low Step
@@ -294,18 +285,16 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
                 return ParkourType::Grab;  // Grab ledge out of water
             }
 
-            if (StepsExtraChecks(player, ledgeRay)) {
-                return ParkourType::StepLow;
-            }
+            if (StepsExtraChecks(player, ledgeRay)) return ParkourType::StepLow;
         }
     }
     else if (IsSupportUnsupported(player)) {
         // We are midair, check for grab
-        bool grabHighVariant = false;
-        if (GrabExtraChecks(ledgePlayerDiff, ledgeRay, grabHighVariant)) {
-            player->SetGraphVariableBool(SPPF_Grab_Variant, grabHighVariant);
-            return ParkourType::Grab;
-        }
+        constexpr bool grabHighVariant = false;
+        if (!GrabExtraChecks(ledgePlayerDiff, ledgeRay, grabHighVariant)) return ParkourType::NoLedge;
+
+        player->SetGraphVariableBool(SPPF_Grab_Variant, grabHighVariant);
+        return ParkourType::Grab;
     }
     return ParkourType::NoLedge;
 }
@@ -751,53 +740,31 @@ bool Parkouring::TryActivateParkour() {
     }
 
     bool Ongoing;
-    if (player->GetGraphVariableBool(SPPF_ONGOING, Ongoing) && Ongoing) {
-        return false;
-    }
+    if (player->GetGraphVariableBool(SPPF_ONGOING, Ongoing) && Ongoing) return false;
 
     float turningDelta;
     player->GetGraphVariableFloat("TurnDelta", turningDelta);
-    if (turningDelta > 50.0f) {
-        return false;
-    }
+    if (turningDelta > 50.0f) return false;
 
-    if (!RuntimeVariables::IsParkourActive || RuntimeVariables::IsMenuOpen) {
-        return false;
-    }
+    if (!RuntimeVariables::IsParkourActive || RuntimeVariables::IsMenuOpen) return false;
 
-    const bool isMoving = player->IsMoving();
-    const bool lowEffort = CheckActionRequiresLowEffort(LedgeTypeToProcess);
     const bool isSwimming = PlayerIsSwimming();
-    // const bool isSprinting = player->IsSprinting();
-
     const auto &fallTime = player->GetCharController()->fallTime;
     const bool avoidOnGroundParkour = fallTime > 0.0f;
-    const bool avoidMidairParkour = fallTime < 0.17f;  // Timeout activation immediately after jumping
+    const bool avoidMidairParkour = fallTime < 0.17f;  // Delay grabbing immediately after jumping
     //LOG(">> Fall time: {}", fallTime);
 
     if (LedgeTypeToProcess != ParkourType::Grab) {
-        if (avoidOnGroundParkour) {
-            return false;
-        }
+        if (avoidOnGroundParkour) return false;
     }
     else {
-        if (avoidMidairParkour && !isSwimming) {
-            return false;
-        }
-    }
-
-    /* Cancel if moving, but allow movement during swimming */
-    if (ModSettings::Smart_Climb && isMoving && !isSwimming) {
-        if (!lowEffort) {
-            return false;
-        }
+        if (avoidMidairParkour && !isSwimming) return false;  // Grab animation is also used for replacing steps when swimming
     }
 
     if (!HavokUtil::ValidateBehaviorPatch(player)) return false;
 
     RuntimeVariables::ParkourInProgress = true;
 
-    /* Also pass swimming state for stamina calculation logic */
     ParkourReadyRun(LedgeTypeToProcess);
 
     return true;

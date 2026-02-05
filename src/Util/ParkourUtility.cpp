@@ -71,10 +71,31 @@ bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_heig
     return true;
 }
 
+bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
+    if (!ModSettings::Smart_Climb) return true;            // Feature disabled, always allow
+    if (!actor->IsMoving()) return true;                   // Not moving, allow
+    if (actor->AsActorState()->IsSwimming()) return true;  // Swimming, climb onto anything you want
+
+    /* Velocity threshold */
+    RE::hkVector4 vel;
+    const auto &ctrl = actor->GetCharController();
+    ctrl->GetLinearVelocityImpl(vel);
+    auto dir = RuntimeVariables::playerDirFlat;
+
+    auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
+
+    const auto &notStuck = speed > 1;
+    if (notStuck) {
+        return false;
+    }
+
+    return true;
+}
+
 bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray) {
     /* Velocity threshold */
     RE::hkVector4 vel;
-    auto ctrl = player->GetCharController();
+    const auto &ctrl = player->GetCharController();
     ctrl->GetLinearVelocityImpl(vel);
     auto dir = RuntimeVariables::playerDirFlat;
 
@@ -155,7 +176,7 @@ bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
     return actor->IsMoving();  // Feature enabled, allow only when moving
 }
 
-bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &isGrabFromBelow) {
+bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool isGrabFromBelow) {
     // Avoid grabbing ground
     if (ray.layer == RE::COL_LAYER::kGround) {
         return false;
