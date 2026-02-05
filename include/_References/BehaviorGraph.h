@@ -13,7 +13,7 @@ namespace BehaviorGraph {
     // Graph Variables
     constexpr const char *SPPF_Ledge = "SkyParkourLedge";
     constexpr const char *SPPF_Leg = "SkyParkourStepLeg";
-    constexpr const char *SPPF_Grab_Variant = "SkyParkourGrabVariant";
+    constexpr const char *SPPF_Grab_Variant = "SkyParkourGrabVariant";  // false is low, true is high variant
     constexpr const char *SPPF_ONGOING = "SkyParkourOngoing";
     constexpr const char *SPPF_SPEEDMULT = "SkyParkourSpeedMult";
     constexpr const char *SPPF_Lower_Body_Only = "SkyParkourLowerBody";

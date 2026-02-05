@@ -12,8 +12,8 @@ namespace HavokUtil {
         return mngr->graphs[mngr->GetRuntimeData().activeGraph];
     }
 
-    RE::hkbCharacter* GetHavokCharacter(RE::Actor *actor) {
-        const auto& activeGraph = GetActiveAnimGraph(actor);
+    RE::hkbCharacter *GetHavokCharacter(RE::Actor *actor) {
+        const auto &activeGraph = GetActiveAnimGraph(actor);
         if (!activeGraph) return nullptr;
 
         return &activeGraph->characterInstance;
@@ -29,13 +29,17 @@ namespace HavokUtil {
             actor->GetGraphVariableBool(SPPF_FPP_INSTALLED, behaviorInstalled);
             if (behaviorInstalled) return true;
 
-            RE::DebugMessageBox("SkyParkour Warning\n\n1st Person Behavior is not generated properly\nAnimations will not play");
+            RE::DebugMessageBox(
+                "SkyParkour Warning\n\n1st Person Behavior is not generated properly\nAnimations will not play\n\nThis is caused by user "
+                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug");
         }
         else {
             actor->GetGraphVariableBool(SPPF_TPP_INSTALLED, behaviorInstalled);
             if (behaviorInstalled) return true;
 
-            RE::DebugMessageBox("SkyParkour Warning\n\n3rd Person Behavior is not generated properly\nAnimations will not play");
+            RE::DebugMessageBox(
+                "SkyParkour Warning\n\n3rd Person Behavior is not generated properly\nAnimations will not play\n\nThis is caused by user "
+                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug");
         }
         return false;
     }
