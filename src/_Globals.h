@@ -40,6 +40,11 @@ namespace SkyParkourUtil {
             // Do a null check before using this
             TESObjectREFR *hitObjectRef = nullptr;
 
+            RE::FormType GetHitObjectFormType_Safe() const {
+                if (!hitObjectRef) return RE::FormType::None;
+                return hitObjectRef->GetObjectReference()->GetFormType();
+            }
+
             RayCastResult() = default;
 
             RayCastResult(float d, COL_LAYER l, const hkVector4 &n, bool h, TESObjectREFR *r)

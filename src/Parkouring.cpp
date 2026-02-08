@@ -182,11 +182,8 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
     {
         // DON'T CLIMB ON DOORS FFS
         using ft = RE::FormType;
-        const auto &ref = ledgeRay.hitObjectRef;
-        if (ref) {
-            // LOG("Climb point ref is: {}", RE::FormTypeToString(ref->GetObjectReference()->GetFormType()));
-            if (ref->GetObjectReference()->GetFormType() == ft::Door) return ParkourType::NoLedge;
-        }
+        // LOG("Climb point ref is: {}", RE::FormTypeToString(ref->GetObjectReference()->GetFormType()));
+        if (ledgeRay.GetHitObjectFormType_Safe() == ft::Door) return ParkourType::NoLedge;
     }
 
     const RE::NiPoint3 headRoomRayStart = RE::NiPoint3(playerPos.x, playerPos.y, ledgePoint.z - 5);  // On player at ledge height
@@ -355,11 +352,7 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
         {
             // DON'T CLIMB ON DOORS FFS
             using ft = RE::FormType;
-            const auto &ref = downRay.hitObjectRef;
-            if (ref) {
-                // LOG("Vault point ref is: {}", RE::FormTypeToString(ref->GetObjectReference()->GetFormType()));
-                if (ref->GetObjectReference()->GetFormType() == ft::Door) continue;
-            }
+            if (downRay.GetHitObjectFormType_Safe() == ft::Door) continue;
         }
 
         const float hitHeight = (fwdRayStart.z - downRay.distance) - playerPos.z;
