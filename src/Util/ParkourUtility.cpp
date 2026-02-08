@@ -176,7 +176,7 @@ bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
     return actor->IsMoving();  // Feature enabled, allow only when moving
 }
 
-bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool isGrabFromBelow) {
+bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &out_grabHighVariant) {
     // Avoid grabbing ground
     if (ray.layer == RE::COL_LAYER::kGround) {
         return false;
@@ -189,7 +189,7 @@ bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastR
     }
 
     if (ledgePlayerDiff > HardCodedVariables::grabHighVariantThreshold * RuntimeVariables::PlayerScale) {
-        isGrabFromBelow = true;
+        out_grabHighVariant = true;
     }
 
     return true;

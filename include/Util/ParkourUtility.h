@@ -7,7 +7,7 @@ namespace ParkourUtility {
     bool StepsExtraChecks(RE::Actor *player, const RayCastResult ray);
     bool IsStepNormalValid(const RayCastResult ray, bool isMoving);
     bool VaultExtraChecks(RE::Actor *actor);
-    bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool isGrabFromBelow);
+    bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &out_grabHighVariant);
     void StopInteractions(RE::Actor &actor);
     RE::NiPoint3 GetActorDirFlat(RE::Actor *actor);
     RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask,
