@@ -134,8 +134,9 @@ namespace Hooks {
 
         if (ModSettings::Crouch_Slide_Enabled) {
             if (RuntimeVariables::SlideOngoing) return false;
-            
-            if (GET_PLAYER->AsActorState()->IsSprinting()) return false;
+            const auto &pl = GET_PLAYER;
+            if (pl->AsActorState()->IsSprinting()) return false;
+            if (pl->IsInMidair()) return false;
         }
 
         return OG::_CanProcessSneak(a_this, a_event);

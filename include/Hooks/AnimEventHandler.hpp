@@ -98,26 +98,28 @@ namespace Hooks {
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
-        if (RuntimeVariables::SlideOngoing) {
-            if (a_event->tag == SPPF_SLIDE_STOP) {
-                RuntimeVariables::SlideOngoing = false;
+        if (a_event->tag == SPPF_SLIDE_STOP) {
+            if (RuntimeVariables::SlideOngoing) RuntimeVariables::SlideOngoing = false;
 
-                /* Other POV bugging out shit again, figures why bethesda stopped running both graphs FO4 and onwards */
-                actor->NotifyAnimationGraph(SPPF_SLIDE_STOP);
+            /* Other POV bugging out shit again, figures why bethesda stopped running both graphs FO4 and onwards */
+            actor->NotifyAnimationGraph(SPPF_SLIDE_STOP);
 
-                /* Fix swimstart not triggerring if entered water through crouch slide */
-                const auto &ctrl = actor->GetCharController();
-                if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+            /* Fix swimstart not triggerring if entered water through crouch slide */
+            auto res = OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
-                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-            }
+            const auto &ctrl = actor->GetCharController();
+            if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+
+            return res;
         }
 
         if (a_event->tag == SPPF_SLIDE_START) {
             RuntimeVariables::SlideOngoing = true;
 
-            actor->SetGraphVariableInt("iIsInSneak", true);
-            actor->AsActorState()->actorState1.sneaking = true;
+            if (!actor->IsInMidair()) {
+                actor->SetGraphVariableInt("iIsInSneak", true);
+                actor->AsActorState()->actorState1.sneaking = true;
+            }
 
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }

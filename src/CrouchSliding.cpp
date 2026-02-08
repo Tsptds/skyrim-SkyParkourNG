@@ -10,15 +10,17 @@
 namespace CrouchSliding {
     bool TrySprintSlide() {
         const auto &pl = GET_PLAYER;
-
-        if (IsSlideActiveFor(pl)) {
+        bool out_isRoll{false};
+        
+        if (IsSlideActiveFor(pl, out_isRoll)) {
+            pl->SetGraphVariableBool(SPPF_SLIDE_IS_ROLL, out_isRoll);
             return pl->NotifyAnimationGraph(SPPF_NOTIFY_SLIDE);
         }
 
         return false;
     }
 
-    bool IsSlideActiveFor(RE::Actor *actor) {
+    bool IsSlideActiveFor(RE::Actor *actor, bool &out_isRoll) {
         if (actor->IsPlayerRef()) {
             if (!ModSettings::Crouch_Slide_Enabled) return false;
             if (RuntimeVariables::ParkourInProgress) return false;
@@ -44,12 +46,12 @@ namespace CrouchSliding {
         bool sprinting = state->IsSprinting();
         bool midair = actor->IsInMidair();
         float fallTime = ctrl->fallTime;
-        float fellDist = ctrl->fallStartHeight - actor->GetPositionZ();
+        // float fellDist = ctrl->fallStartHeight - actor->GetPositionZ();
 
-        if (midair && fellDist > 200.0f) {
+        if (midair && fallTime >= 0.5f) {
             const auto downRay = [actor] {
                 constexpr RE::NiPoint3 downDir{0, 0, -1};
-                constexpr float dist = 150.f;
+                constexpr float dist = 200.f;
                 RE::NiPoint3 startPos{actor->GetPosition()};
 
                 const auto &ray = ParkourUtility::RayCast(startPos, downDir, dist, COL_LAYER_EXTEND::kCrouchSlideDistCheck, actor);
@@ -65,8 +67,10 @@ namespace CrouchSliding {
                 return ray;
             }();
 
-            if (downRay.didHit) return true;
-
+            if (downRay.didHit) {
+                out_isRoll = true;
+                return true;
+            }
             return false;
         }
         else {
