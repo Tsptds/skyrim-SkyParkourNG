@@ -206,7 +206,7 @@ namespace Scaleform {
                 }
 
                 SetScreenPosition();
-                _view->Advance(0.016666f);  // 60 fps
+                _view->Advance(RE::GetSecondsSinceLastFrame());
             }
 
             RE::NiPoint2 WorldToScreen(const RE::NiPoint3 &a_worldPos) const {
