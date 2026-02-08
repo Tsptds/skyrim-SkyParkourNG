@@ -73,67 +73,32 @@ bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_heig
 
 bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
     if (!ModSettings::Smart_Climb) return true;            // Feature disabled, always allow
-    if (!actor->IsMoving()) return true;                   // Not moving, allow
-    if (actor->AsActorState()->IsSwimming()) return true;  // Swimming, climb onto anything you want
+    if (!actor->IsMoving()) return true;                   // Not inputting move, allow
+    if (actor->AsActorState()->IsSwimming()) return true;  // Swimming, allow
 
-    /* Velocity threshold */
-    RE::hkVector4 vel;
-    const auto &ctrl = actor->GetCharController();
-    ctrl->GetLinearVelocityImpl(vel);
-    auto dir = RuntimeVariables::playerDirFlat;
-
-    auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
-
-    const auto &notStuck = speed > 1;
-    if (notStuck) {
-        return false;
-    }
+    constexpr float speedThreshold = 0.8f;
+    if (!TooSlowStuckToObject(actor, speedThreshold)) return false;  // Trying to move but stuck to an obstacle
 
     return true;
 }
 
 bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray) {
-    /* Velocity threshold */
-    RE::hkVector4 vel;
-    const auto &ctrl = player->GetCharController();
-    ctrl->GetLinearVelocityImpl(vel);
-    auto dir = RuntimeVariables::playerDirFlat;
-
-    auto speed = vel.quad.m128_f32[0] * dir.x + vel.quad.m128_f32[1] * dir.y;
-
-#ifdef LOG_STEPS_VELOCITY
-    LOG("{}", speed);
-#endif
-    /* If player isn't actually moving forward steps are not valid */
-
-    if (speed < -1.0f) { /* Standing still has precision errors */
-        return false;
-    }
-
-    const auto &notStuck = speed > 1;
-    if (notStuck) {
-        return false;
-    }
-
-    const auto &isMoving = player->IsMoving();
+    const auto &inputtingMove = player->IsMoving();
+    constexpr float speedThreshold = 0.9f;
+    if (inputtingMove && !TooSlowStuckToObject(player, speedThreshold)) return false;
 
     /* If player has just started moving, block premature steps */
     float graphSpeed;
     player->GetGraphVariableFloat("Speed", graphSpeed);
 
-    if (isMoving && graphSpeed < 150) {
+    if (inputtingMove && graphSpeed < 80) {
         return false;
     }
 
-    bool normalsValid = IsStepNormalValid(ray, isMoving);
-
-    if (!normalsValid) {
-        return false;
-    }
-
+    if (!IsStepNormalValid(ray, inputtingMove)) return false;
     if (!ModSettings::Smart_Steps) return true;  // Feature disabled, always allow
 
-    return isMoving;  // Feature enabled, only allow if moving
+    return inputtingMove;  // Feature enabled, only allow if moving
 }
 
 bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
@@ -168,9 +133,7 @@ bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
 }
 
 bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
-    if (!ModSettings::Smart_Vault) {
-        return true;  // Feature disabled, always allow
-    }
+    if (!ModSettings::Smart_Vault) return true;  // Feature disabled, always allow
 
     /* 3.2.0 Reverted the sprint only vault feature */
     return actor->IsMoving();  // Feature enabled, allow only when moving
@@ -389,46 +352,6 @@ bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
     }
 }
 
-bool ParkourUtility::IsSupportGroundedOrSliding(RE::Actor *actor) {
-    const auto &charController = actor->GetCharController();
-
-    // LOG("Flag {}", charController->flags.underlying());
-    // Check if the player is in the air (jumping flag)
-    if (actor && charController && /*!charController->flags.any(RE::CHARACTER_FLAGS::kJumping) &&
-        charController->flags.all(RE::CHARACTER_FLAGS::kCanJump) &&*/
-        charController->surfaceInfo.supportedState != RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
-        return true;
-    }
-    return false;
-}
-
-bool ParkourUtility::IsSupportUnsupported(RE::Actor *actor) {
-    const auto &charController = actor->GetCharController();
-
-    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kUnsupported) {
-        return true;
-    }
-    return false;
-}
-
-bool ParkourUtility::IsSupportSliding(RE::Actor *actor) {
-    const auto &charController = actor->GetCharController();
-
-    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSliding) {
-        return true;
-    }
-    return false;
-}
-
-bool ParkourUtility::IsSupportGrounded(RE::Actor *actor) {
-    const auto &charController = actor->GetCharController();
-
-    if (actor && charController && charController->surfaceInfo.supportedState == RE::hkpSurfaceInfo::SupportedState::kSupported) {
-        return true;
-    }
-    return false;
-}
-
 bool ParkourUtility::PlayerIsSwimming() {
     const auto &player = GET_PLAYER;
     return player->AsActorState()->IsSwimming();
@@ -461,4 +384,23 @@ bool ParkourUtility::IsAttacking(RE::Actor *actor) {
 bool ParkourUtility::IsCrouchSliding(RE::Actor *actor) {
     bool sliding;
     return actor->GetGraphVariableBool(SPPF_SLIDE_ONGOING, sliding) && sliding;
+}
+
+bool ParkourUtility::TooSlowStuckToObject(RE::Actor *actor, float threshold) {
+    RE::NiPoint3 vel;
+    actor->GetLinearVelocity(vel);
+    vel.z = 0.0f;
+
+    const float speed = vel.Length();
+    if (speed <= 0.0f) {
+        return true;
+    }
+
+    vel /= speed;  // normalize velocity
+
+    const auto &forward = VEC4_TO_VEC3(actor->GetCharController()->forwardVec * -1);
+
+    const float directionalSpeed = vel.Dot(forward);
+
+    return std::abs(directionalSpeed) < threshold;
 }

@@ -231,7 +231,9 @@ int Parkouring::ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
 int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, RE::NiPoint3 &ledgePoint, const RE::NiPoint3 &playerPos,
                                   RayCastResult &ledgeRay) {
     const float ledgePlayerDiff = ledgePoint.z - playerPos.z;
-    if (IsSupportGroundedOrSliding(player) || PlayerIsSwimming()) {
+    const bool isMidair = player->IsInMidair();
+
+    if (!isMidair || PlayerIsSwimming()) {
         if (ledgePlayerDiff >= HardCodedVariables::highestLedgeLimit * RuntimeVariables::PlayerScale) {
             // Highest ledge
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
@@ -285,7 +287,7 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
             if (StepsExtraChecks(player, ledgeRay)) return ParkourType::StepLow;
         }
     }
-    else if (IsSupportUnsupported(player)) {
+    else if (isMidair) {
         // We are midair, check for grab
         bool out_grabHighVariant{false};
         if (!GrabExtraChecks(ledgePlayerDiff, ledgeRay, out_grabHighVariant)) return ParkourType::NoLedge;
@@ -300,13 +302,9 @@ int Parkouring::VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, floa
                            float minVaultHeight, float maxVaultHeight) {
     const auto &player = GET_PLAYER;
 
-    if (!IsSupportGrounded(player)) {
-        return ParkourType::NoLedge;
-    }
+    if (player->IsInMidair()) return ParkourType::NoLedge;
 
-    if (!VaultExtraChecks(player)) {
-        return ParkourType::NoLedge;
-    }
+    if (!VaultExtraChecks(player)) return ParkourType::NoLedge;
 
     const auto &playerPos = player->GetPosition();
     const float playerHeight = 120 * RuntimeVariables::PlayerScale;
@@ -735,10 +733,6 @@ bool Parkouring::TryActivateParkour() {
     bool Ongoing;
     if (player->GetGraphVariableBool(SPPF_ONGOING, Ongoing) && Ongoing) return false;
 
-    float turningDelta;
-    player->GetGraphVariableFloat("TurnDelta", turningDelta);
-    if (turningDelta > 50.0f) return false;
-
     if (!RuntimeVariables::IsParkourActive || RuntimeVariables::IsMenuOpen) return false;
 
     const bool isSwimming = PlayerIsSwimming();
@@ -792,9 +786,8 @@ void Parkouring::ParkourReadyRun(int32_t ledgeType) {
                 player->SetGraphVariableBool(SPPF_Lower_Body_Only, false);
             }
 
-            player->NotifyAnimationGraph(SPPF_NOTIFY);
-
             StopInterpolatingRef(player);
+            player->NotifyAnimationGraph(SPPF_NOTIFY);
         });
     });
 }
