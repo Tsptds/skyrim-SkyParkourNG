@@ -290,7 +290,7 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
     }
     else if (IsSupportUnsupported(player)) {
         // We are midair, check for grab
-        bool out_grabHighVariant = false;
+        bool out_grabHighVariant{false};
         if (!GrabExtraChecks(ledgePlayerDiff, ledgeRay, out_grabHighVariant)) return ParkourType::NoLedge;
 
         player->SetGraphVariableBool(SPPF_Grab_Variant, out_grabHighVariant);
