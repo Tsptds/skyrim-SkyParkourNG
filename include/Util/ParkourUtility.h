@@ -5,7 +5,7 @@ namespace ParkourUtility {
     bool ClimbExtraChecks(RE::NiPoint3 start, const float check_height);
     bool SmartClimbCheck(RE::Actor *);
     bool StepsExtraChecks(RE::Actor *player, const RayCastResult ray);
-    bool IsStepNormalValid(const RayCastResult ray, bool isMoving);
+    bool IsStepNormalValid(RE::Actor* actor, const RayCastResult ray, bool isMoving);
     bool VaultExtraChecks(RE::Actor *actor);
     bool GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &out_grabHighVariant);
     void StopInteractions(RE::Actor &actor);

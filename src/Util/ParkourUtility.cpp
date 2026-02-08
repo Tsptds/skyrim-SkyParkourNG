@@ -82,26 +82,23 @@ bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
     return true;
 }
 
-bool ParkourUtility::StepsExtraChecks(RE::Actor *player, const RayCastResult ray) {
-    const auto &inputtingMove = player->IsMoving();
-    constexpr float speedThreshold = 0.9f;
-    if (inputtingMove && !TooSlowStuckToObject(player, speedThreshold)) return false;
+bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const RayCastResult ray) {
+    const auto &inputtingMove = actor->IsMoving();
+    if (!IsStepNormalValid(actor, ray, inputtingMove)) return false;
 
     /* If player has just started moving, block premature steps */
     float graphSpeed;
-    player->GetGraphVariableFloat("Speed", graphSpeed);
-
-    if (inputtingMove && graphSpeed < 80) {
+    actor->GetGraphVariableFloat("Speed", graphSpeed);
+    if (inputtingMove && graphSpeed < 150) {
         return false;
     }
 
-    if (!IsStepNormalValid(ray, inputtingMove)) return false;
     if (!ModSettings::Smart_Steps) return true;  // Feature disabled, always allow
 
     return inputtingMove;  // Feature enabled, only allow if moving
 }
 
-bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
+bool ParkourUtility::IsStepNormalValid(RE::Actor *actor, const RayCastResult ray, [[maybe_unused]] bool isMoving) {
     // Actor velocity low, check ledge normals
     const auto &normals = ray.normalOut.quad.m128_f32;
 
@@ -112,9 +109,9 @@ bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
     // 0, 1, 2 ->x, y, z
     const auto &z = normals[2];
     switch (ray.layer) {
-        case RE::COL_LAYER::kTerrain:
-            // default normal check 0.5 in ClimbCheck
-            break;
+        // case RE::COL_LAYER::kTerrain:
+        //     // default normal check 0.5 in ClimbCheck
+        //     break;
         case RE::COL_LAYER::kGround:
             // if (z < 0.65f) {
             //     return false;
@@ -123,7 +120,8 @@ bool ParkourUtility::IsStepNormalValid(const RayCastResult ray, bool isMoving) {
             return false;
         default:
             // Still inputting move ? normalZ = 0.5 : normalZ = 0.9
-            if (!isMoving) {
+            constexpr float speedThreshold = 0.7f;
+            if (!TooSlowStuckToObject(actor, speedThreshold)) {
                 if (z < 0.9f) {
                     return false;
                 }
@@ -392,7 +390,7 @@ bool ParkourUtility::TooSlowStuckToObject(RE::Actor *actor, float threshold) {
     vel.z = 0.0f;
 
     const float speed = vel.Length();
-    if (speed <= 0.0f) {
+    if (speed < 0.01f) {
         return true;
     }
 

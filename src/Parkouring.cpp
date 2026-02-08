@@ -738,6 +738,10 @@ bool Parkouring::TryActivateParkour() {
         if (considerGrounded && !isSwimming) return false;  // Grab animation is also used for replacing steps when swimming
     }
 
+    float turningDelta;
+    player->GetGraphVariableFloat("TurnDelta", turningDelta);
+    if (turningDelta > 50 || turningDelta < -50) return false;
+
     if (!HavokUtil::ValidateBehaviorPatch(player)) return false;
 
     RuntimeVariables::ParkourInProgress = true;
