@@ -270,19 +270,13 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
         }
         else if (ledgePlayerDiff >= HardCodedVariables::highStepLimit * RuntimeVariables::PlayerScale) {
             // High Step
-            if (PlayerIsSwimming()) {
-                player->SetGraphVariableBool(SPPF_Grab_Variant, false);
-                return ParkourType::Grab;  // Grab ledge out of water
-            }
+            if (PlayerIsSwimming()) return ParkourType::Grab;  // Grab ledge out of water
 
             if (StepsExtraChecks(player, ledgeRay)) return ParkourType::StepHigh;
         }
         else {
             // Low Step
-            if (PlayerIsSwimming()) {
-                player->SetGraphVariableBool(SPPF_Grab_Variant, false);
-                return ParkourType::Grab;  // Grab ledge out of water
-            }
+            if (PlayerIsSwimming()) return ParkourType::Grab;  // Grab ledge out of water
 
             if (StepsExtraChecks(player, ledgeRay)) return ParkourType::StepLow;
         }
@@ -737,15 +731,11 @@ bool Parkouring::TryActivateParkour() {
 
     const bool isSwimming = PlayerIsSwimming();
     const auto &fallTime = player->GetCharController()->fallTime;
-    const bool avoidOnGroundParkour = fallTime > 0.0f;
-    const bool avoidMidairParkour = fallTime < 0.17f;  // Delay grabbing immediately after jumping
+    const bool considerGrounded = fallTime < 0.17f;  // Delay grabbing immediately after jumping
     //LOG(">> Fall time: {}", fallTime);
 
-    if (LedgeTypeToProcess != ParkourType::Grab) {
-        if (avoidOnGroundParkour) return false;
-    }
-    else {
-        if (avoidMidairParkour && !isSwimming) return false;  // Grab animation is also used for replacing steps when swimming
+    if (LedgeTypeToProcess == ParkourType::Grab) {
+        if (considerGrounded && !isSwimming) return false;  // Grab animation is also used for replacing steps when swimming
     }
 
     if (!HavokUtil::ValidateBehaviorPatch(player)) return false;
