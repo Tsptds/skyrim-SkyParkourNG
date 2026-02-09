@@ -239,8 +239,8 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
 
             if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) return ParkourType::NoLedge;
-            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
             if (!SmartClimbCheck(player)) return ParkourType::NoLedge;
+            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
 
             return ParkourType::Highest;
         }
@@ -249,8 +249,8 @@ int Parkouring::ChooseClimbHeight(RE::Actor *player, const float playerHeight, R
             const RE::NiPoint3 headRoomRayStart{playerPos.x, playerPos.y, ledgePoint.z};
 
             if (!ClimbExtraChecks(headRoomRayStart, playerHeight)) return ParkourType::NoLedge;
-            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
             if (!SmartClimbCheck(player)) return ParkourType::NoLedge;
+            if (ShouldClimbActionFail(player)) return ParkourType::Failed;
 
             return ParkourType::High;
         }
