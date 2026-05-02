@@ -24,6 +24,7 @@ namespace Hooks {
                     using CanProcess_POV_t = bool(RE::TogglePOVHandler *a_this, RE::InputEvent *a_event);
                     using CanProcess_Weapon_t = bool(RE::ReadyWeaponHandler *a_this, RE::InputEvent *a_event);
                     using CanProcess_Look_t = bool(RE::LookHandler *a_this, RE::InputEvent *a_event);
+                    using CanProcess_Sprint_t = bool(RE::SprintHandler *a_this, RE::InputEvent *a_event);
             };
 
             struct Install {
@@ -36,6 +37,7 @@ namespace Hooks {
                     static bool CanProcess_POV();
                     static bool CanProcess_Weapon();
                     static bool CanProcess_Look();
+                    static bool CanProcess_Sprint();
             };
 
             struct Callback {
@@ -52,6 +54,7 @@ namespace Hooks {
                     static _S::CanProcess_POV_t CanProcess_POV;
                     static _S::CanProcess_Weapon_t CanProcess_Weapon;
                     static _S::CanProcess_Look_t CanProcess_Look;
+                    static _S::CanProcess_Sprint_t CanProcess_Sprint;
             };
 
             struct OG {
@@ -68,6 +71,7 @@ namespace Hooks {
                     static inline REL::Relocation<_S::CanProcess_POV_t *> _CanProcessPOV;
                     static inline REL::Relocation<_S::CanProcess_Weapon_t *> _CanProcessWeapon;
                     static inline REL::Relocation<_S::CanProcess_Look_t *> _CanProcessLook;
+                    static inline REL::Relocation<_S::CanProcess_Sprint_t *> _CanProcessSprint;
             };
     };
 
@@ -161,6 +165,10 @@ namespace Hooks {
             }
         }
 
+        if (ModSettings::Crouch_Slide_Enabled) {
+            if (RuntimeVariables::SlideOngoing) return false;
+        }
+
         return OG::_CanProcessMovement(a_this, a_event);
     }
 
@@ -198,6 +206,14 @@ namespace Hooks {
         }
 
         return OG::_CanProcessLook(a_this, a_event);
+    }
+
+    bool InputHandler::Callback::CanProcess_Sprint(RE::SprintHandler *a_this, RE::InputEvent *a_event) {
+        if (ModSettings::Crouch_Slide_Enabled) {
+            if (RuntimeVariables::SlideOngoing) return false;
+        }
+
+        return OG::_CanProcessSprint(a_this, a_event);
     }
 
 #pragma endregion
@@ -291,6 +307,14 @@ namespace Hooks {
         const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessLook, &Callback::CanProcess_Look);
 
         if (!res) CRITICAL("Look Hook Not Installed");
+        return res;
+    }
+    bool InputHandler::Install::CanProcess_Sprint() {
+        REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_SprintHandler[0]};
+
+        const bool res = Hooking::InstallVFuncHook(vtbl, 0x1, OG::_CanProcessSprint, &Callback::CanProcess_Sprint);
+
+        if (!res) CRITICAL("Sprint Hook Not Installed");
         return res;
     }
 #pragma endregion

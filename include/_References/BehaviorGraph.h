@@ -18,6 +18,9 @@ namespace BehaviorGraph {
     constexpr const char *SPPF_ONGOING = "SkyParkourOngoing";
     constexpr const char *SPPF_SPEEDMULT = "SkyParkourSpeedMult";
     constexpr const char *SPPF_Lower_Body_Only = "SkyParkourLowerBody";
+    
+    // Anim Event Payload
+    constexpr const char* SPPF_LOWEFFORTPAYLOAD = "LowEffort";
     /*----------------------------------------------------------------*/
 
     /* --Crouch Slide-- */
@@ -25,10 +28,14 @@ namespace BehaviorGraph {
     constexpr const char *SPPF_NOTIFY_SLIDE = "SkyParkour_Slide";
     constexpr const char *SPPF_SLIDE_START = "SkyParkour_SlideStart";
     constexpr const char *SPPF_SLIDE_STOP = "SkyParkour_SlideStop";
-
+    
     // Graph Variables
     constexpr const char *SPPF_SLIDE_ONGOING = "SkyParkourSliding";
     constexpr const char *SPPF_SLIDE_IS_ROLL = "SkyParkourIsLandingRoll";
+    
+    // Anim Event Payload
+    constexpr const char *SPPF_SLIDEPAYLOAD = "Slide";
+    constexpr const char *SPPF_ROLLPAYLOAD = "LandRoll";
     /*----------------------------------------------------------------*/
 
     /* --Leap-- */
@@ -44,6 +51,7 @@ namespace BehaviorGraph {
     // Graph Variables to Check if Behavior Patches are Installed
     constexpr const char *SPPF_TPP_INSTALLED = "SkyParkourTPPInstalled";
     constexpr const char *SPPF_FPP_INSTALLED = "SkyParkourFPPInstalled";
+    constexpr const char *SPPF_FAILSAFE_EVENT = "SkyParkour_Exiting";
     /*----------------------------------------------------------------*/
 
 }  // namespace BehaviorGraph

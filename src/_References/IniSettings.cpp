@@ -19,9 +19,12 @@ namespace IniSettings {
         ini->SetValue("MCM", "bMustHaveStamina", "true");
         ini->SetValue("MCM", "iBaseStaminaDamage", "20");
 
+        ini->SetValue("MCM", "iAutoParkour", "1");
         ini->SetValue("MCM", "bSmartSteps", "true");
         ini->SetValue("MCM", "bSmartVault", "true");
         ini->SetValue("MCM", "bSmartClimb", "true");
+
+        ini->SetValue("Experimental", "bSlideTackle", "false");
     }
 
     std::unique_ptr<CSimpleIniA> GetIniHandle() {

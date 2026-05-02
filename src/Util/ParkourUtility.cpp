@@ -1,35 +1,27 @@
 ﻿#include "Util/ParkourUtility.h"
+#include "Util/HavokUtil.hpp"
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
 #include "_References/HardcodedVariables.h"
 #include "API/API_Handles.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
 
 bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     if (actor->IsPlayerRef()) {
         if (RuntimeVariables::IsMenuOpen) return false;
-
         if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) return false;
-
         if (IsChargenHandsBound(static_cast<RE::PlayerCharacter *>(actor))) return false;
+        if (IsBeastForm()) return false;
     }
 
     if (IsKnockedOut(actor)) return false;
-
     if (actor->IsAnimationDriven()) return false;
-
     if (actor->IsStaggering()) return false;
-
     if (IsInSyncedAnimation(actor)) return false;
-
-    if (IsBeastForm()) return false;
-
     if (IsSitting(actor)) return false;
-
     if (IsInDrawSheath(actor)) return false;
-
     if (IsAttacking(actor)) return false;
-
     if (IsCrouchSliding(actor)) return false;
 
     /* TODO: Find a better way for this */
@@ -43,24 +35,23 @@ bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     return true;
 }
 
-bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_height) {
+bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_height, RE::NiPoint3 fwdDir) {
     constexpr RE::NiPoint3 upDir{0, 0, 1};
-    const auto &fwdDir = RuntimeVariables::playerDirFlat;
 
     const float back_length = 40.f * RuntimeVariables::PlayerScale;
     const auto backStart = start - fwdDir * 20.f;
 
-    RayCastResult headRoomRay_BackOffset = RayCast(backStart, upDir, check_height, COL_LAYER_EXTEND::kClimbObstruction);
-    RayCastResult headRoomRay_bwd = RayCast(backStart, -fwdDir, back_length, COL_LAYER_EXTEND::kClimbObstruction);
+    RayCastResult headRoomRay_BackOffset = HavokUtil::RayCast(backStart, upDir, check_height, COL_LAYER_EXTEND::kClimbObstruction);
+    RayCastResult headRoomRay_bwd = HavokUtil::RayCast(backStart, -fwdDir, back_length, COL_LAYER_EXTEND::kClimbObstruction);
 
     /* DEBUG LINES */
-    if (ModSettings::_Debug_Draw_Lines) {
+    if (ModSettings::_Debug_Enabled) {
         const auto &TH = API_Handles::TrueHUD::Get();
         if (TH) {
             TH->DrawArrow(backStart, backStart + upDir * headRoomRay_BackOffset.distance, 10.f, 0.f,
-                          headRoomRay_BackOffset.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
+                          headRoomRay_BackOffset.didHit ? COLOR_HEX_R : COLOR_HEX_G, 1.f);
             TH->DrawArrow(backStart, backStart - fwdDir * headRoomRay_bwd.distance, 10.f, 0.f,
-                          headRoomRay_bwd.didHit ? 0xFF0000FF : 0x00FF00FF, 1.f);
+                          headRoomRay_bwd.didHit ? COLOR_HEX_R : COLOR_HEX_G, 1.f);
         }
     }
     /*********************************/
@@ -72,79 +63,84 @@ bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_heig
 }
 
 bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
-    if (!ModSettings::Smart_Climb) return true;            // Feature disabled, always allow
-    if (!actor->IsMoving()) return true;                   // Not inputting move, allow
-    if (actor->AsActorState()->IsSwimming()) return true;  // Swimming, allow
+    const auto &st = actor->AsActorState();
 
-    constexpr float speedThreshold = 0.8f;
-    if (!TooSlowStuckToObject(actor, speedThreshold)) return false;  // Trying to move but stuck to an obstacle
+    if (!ModSettings::Smart_Climb) return true;  // Feature disabled, always allow
+    if (!actor->IsMoving()) return true;         // Not inputting move, allow
+    if (st->IsSwimming()) return true;           // Swimming, allow
+
+    /* 3.5.0 Smart Climb Rework */
+    const auto &relativeVel = GetRelativeVelocityToMT(actor);
+    if (relativeVel > 0.2f) return false;
 
     return true;
 }
 
-bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const RayCastResult ray) {
-    const auto &inputtingMove = actor->IsMoving();
-    if (!IsStepNormalValid(actor, ray, inputtingMove)) return false;
+bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, const RE::NiPoint3 ledgePoint) {
+    const auto st = actor->AsActorState();
+    if (st->actorState1.movingBack) return false;
+    /* 3.5.0 Get a multiplier from normalized fwd velocity. Use it to scale the min ledge height dynamically */
 
-    /* If player has just started moving, block premature steps */
-    float graphSpeed;
-    actor->GetGraphVariableFloat("Speed", graphSpeed);
-    if (inputtingMove && graphSpeed < 150) {
-        return false;
-    }
+    /* Height Thresholding Logic */
+    const float mult = [&] {
+        if (actor->IsMoving())
+            return GetRelativeVelocityToMT(actor);
+        else if (!ModSettings::Smart_Steps)
+            return 0.8f;
+        return 0.f;
+    }();
 
-    if (!ModSettings::Smart_Steps) return true;  // Feature disabled, always allow
+    constexpr float baseHeight = HardCodedVariables::lowLedgeLimit - HardCodedVariables::climbMinHeight;
+    const auto distToAdd = mult * baseHeight;
+    const auto calcedTH = baseHeight + distToAdd;
 
-    return inputtingMove;  // Feature enabled, only allow if moving
-}
+    // DEBUG_PRINT("Ledge Diff {} / Threshold {}", ledgePlayerDiff, calcedTH);
+    if (ledgePlayerDiff <= calcedTH) return false;
 
-bool ParkourUtility::IsStepNormalValid(RE::Actor *actor, const RayCastResult ray, [[maybe_unused]] bool isMoving) {
-    // Actor velocity low, check ledge normals
-    const auto &normals = ray.normalOut.quad.m128_f32;
+    const bool closeEnough = [&] {
+        auto dist3 = ledgePoint - actor->GetPosition();
+        dist3.z = 0;
+        const auto hrzDiff = dist3.Length();
+        // const auto TH = ModSettings::Smart_Steps ? 70 : 80;
+        if (hrzDiff > 70) return false;
+        return true;
+    }();
+    if (!closeEnough) return false;
 
-#ifdef LOG_STEPS
-    LOG("{}\nStep Normals: {} {} {}", PRINT_LAYER(ray.layer), normals[0], normals[1], normals[2]);
-#endif
-
-    // 0, 1, 2 ->x, y, z
-    const auto &z = normals[2];
-    switch (ray.layer) {
-        // case RE::COL_LAYER::kTerrain:
-        //     // default normal check 0.5 in ClimbCheck
-        //     break;
-        case RE::COL_LAYER::kGround:
-            // if (z < 0.65f) {
-            //     return false;
-            // }
-            /* Update 3.3.0 - Don't step onto ground at all*/
-            return false;
-        default:
-            // Still inputting move ? normalZ = 0.5 : normalZ = 0.9
-            constexpr float speedThreshold = 0.7f;
-            if (!TooSlowStuckToObject(actor, speedThreshold)) {
-                if (z < 0.9f) {
-                    return false;
-                }
-            }
-    }
     return true;
 }
 
 bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
+    if (actor->IsInMidair()) return false;
+    if (actor->AsActorState()->actorState1.movingBack) return false;
+
     if (!ModSettings::Smart_Vault) return true;  // Feature disabled, always allow
 
     /* 3.2.0 Reverted the sprint only vault feature */
     return actor->IsMoving();  // Feature enabled, allow only when moving
 }
 
-bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastResult ray, bool &out_grabHighVariant) {
+bool ParkourUtility::GrabExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, bool &out_grabHighVariant,
+                                     const RE::NiPoint3 ledgePoint) {
+    if (actor->AsActorState()->actorState1.movingBack) return false;
+
     // Avoid grabbing ground
-    if (ray.layer == RE::COL_LAYER::kGround) {
-        return false;
-    }
+    constexpr float dist{35.f};
+    constexpr RE::NiPoint3 dir(0, 0, -1);
+    RayCastResult downRay = HavokUtil::RayCast(actor->GetPosition(), dir, dist, COL_LAYER_EXTEND::kClimbObstruction, actor);
+
+    if (downRay.didHit) return false;
+
+    const bool closeEnough = [&] {
+        auto dist3 = ledgePoint - actor->GetPosition();
+        dist3.z = 0;
+        const auto hrzDiff = dist3.Length();
+        if (hrzDiff > 70) return false;
+        return true;
+    }();
+    if (!closeEnough) return false;
 
     // Check Start lower point is player feet level + lowest parkour height, which is positive
-
     if (ledgePlayerDiff > HardCodedVariables::grabMaxHeight * RuntimeVariables::PlayerScale) {
         return false;
     }
@@ -157,7 +153,7 @@ bool ParkourUtility::GrabExtraChecks(const float ledgePlayerDiff, const RayCastR
 }
 
 void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
-    a_actor.PauseCurrentDialogue();
+    a_actor.StopCurrentDialogue();
     a_actor.InterruptCast(false);
     a_actor.StopInteractingQuick(true);
 
@@ -190,59 +186,9 @@ RE::NiPoint3 ParkourUtility::GetActorDirFlat(RE::Actor *actor) {
     // }
 
     // return actorDirFlat;
+
     const auto &ctrl = actor->GetCharController();
-    if (!ctrl) return RuntimeVariables::playerDirFlat;
-
     return VEC4_TO_VEC3(ctrl->forwardVec * -1);  // * -1 cause it returns the inverse vector pointing backwards?
-}
-
-RayCastResult ParkourUtility::RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask,
-                                      RE::Actor *actor) {
-    RayCastResult result{};
-    result.distance = maxDist;
-
-    if (!actor) {
-        return result;
-    }
-    const auto &cell = actor->GetParentCell();
-    if (!cell) {
-        return result;
-    }
-    const auto &bhkWorld = cell->GetbhkWorld();
-    if (!bhkWorld) {
-        return result;
-    }
-
-    RE::bhkPickData pickData;
-    const auto &havokWorldScale = RE::bhkWorld::GetWorldScale();
-
-    // Set ray start and end points (scaled to Havok world)
-    pickData.rayInput.from = rayStart * havokWorldScale;
-    pickData.rayInput.to = (rayStart + rayDir * maxDist) * havokWorldScale;
-
-    // Set the collision filter info to exclude the player
-    /* hkpCollidable.h, lower 4 bits: CollidesWith, higher 4 bits: BelongsTo */
-
-    //static_cast<uint32_t>(COL_LAYER::kAnimStatic) & ~static_cast<uint32_t>(COL_LAYER::kDoorDetection)
-
-    RE::CFilter cFilter;
-    actor->GetCollisionFilterInfo(cFilter);
-    cFilter.SetCollisionLayer(static_cast<RE::COL_LAYER>(layerMask));
-    pickData.rayInput.filterInfo = cFilter;
-    // static_cast<RE::CFilter>(cFilter.filter | static_cast<uint32_t>(layerMask));
-
-    // Perform the raycast
-    if (bhkWorld->PickObject(pickData) && pickData.rayOutput.HasHit()) {
-        result.didHit = true;
-        result.distance = maxDist * pickData.rayOutput.hitFraction;
-        result.normalOut = pickData.rayOutput.normal;
-
-        result.layer = pickData.rayOutput.rootCollidable->GetCollisionLayer();
-
-        result.hitObjectRef = RE::TESHavokUtilities::FindCollidableRef(*pickData.rayOutput.rootCollidable);
-    }
-
-    return result;
 }
 
 bool ParkourUtility::IsKnockedOut(RE::Actor *actor) {
@@ -257,11 +203,6 @@ bool ParkourUtility::IsCrosshairRefActivator() {
     //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
     const auto &ref = RE::CrosshairPickData::GetSingleton()->target.get();
     if (ref) {
-#ifdef LOG_CROSSHAIR
-        auto layer = ref->Get3D()->GetCollisionLayer();
-        LOG("Layer: {}", PRINT_LAYER(layer));
-#endif
-
         /* Something activatable in crosshair */
         if (ref->GetFormFlags() & RE::TESObjectREFR::RecordFlags::kHarvested) {
             //LOG("Harvested");
@@ -301,7 +242,12 @@ bool ParkourUtility::IsInSyncedAnimation(RE::Actor *actor) {
     return actor->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
-float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
+float ParkourUtility::CalculateStaminaReqFromEquipLoad(RE::Actor *actor) {
+    if (actor->IsPlayerRef()) {
+        const RE::PlayerCharacter *pl = actor->As<RE::PlayerCharacter>();
+        if (pl->IsGodMode()) return -1.f;
+    }
+
     const float &equip = actor->GetEquippedWeight();
     //float carry = player->GetTotalCarryWeight();
 
@@ -311,14 +257,14 @@ float ParkourUtility::CalculateParkourStamina(RE::Actor *actor) {
 bool ParkourUtility::ActorHasEnoughStamina(RE::Actor *actor) {
     const auto &currentStamina = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
-    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateParkourStamina(actor) /* && ModSettings::Is_Stamina_Required */) {
+    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateStaminaReqFromEquipLoad(actor)) {
         return true;
     }
     return false;
 }
 
 bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount) {
-    if (actor) {
+    if (actor && amount > 0) {
         actor->AsActorValueOwner()->DamageActorValue(RE::ActorValue::kStamina, amount);
         return true;
     }
@@ -337,7 +283,7 @@ bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor) {
 }
 
 // Return true if action should consume half the stamina cost
-bool ParkourUtility::CheckActionRequiresLowEffort(int32_t ledge) {
+bool ParkourUtility::CheckActionRequiresLowEffort(ParkourType ledge) {
     switch (ledge) {
         case ParkourType::High:
         case ParkourType::Highest:
@@ -384,21 +330,17 @@ bool ParkourUtility::IsCrouchSliding(RE::Actor *actor) {
     return actor->GetGraphVariableBool(SPPF_SLIDE_ONGOING, sliding) && sliding;
 }
 
-bool ParkourUtility::TooSlowStuckToObject(RE::Actor *actor, float threshold) {
+float ParkourUtility::GetCharForwardVelocity(RE::Actor *act) {
     RE::NiPoint3 vel;
-    actor->GetLinearVelocity(vel);
+    act->GetLinearVelocity(vel);
     vel.z = 0.0f;
 
-    const float speed = vel.Length();
-    if (speed < 0.01f) {
-        return true;
-    }
+    return vel.Length();
+}
 
-    vel /= speed;  // normalize velocity
+float ParkourUtility::GetRelativeVelocityToMT(RE::Actor *actor) {
+    const float &vel = GetCharForwardVelocity(actor);
+    const float &mt_speed = actor->AsActorState()->DoGetMovementSpeed();
 
-    const auto &forward = VEC4_TO_VEC3(actor->GetCharController()->forwardVec * -1);
-
-    const float directionalSpeed = vel.Dot(forward);
-
-    return std::abs(directionalSpeed) < threshold;
+    return vel / (mt_speed <= 0 ? 1 : mt_speed);
 }

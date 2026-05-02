@@ -4,6 +4,8 @@
 #include "_References/ModSettings.h"
 #include "Parkouring.h"
 #include "CrouchSliding.h"
+#include "Util/HavokUtil.hpp"
+#include "_References/RuntimeMethods.h"
 
 void RaceChangeListener::Register() {
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
@@ -29,22 +31,24 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     auto actorRef = ev->subject.get();
     if (!actorRef) return RE::BSEventNotifyControl::kContinue;
 
-    auto player = GET_PLAYER;
-    if (actorRef->formID != player->formID) return RE::BSEventNotifyControl::kContinue;
+    if (!actorRef->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
+    const auto &pl = GET_PLAYER;
 
     /* On race switch graph vars reset, fix it */
-    player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
+    pl->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
 
-    const auto &playerPreTransformData = player->GetPlayerRuntimeData().preTransformationData;
-    if (playerPreTransformData) {
-        //LOG(">> Entering Beast Form");
+    const auto &playerPreTransformData = pl->GetPlayerRuntimeData().preTransformationData;
+    if (playerPreTransformData) {  // Entered beast form
+
         Parkouring::SetParkourOnOff(false);
         CrouchSliding::SetSlideOnOff(false);
     }
-    else {
+    else {  // Changed race but it's not a beast form, reset stuff
         //LOG(">> Exiting Beast Form");
         if (ModSettings::Parkour_Enabled) Parkouring::SetParkourOnOff(true);
         if (ModSettings::Crouch_Slide_Enabled) CrouchSliding::SetSlideOnOff(true);
+        RuntimeMethods::ResetAll();
+        HavokUtil::CreateBoundGraphChannels(GET_PLAYER);
     }
     return RE::BSEventNotifyControl::kContinue;
 }

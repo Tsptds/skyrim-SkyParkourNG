@@ -3,6 +3,7 @@
 #include "_References/RuntimeVariables.h"
 #include "Parkouring.h"
 #include "CrouchSliding.h"
+#include "Util/HavokUtil.hpp"
 
 namespace Menus {
     // List of disqualifying menu names
@@ -84,11 +85,6 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
         //        AnimEventListener::Register();
         //    }
         //}
-
-        // Racemenu closed, reset some stuff
-        if (ev->menuName == RE::RaceSexMenu::MENU_NAME) {
-            RuntimeMethods::ResetAll();
-        }
 
         if (!Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = false;

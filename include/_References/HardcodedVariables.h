@@ -6,7 +6,7 @@ namespace HardCodedVariables {
     constexpr float climbMinHeight{30};
 
     constexpr float vaultMaxHeight{120};
-    constexpr float vaultMinHeight{40.5};
+    constexpr float vaultMinHeight{42};
 
     constexpr float grabMaxHeight{125};
     constexpr float grabHighVariantThreshold{75};

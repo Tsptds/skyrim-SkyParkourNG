@@ -33,8 +33,6 @@ namespace RuntimeMethods {
             player->SetGraphVariableInt(SPPF_Ledge, -1);
             player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
         }
-
-        RuntimeVariables::SlideOngoing = false;
     }
 
     void ResetSlide() {
@@ -68,7 +66,12 @@ namespace RuntimeMethods {
         const auto &TDM = GetModuleHandleA(Compatibility::TrueDirectionalMovement::dll_name);
         if (TDM) {
             Compatibility::TrueDirectionalMovement::found = true;
-            LOG("Patch: True Directional Movement |360|Swim Pitch|");
+            LOG("Patch: True Directional Movement |360|Swim Pitch|Yaw Lock|");
+        }
+        const auto &CS = GetModuleHandleA(Compatibility::ClassicSprintingRedone::dll_name);
+        if (CS) {
+            Compatibility::ClassicSprintingRedone::found = true;
+            LOG("Patch: Classic Sprinting Redone |No Sprint State Conservation|");
         }
     }
 

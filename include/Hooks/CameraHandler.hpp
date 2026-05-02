@@ -51,7 +51,8 @@ namespace Hooks {
 
             class FPP {
                 private:
-                    inline static const float Vertical_Clamp_Angle = 1.0f;
+                    inline static const float Vertical_Clamp_Angle_Parkour = 1.0f;
+                    inline static const float Vertical_Clamp_Angle_Slide = 0.6f;
 
                     struct Signatures {
                             using Begin_t = void(RE::FirstPersonState *a_this);
@@ -222,16 +223,7 @@ namespace Hooks {
     void CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
         // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
         Parkouring::InvalidateVars();
-
-        const auto &ui = RE::UI::GetSingleton();
-        if (ui) {
-            using sppf = Scaleform::SkyParkourMenu;
-            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-
-            if (menu) {
-                menu->ScaleToFirstPerson();
-            }
-        }
+        Scaleform::SkyParkourMenu::GetSingleton()->ScaleToFirstPerson();
 
         OG::_End(a_this);
     }
@@ -239,16 +231,7 @@ namespace Hooks {
         if (ModSettings::Parkour_Enabled) {
             Parkouring::UpdateParkourPoint();
         }
-
-        const auto &ui = RE::UI::GetSingleton();
-        if (ui) {
-            using sppf = Scaleform::SkyParkourMenu;
-            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-
-            if (menu) {
-                menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
-            }
-        }
+        Scaleform::SkyParkourMenu::GetSingleton()->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
 
         if (RuntimeVariables::ParkourInProgress) {
             const auto &ctrl = GET_PLAYER->GetCharController();
@@ -298,17 +281,20 @@ namespace Hooks {
             Parkouring::UpdateParkourPoint();
         }
 
-        if (RuntimeVariables::ParkourInProgress || RuntimeVariables::SlideOngoing) {
+        namespace rt = RuntimeVariables;
+        if (rt::ParkourInProgress || rt::SlideOngoing) {
             /* Clamp Player looking angle to prevent weird visuals */
+            
+            const auto clamp = rt::ParkourInProgress ? Vertical_Clamp_Angle_Parkour : Vertical_Clamp_Angle_Slide;
             const auto &player = GET_PLAYER;
 
             /* Vert */
             auto &vertAngle = player->data.angle.x;
-            if (vertAngle > Vertical_Clamp_Angle) {
-                vertAngle = Vertical_Clamp_Angle;
+            if (vertAngle > clamp) {
+                vertAngle = clamp;
             }
-            else if (vertAngle < -Vertical_Clamp_Angle) {
-                vertAngle = -Vertical_Clamp_Angle;
+            else if (vertAngle < -clamp) {
+                vertAngle = -clamp;
             }
 
             /* Horz */

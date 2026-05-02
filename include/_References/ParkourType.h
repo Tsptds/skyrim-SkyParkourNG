@@ -1,24 +1,31 @@
 #pragma once
+#include <fmt/format.h>
 
-namespace ParkourType {
-    // 8
-    constexpr int Highest{8};
-    // 7
-    constexpr int High{7};
-    // 6
-    constexpr int Medium{6};
-    // 5
-    constexpr int Low{5};
-    // 4
-    constexpr int StepHigh{4};
-    // 3
-    constexpr int StepLow{3};
-    // 2
-    constexpr int Vault{2};
-    // 1
-    constexpr int Grab{1};
-    // 0
-    constexpr int Failed{0};
-    // -1
-    constexpr int NoLedge{-1};
-}  // namespace ParkourType
+enum class ParkourType : int32_t { NoLedge = -1, Failed, Grab, Vault, StepLow, StepHigh, Low, Medium, High, Highest };
+
+
+template <>
+struct fmt::formatter<ParkourType> : fmt::formatter<std::string_view>
+{
+    auto format(ParkourType type, fmt::format_context& ctx) const
+    {
+        using enum ParkourType;
+
+        std::string_view name = "Invalid";
+
+        switch (type) {
+        case NoLedge:  name = "NoLedge";  break;
+        case Failed:   name = "Failed";   break;
+        case Grab:     name = "Grab";     break;
+        case Vault:    name = "Vault";    break;
+        case StepLow:  name = "StepLow";  break;
+        case StepHigh: name = "StepHigh"; break;
+        case Low:      name = "Low";      break;
+        case Medium:   name = "Medium";   break;
+        case High:     name = "High";     break;
+        case Highest:  name = "Highest";  break;
+        }
+
+        return fmt::formatter<std::string_view>::format(name, ctx);
+    }
+};

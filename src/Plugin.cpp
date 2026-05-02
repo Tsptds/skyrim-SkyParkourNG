@@ -97,8 +97,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         }
 
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
-
-        API_Handles::TrueHUD::RequestTrueHUDAPI();
+        API_Handles::RequestAllHandles();
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         if (!RuntimeMethods::IsESPLoaded()) {
@@ -117,7 +116,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
         const auto &player = GET_PLAYER;
         int32_t out;
-        if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != -1) {
+        if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != std::to_underlying(ParkourType::NoLedge)) {
             WARN("Fix: Save with ongoing parkour");
             player->NotifyAnimationGraph(SPPF_STOP);
         }

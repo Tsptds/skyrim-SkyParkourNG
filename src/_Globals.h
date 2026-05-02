@@ -1,35 +1,15 @@
 #pragma once
 
-#include "Util/ThreadPool.hpp"
 #include "_References/BehaviorGraph.h"
-
-#ifdef _DEBUG
-#include "_Logging.h"
-#endif
+#include "_References/ExclusionLists.h"
+#include "_References/Fmt.h"
 
 /* Macro func */
 #define PRINT_LAYER(x) (RE::CollisionLayerToString(x))
 
-namespace SkyParkourUtil {
-    using namespace RE;
+namespace SkyParkour {
 
-    /* Mark ledge point layers that are considered invalid for climbing */
-    static const std::unordered_set<COL_LAYER> ClimbLayerExclusionList{
-        COL_LAYER::kNonCollidable, COL_LAYER::kCharController, /*COL_LAYER::kAnimStatic,*/ COL_LAYER::kWeapon,
-        COL_LAYER::kProjectile,    COL_LAYER::kTransparent,    COL_LAYER::kClutter,
-        COL_LAYER::kBiped};
-
-    /* Head Level Check Layers. If hit, consider vault has obstruction behind */
-    static const std::unordered_set<COL_LAYER> VaultForwardRayList{
-        COL_LAYER::kStatic, COL_LAYER::kTerrain,    COL_LAYER::kGround,      COL_LAYER::kProps,      COL_LAYER::kDoorDetection,
-        COL_LAYER::kTrees,  COL_LAYER::kAnimStatic, COL_LAYER::kDebrisLarge, COL_LAYER::kTransparent};
-
-    /* Ledge Point Layers. If hit, consider vault point invalid. */
-    static const std::unordered_set<COL_LAYER> VaultDownRayList{COL_LAYER::kWeapon,  COL_LAYER::kProjectile, COL_LAYER::kCharController,
-                                                                COL_LAYER::kClutter, COL_LAYER::kBiped,      COL_LAYER::kDeadBip};
-
-    static ThreadPool threads;
-    static hkVector4 zeroVector{0, 0, 0, 0};
+    static RE::hkVector4 zeroVector{0, 0, 0, 0};
 
     struct RayCastResult {
             float distance = -1.0f;
@@ -39,6 +19,7 @@ namespace SkyParkourUtil {
 
             // Do a null check before using this
             TESObjectREFR *hitObjectRef = nullptr;
+            hkInplaceArray<hkpWorldRayCastOutput, 8> hits;
 
             RE::FormType GetHitObjectFormType_Safe() const {
                 if (!hitObjectRef) return RE::FormType::None;
@@ -47,20 +28,12 @@ namespace SkyParkourUtil {
 
             RayCastResult() = default;
 
-            RayCastResult(float d, COL_LAYER l, const hkVector4 &n, bool h, TESObjectREFR *r)
-                : distance(d), layer(l), normalOut(n), didHit(h), hitObjectRef(r) {}
-    };
-
-    enum class COL_LAYER_EXTEND {
-        kClimbLedge = static_cast<uint32_t>(COL_LAYER::kLOS),
-        kClimbObstruction = static_cast<uint32_t>(COL_LAYER::kCustomPick1),
-        kVaultDown = static_cast<uint32_t>(COL_LAYER::kCustomPick1),
-        kVaultForward = static_cast<uint32_t>(COL_LAYER::kTransparent),
-        kVaultPostLedgeObstruction = static_cast<uint32_t>(COL_LAYER::kLOS),
-        kCrouchSlideDistCheck = static_cast<uint32_t>(COL_LAYER::kTransparent),
+            RayCastResult(float d, COL_LAYER l, const hkVector4 &n, bool h, TESObjectREFR *r, hkInplaceArray<hkpWorldRayCastOutput, 8> arr)
+                : distance(d), layer(l), normalOut(n), didHit(h), hitObjectRef(r), hits(arr) {}
     };
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate };
+    const enum AutoParkourOptions { kDisabled = 0, kNonCombatOnly, kAlways };
 
     static void LogCharacterFlags() {
         if (auto *controller = PlayerCharacter::GetSingleton()->GetCharController()) {
@@ -114,37 +87,35 @@ namespace SkyParkourUtil {
         }
     }
 
-    static NiPoint3 Vec4_To_Vec3(hkVector4 vec) {
+    static RE::NiPoint3 Vec4_To_Vec3(RE::hkVector4 vec) {
         return NiPoint3(vec.quad.m128_f32[0], vec.quad.m128_f32[1], vec.quad.m128_f32[2]);
     }
 
     static hkVector4 Vec3_To_Vec4(NiPoint3 vec) {
         return hkVector4(vec.x, vec.y, vec.z, 0);
     }
-}  // namespace SkyParkourUtil
+}  // namespace SkyParkour
 
 /* Log macros */
-#define LOG(x, ...) logger::info(x, __VA_ARGS__)
-#define WARN(x, ...) logger::warn(x, __VA_ARGS__)
-#define ERROR(x, ...) logger::error(x, __VA_ARGS__)
-#define CRITICAL(x, ...) logger::error(x, __VA_ARGS__)
+#define LOG(x, ...) logger::info(x __VA_OPT__(, ) __VA_ARGS__)
+#define WARN(x, ...) logger::warn(x __VA_OPT__(, ) __VA_ARGS__)
+#define ERROR(x, ...) logger::error(x __VA_OPT__(, ) __VA_ARGS__)
+#define CRITICAL(x, ...) logger::critical(x __VA_OPT__(, ) __VA_ARGS__)
 
-/* Task Queue & Thread Pool Macro */
-#define _THREAD_POOL SkyParkourUtil::threads
+/* Task Queue Macro */
 #define _TASK_Q SKSE::GetTaskInterface()->AddTask
 
 /* Generic Stuff */
 #define GET_PLAYER RE::PlayerCharacter::GetSingleton()
-#define ZERO_VECTOR SkyParkourUtil::zeroVector
+#define ZERO_VECTOR SkyParkour::zeroVector
 
-#define VEC3_TO_VEC4 SkyParkourUtil::Vec3_To_Vec4
-#define VEC4_TO_VEC3 SkyParkourUtil::Vec4_To_Vec3
+#define VEC3_TO_VEC4 SkyParkour::Vec3_To_Vec4
+#define VEC4_TO_VEC3 SkyParkour::Vec4_To_Vec3
+#define nipoint_to_hkvector(a) VEC3_TO_VEC4(a / 69.99125f)
+#define hkvector_to_nipoint(a) VEC4_TO_VEC3(a * 69.99125f)
 
-#define RayCastResult SkyParkourUtil::RayCastResult
-#define COL_LAYER_EXTEND SkyParkourUtil::COL_LAYER_EXTEND
-#define PARKOUR_PRESET_KEYS SkyParkourUtil::ParkourKeyOptions
-#define LOG_PLAYER_CONTROLLER_FLAGS SkyParkourUtil::LogCharacterFlags()
+#define RayCastResult SkyParkour::RayCastResult
 
-#define LAYERS_CLIMB_EXCLUDE SkyParkourUtil::ClimbLayerExclusionList
-#define LAYERS_VAULT_DOWN_RAY SkyParkourUtil::VaultDownRayList
-#define LAYERS_VAULT_FORWARD_RAY SkyParkourUtil::VaultForwardRayList
+#define PARKOUR_PRESET_KEYS SkyParkour::ParkourKeyOptions
+#define AUTO_PARKOUR_OPTIONS SkyParkour::AutoParkourOptions
+#define LOG_PLAYER_CONTROLLER_FLAGS SkyParkour::LogCharacterFlags()

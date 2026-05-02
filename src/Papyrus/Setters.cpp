@@ -11,6 +11,7 @@ namespace SkyParkour_Papyrus {
     using namespace ModSettings;
 
     void Setters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm) {
+        vm->RegisterFunction("SetEnableDebug", className, SetEnableDebug);
         vm->RegisterFunction("SetEnableMod", className, SetEnableMod);
         vm->RegisterFunction("SetShowIndicators", className, SetShowIndicators);
         vm->RegisterFunction("SetPlaybackSpeed", className, SetPlaybackSpeed);
@@ -22,14 +23,43 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("SetCustomParkourKey", className, SetCustomParkourKey);
         vm->RegisterFunction("SetPresetParkourKey", className, SetPresetParkourKey);
         vm->RegisterFunction("SetParkourDelay", className, SetParkourDelay);
+        vm->RegisterFunction("SetAutoParkour", className, SetAutoParkour);
         vm->RegisterFunction("SetSmartSteps", className, SetSmartSteps);
         vm->RegisterFunction("SetSmartVault", className, SetSmartVault);
         vm->RegisterFunction("SetSmartClimb", className, SetSmartClimb);
     }
 
+    bool Setters::SetEnableDebug(RE::StaticFunctionTag *, bool value) {
+        bool debugSwapped{false};
+        if (API_Handles::TrueHUD::Get()) {
+            auto &draw = _Debug_Enabled;
+            draw = !draw;
+            const char *msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
+            LOG("{}", msg);
+            RE::ConsoleLog::GetSingleton()->Print(msg);
+
+            Scaleform::SkyParkourMenu::GetSingleton()->ShowDebugOverlay(draw);
+
+            debugSwapped = true;
+        }
+        else {
+            WARN("Can't enable debug, TrueHud handle not found");
+            // RE::ConsoleLog::GetSingleton()->Print("TrueHUD not found, SkyParkour debugging isn't available");
+            RE::DebugMessageBox("TrueHUD not found, SkyParkour debugging isn't available");
+        }
+
+        if (debugSwapped) {
+            auto ini = GetINI();
+            ini->SetBoolValue(SectionDebug, "bDebugEnabled", value);
+            save(ini);
+
+            _Debug_Enabled = value;
+        }
+        return debugSwapped;
+    }
     void Setters::SetEnableMod(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bEnableMod", value);
+        ini->SetBoolValue(SectionMCM, "bEnableMod", value);
         save(ini);
 
         Parkour_Enabled = value;
@@ -39,25 +69,20 @@ namespace SkyParkour_Papyrus {
     }
     void Setters::SetShowIndicators(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bShowIndicators", value);
+        ini->SetBoolValue(SectionMCM, "bShowIndicators", value);
         save(ini);
 
         Use_Indicators = value;
 
         if (!Use_Indicators) {
             using sppf = Scaleform::SkyParkourMenu;
-            const auto &ui = RE::UI::GetSingleton();
-            if (!ui) return;
-
-            const auto &menu = ui->GetMenu<sppf>(sppf::MENU_NAME);
-            if (!menu) return;
-
-            menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
+            const auto menu = sppf::GetSingleton();
+            if (menu && menu->IsOpen()) menu->SetActiveIndicatorType(sppf::IndicatorType::kInvisible);
         }
     }
     void Setters::SetPlaybackSpeed(RE::StaticFunctionTag *, float value) {
         auto ini = GetINI();
-        ini->SetValue(Section, "fPlaybackSpeed", std::to_string(value).c_str());
+        ini->SetValue(SectionMCM, "fPlaybackSpeed", std::to_string(value).c_str());
         save(ini);
 
         Playback_Speed = value;
@@ -66,7 +91,7 @@ namespace SkyParkour_Papyrus {
     }
     void Setters::SetEnableCrouchSlide(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bEnableCrouchSlide", value);
+        ini->SetBoolValue(SectionMCM, "bEnableCrouchSlide", value);
         save(ini);
 
         Crouch_Slide_Enabled = value;
@@ -76,70 +101,77 @@ namespace SkyParkour_Papyrus {
     }
     void Setters::SetEnableStaminaSystem(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bEnableStaminaSystem", value);
+        ini->SetBoolValue(SectionMCM, "bEnableStaminaSystem", value);
         save(ini);
 
         Enable_Stamina_Consumption = value;
     }
     void Setters::SetMustHaveStamina(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bMustHaveStamina", value);
+        ini->SetBoolValue(SectionMCM, "bMustHaveStamina", value);
         save(ini);
 
         Must_Have_Stamina = value;
     }
     void Setters::SetBaseStaminaDamage(RE::StaticFunctionTag *, float value) {
         auto ini = GetINI();
-        ini->SetValue(Section, "iBaseStaminaDamage", std::to_string(value).c_str());
+        ini->SetValue(SectionMCM, "iBaseStaminaDamage", std::to_string(value).c_str());
         save(ini);
 
         Stamina_Damage = value;
     }
     void Setters::SetUsePresetKey(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bUsePresetKey", value);
+        ini->SetBoolValue(SectionMCM, "bUsePresetKey", value);
         save(ini);
 
         Use_Preset_Parkour_Key = value;
     }
     void Setters::SetCustomParkourKey(RE::StaticFunctionTag *, int32_t value) {
         auto ini = GetINI();
-        ini->SetValue(Section, "iCustomKeybind", std::to_string(value).c_str());
+        ini->SetValue(SectionMCM, "iCustomKeybind", std::to_string(value).c_str());
         save(ini);
 
         Custom_Parkour_Key = value;
     }
     void Setters::SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value) {
         auto ini = GetINI();
-        ini->SetValue(Section, "iPresetKeyIndex", std::to_string(value).c_str());
+        ini->SetValue(SectionMCM, "iPresetKeyIndex", std::to_string(value).c_str());
         save(ini);
 
         Preset_Parkour_Key = value;
     }
     void Setters::SetParkourDelay(RE::StaticFunctionTag *, float value) {
         auto ini = GetINI();
-        ini->SetValue(Section, "fInputDelay", std::to_string(value).c_str());
+        ini->SetValue(SectionMCM, "fInputDelay", std::to_string(value).c_str());
         save(ini);
 
         Parkour_Delay = value;
     }
+    void Setters::SetAutoParkour(RE::StaticFunctionTag *, int32_t value) {
+        auto ini = GetINI();
+        ini->SetValue(SectionMCM, "iAutoParkour", std::to_string(value).c_str());
+        save(ini);
+
+        Auto_Parkour = value;
+    }
     void Setters::SetSmartSteps(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bSmartSteps", value);
+        ini->SetBoolValue(SectionMCM, "bSmartSteps", value);
         save(ini);
 
         Smart_Steps = value;
     }
     void Setters::SetSmartVault(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bSmartVault", value);
+        ini->SetBoolValue(SectionMCM, "bSmartVault", value);
         save(ini);
 
         Smart_Vault = value;
     }
     void Setters::SetSmartClimb(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();
-        ini->SetBoolValue(Section, "bSmartClimb", value);
+        ini->SetBoolValue(SectionMCM, "bSmartClimb", value);
         save(ini);
 
         Smart_Climb = value;

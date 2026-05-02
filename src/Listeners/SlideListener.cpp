@@ -1,9 +1,18 @@
 #include "Listeners/ButtonListener.h"
 #include "CrouchSliding.h"
+#include "_References/ModSettings.h"
+#include "_References/RuntimeVariables.h"
 
 void Buttons::SlideListener::CrouchSlide(RE::ButtonEvent *buttonEvent) {
     if (buttonEvent->IsDown()) {
-        CrouchSliding::TrySprintSlide();
+        CrouchSliding::TrySprintSlide(false);
+    }
+    else if (buttonEvent->IsHeld()) {
+        CrouchSliding::TrySprintSlide(true);
+
+        if (ModSettings::ExpSlideTackle) {
+            if (RuntimeVariables::SlideOngoing) CrouchSliding::TryKnockCollidedActor(GET_PLAYER);
+        }
     }
 }
 

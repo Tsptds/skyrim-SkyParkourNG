@@ -4,8 +4,10 @@
 #include "_References/RuntimeVariables.h"
 
 #include "Parkouring.h"
+#include "CrouchSliding.h"
 #include "Util/ParkourUtility.h"
 #include "Util/HookingUtil.hpp"
+#include "Util/HavokUtil.hpp"
 #include "API/API_Handles.h"
 
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
@@ -75,21 +77,8 @@ namespace Hooks {
 
         const auto &actor = a_this->graphs[a_this->GetRuntimeData().activeGraph]->holder;
 
-        if (!actor || !actor->IsPlayerRef()) {
-            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-        }
-
-        /* Sneak roll without perk fix, works on its own */
-        if (actor->IsSneaking()) {
-            if (a_event->tag == "JumpLandEnd") {
-                bool sprinting;
-                if (actor->GetGraphVariableBool("IsSprinting", sprinting) && sprinting) {
-                    actor->NotifyAnimationGraph("SprintStop");
-                }
-
-                return OG::_ProcessEvent(a_this, a_event, a_eventSource);
-            }
-        }
+        if (!actor) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
+        if (!actor->IsPlayerRef()) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
         if (a_event->tag == "GetUpExit") {
             /* Reset vars on ragdoll exit */
@@ -98,27 +87,41 @@ namespace Hooks {
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
-        if (a_event->tag == SPPF_SLIDE_STOP) {
-            if (RuntimeVariables::SlideOngoing) RuntimeVariables::SlideOngoing = false;
+        if (RuntimeVariables::SlideOngoing) {
+            if (a_event->tag == SPPF_SLIDE_STOP) {
+                const bool isRoll = a_event->payload == SPPF_ROLLPAYLOAD;
 
-            /* Other POV bugging out shit again, figures why bethesda stopped running both graphs FO4 and onwards */
-            actor->NotifyAnimationGraph(SPPF_SLIDE_STOP);
+                constexpr bool is_stop = true;
+                CrouchSliding::OnStartStop(is_stop, actor, isRoll);
 
-            /* Fix swimstart not triggerring if entered water through crouch slide */
-            auto res = OG::_ProcessEvent(a_this, a_event, a_eventSource);
+                /* Fix swimstart not triggerring if entered water through crouch slide */
+                auto res = OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
-            const auto &ctrl = actor->GetCharController();
-            if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+                const auto &ctrl = actor->GetCharController();
+                if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
 
-            return res;
-        }
+                return res;
+            }
 
-        if (a_event->tag == SPPF_SLIDE_START) {
-            RuntimeVariables::SlideOngoing = true;
+            else if (a_event->tag == SPPF_SLIDE_START) {
+                if (a_event->payload == SPPF_SLIDEPAYLOAD) {
+                    constexpr bool is_start = false;
+                    constexpr bool isRoll = false;
+                    CrouchSliding::OnStartStop(is_start, actor, isRoll);
+                }
+                // else if (a_event->payload == "LandRoll") {}
+            }
+            else if (a_event->tag == SPPF_STAMINA_HIT) {
+                constexpr bool isLowEffort = false;
+                constexpr bool isSwimming = false;
+                Parkouring::PostParkourStaminaDamage(actor, isLowEffort, isSwimming);
 
-            if (!actor->IsInMidair()) {
-                actor->SetGraphVariableInt("iIsInSneak", true);
-                actor->AsActorState()->actorState1.sneaking = true;
+                /* Reduce fall damage by decreasing fall start height */
+                auto &fst = actor->GetCharController()->fallStartHeight;
+                if (fst - actor->GetPositionZ() > 200) fst -= 100;
+            }
+            else if (a_event->tag == SPPF_FAILSAFE_EVENT) {
+                RuntimeMethods::ResetSlide();
             }
 
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
@@ -132,7 +135,7 @@ namespace Hooks {
                 Parkouring::OnStartStop(Start, actor);
             }
             else if (a_event->tag == SPPF_RECOVERY) {
-                RuntimeVariables::RecoveryFramesActive = true;
+                if (actor->IsPlayerRef()) RuntimeVariables::RecoveryFramesActive = true;
 
                 const bool closeToGround = [actor] {
                     const RE::NiPoint3 start{actor->GetPosition()};
@@ -140,7 +143,7 @@ namespace Hooks {
                     constexpr float dist = 35.0f;
                     constexpr COL_LAYER_EXTEND mask{COL_LAYER_EXTEND::kClimbLedge};
 
-                    return ParkourUtility::RayCast(start, dir, dist, mask).didHit;
+                    return HavokUtil::RayCast(start, dir, dist, mask).didHit;
                 }();
 
                 if (!closeToGround) actor->NotifyAnimationGraph(SPPF_STOP);
@@ -151,10 +154,14 @@ namespace Hooks {
             }
             else if (a_event->tag == SPPF_STAMINA_HIT) {
                 /* Steps don't consume stamina anymore */
-                const bool isLowEffort = a_event->payload == "LowEffort";
+                const bool isLowEffort = a_event->payload == SPPF_LOWEFFORTPAYLOAD;
                 const bool isSwimming = actor->AsActorState()->IsSwimming();
                 Parkouring::PostParkourStaminaDamage(actor, isLowEffort, isSwimming);
             }
+            else if (a_event->tag == SPPF_FAILSAFE_EVENT) {
+                RuntimeMethods::ResetParkour();
+            }
+            return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
         return OG::_ProcessEvent(a_this, a_event, a_eventSource);
@@ -197,24 +204,6 @@ namespace Hooks {
 
     bool NotifyGraphHandler::Callback::Notify_PlayerCharacter(RE::IAnimationGraphManagerHolder *a_this,
                                                               const RE::BSFixedString &a_eventName) {
-        if (a_eventName == "sppf_debug") {
-            if (API_Handles::TrueHUD::Get()) {
-                auto &draw = ModSettings::_Debug_Draw_Lines;
-                draw = !draw;
-                const char *msg = (std::string("SkyParkour Visual Debugging ") + (draw ? "Enabled" : "Disabled")).c_str();
-                LOG("{}", msg);
-                RE::ConsoleLog::GetSingleton()->Print(msg);
-
-                return true;
-            }
-            else {
-                WARN("Can't enable debug line drawing, TrueHud handle not found");
-                RE::ConsoleLog::GetSingleton()->Print("TrueHUD not found, SkyParkour debugging isn't available");
-
-                return false;
-            }
-        }
-
         if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
             /* If stop event is sent forcibly, flow to correct graph state. */
             const_cast<RE::BSFixedString &>(a_eventName) = SPPF_INTERRUPT;
@@ -223,14 +212,16 @@ namespace Hooks {
         }
 
         if (a_eventName == "Ragdoll") {
-            if (RuntimeVariables::ParkourInProgress) {
-                /*Unlock controls on ragdoll*/
-
-                bool didRagdoll = OG::_Notify_PlayerCharacter(a_this, a_eventName);
-                if (didRagdoll) {
-                    constexpr bool Stop = true;
-                    RE::Actor *actor = GET_PLAYER;
+            /*Unlock controls on ragdoll*/
+            bool didRagdoll = OG::_Notify_PlayerCharacter(a_this, a_eventName);
+            if (didRagdoll) {
+                constexpr bool Stop = true;
+                RE::Actor *actor = GET_PLAYER;
+                if (RuntimeVariables::ParkourInProgress) {
                     Parkouring::OnStartStop(Stop, actor);
+                }
+                else if (RuntimeVariables::SlideOngoing) {
+                    CrouchSliding::OnStartStop(Stop, actor, false);
                 }
                 return didRagdoll;
             }
@@ -246,6 +237,7 @@ namespace Hooks {
 
         if (a_eventName == SPPF_SLIDE_STOP) {
             RuntimeVariables::SlideOngoing = false;
+            GET_PLAYER->GetCharController()->flags.reset(RE::CHARACTER_FLAGS::kNoFriction);
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
         }
 

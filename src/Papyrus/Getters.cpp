@@ -6,7 +6,8 @@ namespace SkyParkour_Papyrus {
 
     using namespace ModSettings;
 
-    void Getters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm){
+    void Getters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm) {
+        vm->RegisterFunction("GetEnableDebug", className, GetEnableDebug);
         vm->RegisterFunction("GetEnableMod", className, GetEnableMod);
         vm->RegisterFunction("GetShowIndicators", className, GetShowIndicators);
         vm->RegisterFunction("GetPlaybackSpeed", className, GetPlaybackSpeed);
@@ -18,11 +19,15 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("GetCustomParkourKey", className, GetCustomParkourKey);
         vm->RegisterFunction("GetPresetParkourKey", className, GetPresetParkourKey);
         vm->RegisterFunction("GetParkourDelay", className, GetParkourDelay);
+        vm->RegisterFunction("GetAutoParkour", className, GetAutoParkour);
         vm->RegisterFunction("GetSmartSteps", className, GetSmartSteps);
         vm->RegisterFunction("GetSmartVault", className, GetSmartVault);
         vm->RegisterFunction("GetSmartClimb", className, GetSmartClimb);
     }
 
+    bool Getters::GetEnableDebug(RE::StaticFunctionTag *) {
+        return _Debug_Enabled;
+    }
     bool Getters::GetEnableMod(RE::StaticFunctionTag *) {
         return Parkour_Enabled;
     }
@@ -55,6 +60,9 @@ namespace SkyParkour_Papyrus {
     }
     float Getters::GetParkourDelay(RE::StaticFunctionTag *) {
         return Parkour_Delay;
+    }
+    int32_t Getters::GetAutoParkour(RE::StaticFunctionTag *) {
+        return Auto_Parkour;
     }
     bool Getters::GetSmartSteps(RE::StaticFunctionTag *) {
         return Smart_Steps;

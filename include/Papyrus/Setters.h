@@ -8,8 +8,11 @@ namespace SkyParkour_Papyrus {
 
         private:
             inline static const std::string className = "SkyParkourPapyrus"s;
-            inline static const char* Section = "MCM";
 
+            inline static const char *SectionDebug = "Debug";
+            static bool SetEnableDebug(RE::StaticFunctionTag *, bool value);
+
+            inline static const char *SectionMCM = "MCM";
             static void SetEnableMod(RE::StaticFunctionTag *, bool value);
             static void SetShowIndicators(RE::StaticFunctionTag *, bool value);
             static void SetPlaybackSpeed(RE::StaticFunctionTag *, float value);
@@ -21,6 +24,7 @@ namespace SkyParkour_Papyrus {
             static void SetCustomParkourKey(RE::StaticFunctionTag *, int32_t value);
             static void SetPresetParkourKey(RE::StaticFunctionTag *, int32_t value);
             static void SetParkourDelay(RE::StaticFunctionTag *, float value);
+            static void SetAutoParkour(RE::StaticFunctionTag *, int32_t value);
             static void SetSmartSteps(RE::StaticFunctionTag *, bool value);
             static void SetSmartVault(RE::StaticFunctionTag *, bool value);
             static void SetSmartClimb(RE::StaticFunctionTag *, bool value);

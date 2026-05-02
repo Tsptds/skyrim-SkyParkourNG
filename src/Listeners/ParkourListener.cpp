@@ -1,7 +1,10 @@
 ﻿#include "Listeners/ButtonListener.h"
 #include "Parkouring.h"
+#include "Util/ParkourUtility.h"
+#include "_References/ParkourType.h"
 #include "_References/ModSettings.h"
 #include "_References/RuntimeVariables.h"
+#include "HUD/Scaleform/SkyParkourMenu.hpp"
 
 void Buttons::ParkourListener::Parkour(RE::ButtonEvent *buttonEvent) {
     // Delay Threshold Passed
@@ -35,6 +38,7 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
     for (auto event = *a_event; event; event = event->next) {
         if (const auto &buttonEvent = event->AsButtonEvent()) {
             const auto &userEventName = event->QUserEvent();
+            const auto &UE = RE::UserEvents::GetSingleton();
             // LOG("{}", userEventName.c_str());
 
             if (ModSettings::Use_Preset_Parkour_Key) {
@@ -42,7 +46,6 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
                 //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
 
                 RE::BSFixedString expectedEvent;
-                const auto &UE = RE::UserEvents::GetSingleton();
 
                 switch (ModSettings::Preset_Parkour_Key) {
                     case PARKOUR_PRESET_KEYS::kJump:
@@ -85,6 +88,26 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
                     Buttons::ParkourListener::Parkour(buttonEvent);
                 }
             }
+
+            [&] -> void {
+                const auto &pl = GET_PLAYER;
+                using opt = AUTO_PARKOUR_OPTIONS;
+                namespace pu = ParkourUtility;
+
+                if (ModSettings::Auto_Parkour == opt::kNonCombatOnly && !pu::IsActorWeaponOut(pl) ||
+                    ModSettings::Auto_Parkour == opt::kAlways) {
+                    switch (RuntimeVariables::selectedLedgeType) {
+                        case ParkourType::StepHigh:
+                        case ParkourType::StepLow:
+                            if (userEventName == UE->forward || userEventName == UE->back || userEventName == UE->strafeLeft ||
+                                userEventName == UE->strafeRight) {
+                                if (buttonEvent->HeldDuration() >= 0.4f) {
+                                    Parkouring::TryActivateParkour();
+                                }
+                            }
+                    }
+                }
+            }();
         }
     }
     // DON'T SKIP ANY INPUTS, THIS GOES AFTER FOR LOOP. OTHERWISE BREAKS OTHER INPUTS

@@ -1,6 +1,9 @@
 #pragma once
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
+#include "API/API_Handles.h"
+
+#define DEBUG_PRINT(fmt_str, ...) Scaleform::SkyParkourMenu::GetSingleton()->DebugText(fmt::format(fmt_str, __VA_ARGS__))
 
 namespace Scaleform {
     class SkyParkourMenu : public RE::IMenu {
@@ -8,7 +11,7 @@ namespace Scaleform {
             static constexpr std::string_view MENU_NAME = "SkyParkour";
             static constexpr std::int8_t SORT_PRIORITY = 0;
 
-            enum IndicatorType : uint8_t { kInvisible = 0, kClimb, kVault, kOutOfStamina };
+            enum IndicatorType : uint8_t { kInvisible = 0, kClimb, kVault, kOutOfStamina, kStep };
 
             // Factory
             static RE::stl::owner<RE::IMenu *> Creator() {
@@ -21,9 +24,33 @@ namespace Scaleform {
                 LOG("Indicators: Menu Registered");
             }
 
+            static auto GetSingleton() {
+                using sppf = Scaleform::SkyParkourMenu;
+                return RE::UI::GetSingleton()->GetMenu<sppf>(MENU_NAME);
+            }
+
             // Check if open
             bool IsOpen() const {
                 return _bIsOpen;
+            }
+            bool IsDebug() const {
+                return _bDebugOverlayEnabled;
+            }
+
+            void ShowDebugOverlay(bool show) {
+                if (_view) return;
+                RE::GFxValue arg;
+                arg.SetBoolean(show);
+                _view->Invoke("_root.ShowDebugOverlay", nullptr, &arg, 1);
+                _bDebugOverlayEnabled = show;
+                // LOG("Debug overlay {}", show);
+            }
+            void DebugText(const std::string &text) {
+                if (!_view) return;
+                if (!ModSettings::_Debug_Enabled) return;
+                RE::GFxValue arg;
+                arg.SetString(text.c_str());
+                _view->Invoke("_root.Debug", nullptr, &arg, 1);
             }
 
             void SetActiveIndicatorType(IndicatorType type) {
@@ -63,34 +90,50 @@ namespace Scaleform {
                 auto targetPos = WorldToScreen(RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8));
                 ClampToScreen(targetPos);
 
-                RE::GFxValue args[2];
-                if (!instant && _lastScreenPosition.GetDistance(targetPos) > 2.f) {
-                    if (_lastScreenPosition.x < 0.f && _lastScreenPosition.y < 0.f) {
-                        _lastScreenPosition = targetPos;
-                    }
+                RE::GFxValue args[3];
+                // if (!instant && _lastScreenPosition.GetDistance(targetPos) > 2.f) {
+                //     if (_lastScreenPosition.x < 0.f && _lastScreenPosition.y < 0.f) {
+                //         _lastScreenPosition = targetPos;
+                //     }
 
-                    RE::NiPoint2 _velocity{0.f, 0.f};
-                    constexpr float damping = 0.7f;          // 0.1 = very soft, 1 = very stiff
-                    constexpr float smoothingFactor = 0.3f;  // how fast it follows the target
+                //     RE::NiPoint2 _velocity{0.f, 0.f};
+                //     constexpr float damping = 0.7f;          // 0.1 = very soft, 1 = very stiff
+                //     constexpr float smoothingFactor = 0.3f;  // how fast it follows the target
 
-                    // Compute the difference and apply damping
-                    RE::NiPoint2 delta = targetPos - _lastScreenPosition;
-                    _velocity = (_velocity + delta * smoothingFactor) * damping;
+                //     // Compute the difference and apply damping
+                //     RE::NiPoint2 delta = targetPos - _lastScreenPosition;
+                //     _velocity = (_velocity + delta * smoothingFactor) * damping;
 
-                    _lastScreenPosition += _velocity;
+                //     _lastScreenPosition += _velocity;
 
-                    args[0] = RE::GFxValue(static_cast<int>(_lastScreenPosition.x));
-                    args[1] = RE::GFxValue(static_cast<int>(_lastScreenPosition.y));
-                }
-                else {
+                //     args[0] = RE::GFxValue(static_cast<int>(_lastScreenPosition.x));
+                //     args[1] = RE::GFxValue(static_cast<int>(_lastScreenPosition.y));
+                //     args[2] = RE::GFxValue(static_cast<bool>(instant));
+                // }
+                // else
+                {
+                    if (_lastScreenPosition.GetDistance(targetPos) > 100.f) instant = true;
+
                     _lastScreenPosition = targetPos;
                     args[0] = RE::GFxValue(static_cast<int>(targetPos.x));
                     args[1] = RE::GFxValue(static_cast<int>(targetPos.y));
+                    args[2] = RE::GFxValue(static_cast<bool>(instant));
                 }
 
-                _view->Invoke("_root.SetScreenPosition", nullptr, args, 2);
+                _view->Invoke("_root.SetScreenPosition", nullptr, args, 3);
             }
 
+            void SyncHudOpacity() {
+                if (!g_fHUDOpacity) return;
+                if (*g_fHUDOpacity == _HudOpacityCache) return;
+
+                _HudOpacityCache = *g_fHUDOpacity;
+                // GetSingleton()->uiMovie.get()->SetBackgroundAlpha(opacity);
+                /* Indicators blink, need to set a mult instead of a flat alpha set */
+                RE::GFxValue arg;
+                arg.SetNumber(_HudOpacityCache);
+                _view->Invoke("_root.SetHudOpacity", nullptr, &arg, 1);
+            }
             // Get GFx view
             RE::GPtr<RE::GFxMovieView> GetView() const {
                 return _view;
@@ -137,20 +180,15 @@ namespace Scaleform {
                     }
                 }
 
-                _bIsOpen = false;
-                // _movieLastTime = std::chrono::steady_clock::now();
+                if (!success) {
+                    ERROR("\"SkyParkour.swf\" file is likely missing, menu not created");
+                    return;
+                }
 
                 depthPriority = SORT_PRIORITY;
-                menuFlags.set(RE::UI_MENU_FLAGS::kAllowSaving);
-                menuFlags.set(RE::UI_MENU_FLAGS::kRequiresUpdate);
-                menuFlags.set(RE::UI_MENU_FLAGS::kAlwaysOpen);
-                menuFlags.set(RE::UI_MENU_FLAGS::kRendersOffscreenTargets);
-                menuFlags.set(RE::UI_MENU_FLAGS::kSkipRenderDuringFreezeFrameScreenshot);
-
-                /*-- TEST STUFF --*/
-                // menuFlags.set(RE::UI_MENU_FLAGS::kPausesGame);
-                // menuFlags.set(RE::UI_MENU_FLAGS::kUsesCursor);
-                /*-- END OF TEST STUFF --*/
+                using mf = RE::UI_MENU_FLAGS;
+                menuFlags.set(mf::kAllowSaving, mf::kRequiresUpdate, mf::kAlwaysOpen, mf::kRendersOffscreenTargets,
+                              mf::kSkipRenderDuringFreezeFrameScreenshot);
 
                 menu->inputContext = RE::IMenu::Context::kNone;
                 _view = menu->uiMovie;
@@ -162,7 +200,7 @@ namespace Scaleform {
 
             // PostCreate called by engine after menu is constructed
             void PostCreate() override {
-                _bIsOpen = true;
+                if (!_view) return;
                 RE::GRectF rect = _view->GetVisibleFrameRect();
                 _screenRes.x = fabs(rect.left - rect.right);
                 _screenRes.y = fabs(rect.top - rect.bottom);
@@ -177,9 +215,15 @@ namespace Scaleform {
 
                 switch (*a_message.type) {
                     case Type::kShow:
-                        _bIsOpen = true;
-                        LOG("Indicators: Menu Shown");
-                        return Super::ProcessMessage(a_message);
+                        if (_view) {
+                            Scaleform::SkyParkourMenu::GetSingleton()->ShowDebugOverlay(ModSettings::_Debug_Enabled);
+                            _bIsOpen = true;
+                            LOG("Indicators: Menu Shown");
+                            return Super::ProcessMessage(a_message);
+                        }
+
+                        ERROR("Indicators: Failed to show, menu view doesn't exist");
+                        return RE::UI_MESSAGE_RESULTS::kPassOn;
 
                     case Type::kHide:
                         /* Simply ignore hide requests, no reason to hide. Indicator States are synced to parkour states */
@@ -194,9 +238,9 @@ namespace Scaleform {
             }
 
             // Advance the movie each frame
-            void AdvanceMovie(float, std::uint32_t) override {
+            void AdvanceMovie(float interval, [[maybe_unused]] std::uint32_t currentTime) override {
                 if (!_view) return;
-                if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) return;
+                if (_lastIndic == IndicatorType::kInvisible) return;
 
                 if (RuntimeVariables::IsMenuOpen || !RuntimeVariables::IsParkourActive) {
                     if (_lastIndic != IndicatorType::kInvisible) {
@@ -204,9 +248,9 @@ namespace Scaleform {
                     }
                     return;
                 }
-
+                SyncHudOpacity();
                 SetScreenPosition();
-                _view->Advance(RE::GetSecondsSinceLastFrame());
+                _view->Advance(interval);
             }
 
             RE::NiPoint2 WorldToScreen(const RE::NiPoint3 &a_worldPos) const {
@@ -259,8 +303,11 @@ namespace Scaleform {
         private:
             inline static uintptr_t g_worldToCamMatrix = RELOCATION_ID(519579, 406126).address();
             inline static RE::NiRect<float> *g_viewPort = (RE::NiRect<float> *) RELOCATION_ID(519618, 406160).address();
+            inline static float *g_fHUDOpacity = (float *) RELOCATION_ID(510579, 383659).address();
             using Super = RE::IMenu;
-            bool _bIsOpen;
+            bool _bIsOpen{false};
+            bool _bDebugOverlayEnabled{false};
+            float _HudOpacityCache{1.f};
 
             RE::NiPoint2 _screenRes;
             RE::NiPoint2 _lastScreenPosition{-1.f, -1.f};
