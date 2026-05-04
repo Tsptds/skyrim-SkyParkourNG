@@ -1,5 +1,5 @@
 #include "Util/ParkourUtility.h"
-#include "Listeners/RaceChangeListener.h"
+// #include "Listeners/RaceChangeListener.h"
 #include "Listeners/MenuListener.h"
 #include "_References/Compatibility.h"
 #include "_References/IniSettings.h"
@@ -9,6 +9,7 @@
 #include "Hooks/AnimEventHandler.hpp"
 #include "Hooks/CameraHandler.hpp"
 // #include "Hooks/HavokHandler.hpp"
+#include "Hooks/AnimGraphManager.hpp"
 #include "API/API_Handles.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 
@@ -55,9 +56,9 @@ void HandleMissingESPWarning() {
     SKSE::stl::report_and_error(err);
 }
 void Install_Hooks_And_Listeners() {
-    RaceChangeListener::Register();
+    // RaceChangeListener::Register(); // Not needed, post graph create includes this
+    //ButtonEventListener::Register(); // Do it when player loads, unregister inside Menu Listener
     MenuListener::Register();
-    //ButtonEventListener::Register();  // Do it when player loads, unregister inside Menu Listener
 
     if (Hooks::InputHandler::InstallInputHooks()) {
         LOG("Installed Hooks: |Input|");
@@ -73,6 +74,10 @@ void Install_Hooks_And_Listeners() {
 
     if (Hooks::CameraHandler::InstallCamStateHooks()) {
         LOG("Installed Hooks: |Camera|");
+    }
+
+    if (Hooks::GraphManagerHandler::InstallGraphManagerHooks()) {
+        LOG("Installed Hooks: |GraphManager|");
     }
 
     // if (Hooks::HavokHandler::InstallHooks()) {

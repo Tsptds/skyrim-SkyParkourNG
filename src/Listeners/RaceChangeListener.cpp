@@ -45,6 +45,7 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     }
     else {  // Changed race but it's not a beast form, reset stuff
         //LOG(">> Exiting Beast Form");
+        RuntimeMethods::ResetAll();
         if (ModSettings::Parkour_Enabled) Parkouring::SetParkourOnOff(true);
         if (ModSettings::Crouch_Slide_Enabled) CrouchSliding::SetSlideOnOff(true);
         RuntimeMethods::ResetAll();

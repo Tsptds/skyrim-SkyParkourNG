@@ -10,8 +10,6 @@ namespace SkyParkour_Papyrus {
         private:
             inline static const std::string className = "SkyParkourPapyrus"s;
             inline static const char *Section = "MCM";
-
-            static void AlertPlayerLoaded(RE::StaticFunctionTag *);
     };
 
 };  // namespace SkyParkour_Papyrus

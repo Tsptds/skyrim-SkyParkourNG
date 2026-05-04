@@ -224,8 +224,12 @@ bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {
     return false;
 }
 
-bool ParkourUtility::IsBeastForm() {
-    return RE::MenuControls::GetSingleton()->InBeastForm();
+bool ParkourUtility::IsBeastForm(RE::PlayerCharacter *pl) {
+    bool menuLock = RE::MenuControls::GetSingleton()->InBeastForm();
+    if (menuLock) return true;
+
+    const auto &runtime = pl->GetPlayerRuntimeData();
+    return runtime.preTransformationData;
 }
 
 bool ParkourUtility::IsOnMount() {

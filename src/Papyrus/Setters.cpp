@@ -1,6 +1,7 @@
 #include "Papyrus/Setters.h"
 #include "_References/ModSettings.h"
 #include "Util/ParkourUtility.h"
+#include "Util/HavokUtil.hpp"
 #include "_References/IniSettings.h"
 #include "Parkouring.h"
 #include "CrouchSliding.h"
@@ -87,7 +88,9 @@ namespace SkyParkour_Papyrus {
 
         Playback_Speed = value;
         /* Set the graph variable as well, above is internal */
-        GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
+        // GET_PLAYER->SetGraphVariableFloat(SPPF_SPEEDMULT, value);
+        // Use the new bound channel for this
+        HavokUtil::SetBoundSpeedMult(GET_PLAYER, Playback_Speed);
     }
     void Setters::SetEnableCrouchSlide(RE::StaticFunctionTag *, bool value) {
         auto ini = GetINI();

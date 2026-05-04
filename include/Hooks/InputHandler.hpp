@@ -77,7 +77,7 @@ namespace Hooks {
 
 #pragma region  // Callbacks
     bool InputHandler::Callback::CanProcess_Jump(RE::JumpHandler *a_this, RE::InputEvent *a_event) {
-        if (ModSettings::Parkour_Enabled) {
+        if (ModSettings::Parkour_Enabled && RuntimeVariables::IsParkourActive) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
                 ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
                 //LOG("Prevented Jump");
@@ -93,7 +93,7 @@ namespace Hooks {
     }
 
     void InputHandler::Callback::ProcessButton_Jump(RE::JumpHandler *a_this, RE::ButtonEvent *a_event, RE::PlayerControlsData *a_data) {
-        if (ModSettings::Parkour_Enabled && !ParkourUtility::IsOnMount()) {
+        if (ModSettings::Parkour_Enabled && !ParkourUtility::IsSitting(GET_PLAYER)) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
                 const auto &btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
@@ -202,7 +202,11 @@ namespace Hooks {
 
     bool InputHandler::Callback::CanProcess_Look(RE::LookHandler *a_this, RE::InputEvent *a_event) {
         if (ModSettings::Parkour_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) return false;
+            if (RuntimeVariables::ParkourInProgress) {
+                auto cam = RE::PlayerCamera::GetSingleton()->currentState;
+                if (cam)
+                    if (cam.get()->id == RE::CameraState::kThirdPerson) return false;
+            }
         }
 
         return OG::_CanProcessLook(a_this, a_event);

@@ -31,13 +31,6 @@ namespace Menus {
         return false;
     }
 
-    bool MainMenuShowing() {
-        auto ui = RE::UI::GetSingleton();
-        if (ui->IsMenuOpen(RE::MainMenu::MENU_NAME)) {
-            return true;
-        }
-        return false;
-    }
 }  // namespace Menus
 
 bool MenuListener::Register() {
@@ -59,43 +52,28 @@ bool MenuListener::Unregister() {
 
 RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent *ev, RE::BSTEventSource<RE::MenuOpenCloseEvent> *) {
     if (ev->opening) {
-        //LOG("Menu {} opened", ev->menuName.c_str());
-
         if (Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = true;
             Parkouring::InvalidateVars();
         }
 
-        if (!RuntimeVariables::IsInMainMenu && Menus::MainMenuShowing()) {
+        if (!RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME) {
+            LOG("===Returning to Main Menu===");
             Parkouring::SetParkourOnOff(false);
             CrouchSliding::SetSlideOnOff(false);
             RuntimeMethods::ResetAll();
 
             RuntimeVariables::IsInMainMenu = true;
-
-            //LOG(">> In Menu");
         }
     }
-    else {
-        //LOG("Menu {} closed", ev->menuName.c_str());
-
-        //// Treating this as save loaded event, fires on COC command and new game, when area along with player loads.
-        //if (ev->menuName == RE::LoadingMenu::MENU_NAME) {
-        //    if (!RuntimeVariables::IsBeastForm) {
-        //        AnimEventListener::Register();
-        //    }
-        //}
+    else {  // if closing
 
         if (!Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = false;
-
-            //LOG(">> Closed Menu");
         }
 
-        if (RuntimeVariables::IsInMainMenu && !Menus::MainMenuShowing()) {
+        if (RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME) {
             RuntimeVariables::IsInMainMenu = false;
-
-            //LOG(">> Closed Main Menu");
         }
     }
     return RE::BSEventNotifyControl::kContinue;

@@ -1,5 +1,6 @@
 #pragma once
 #include "_References/RuntimeVariables.h"
+#include "_References/ModSettings.h"
 
 namespace HavokUtil {
     inline static float *g_gameTimeMult = (float *) RELOCATION_ID(508682, 380437).address();  // SGTM static pointer, dereference and use
@@ -11,10 +12,10 @@ namespace HavokUtil {
 
         if (!actor) return result;
 
-        const auto &cell = actor->GetParentCell();
+        const auto cell = actor->GetParentCell();
         if (!cell) return result;
 
-        const auto &bhkWorld = cell->GetbhkWorld();
+        const auto bhkWorld = cell->GetbhkWorld();
         if (!bhkWorld) return result;
 
         RE::bhkPickData pickData;
@@ -98,11 +99,11 @@ namespace HavokUtil {
         public:
             SkyParkourHavokUpdate(const RE::BSFixedString &name, RE::Actor *owner) {
                 const_cast<RE::BSFixedString &>(channelName) = name;
-                value = std::bit_cast<uint32_t>(1.0f);
+                value = std::bit_cast<uint32_t>(ModSettings::Playback_Speed);
                 ChannelOwner = owner;
             }
             void ResetImpl() override {
-                value = 0;
+                value = std::bit_cast<uint32_t>(ModSettings::Playback_Speed);
             }
 
             void PollChannelUpdateImpl([[maybe_unused]] bool a_arg1) override {
@@ -160,20 +161,22 @@ namespace HavokUtil {
             RE::hkVector4 totalMissing{};
     };
 
-    static inline void CreateBoundGraphChannels(RE::Actor *act) {
+    static inline void CreateBoundGraphChannels(RE::Actor *act, RE::BSAnimationGraphManagerPtr mgr = nullptr) {
         if (!act) {
             WARN("{}", "Attempted bind channel with null actor, skipped");
             return;
         }
-        RE::BSAnimationGraphManagerPtr mgr;
-        act->GetAnimationGraphManager(mgr);
+        if (!mgr) {
+            act->GetAnimationGraphManager(mgr);
+        }
+
         if (!mgr) {
             WARN("Attempted bind channel on {} with no graph manager, skipped", act->GetName());
             return;
         }
         const auto &boundChannels = mgr->boundChannels;
 
-        RE::BSFixedString name{"SkyParkour_PreAdjustState"};
+        RE::BSFixedString name{SPPF_SPEEDMULT};
 
         bool alreadyHas{false};
 
@@ -194,5 +197,30 @@ namespace HavokUtil {
             return;
         }
         LOG("{} already has channel {} bound", act->GetName(), name);
+    }
+    static inline bool SetBoundSpeedMult(RE::Actor *act, float value, RE::BSAnimationGraphManagerPtr mgr = nullptr) {
+        if (!act) {
+            WARN("{}", "Attempted to set bound value to null actor");
+            return false;
+        }
+        if (!mgr) {
+            act->GetAnimationGraphManager(mgr);
+        }
+
+        if (!mgr) {
+            WARN("Attempted setting bound value on {} with no graph manager, skipped", act->GetName());
+            return false;
+        }
+        const auto &boundChannels = mgr->boundChannels;
+
+        RE::BSFixedString name{SPPF_SPEEDMULT};
+
+        for (auto &&i: boundChannels) {
+            if (i->channelName == name) {
+                i.get()->value = std::bit_cast<uint32_t>(value);
+                return true;
+            }
+        }
+        return false;
     }
 }  // namespace HavokUtil
