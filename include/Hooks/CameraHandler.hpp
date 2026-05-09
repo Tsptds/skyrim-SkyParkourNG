@@ -223,18 +223,17 @@ namespace Hooks {
     void CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
         // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
         Parkouring::InvalidateVars();
-        Scaleform::SkyParkourMenu::GetSingleton()->ScaleToFirstPerson();
+        auto menu = Scaleform::SkyParkourMenu::GetSingleton();
+        if (menu) menu->ScaleToFirstPerson();
 
         OG::_End(a_this);
     }
     void CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-        if (ModSettings::Parkour_Enabled) {
-            Parkouring::UpdateParkourPoint();
-        }
-        Scaleform::SkyParkourMenu::GetSingleton()->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
+        auto menu = Scaleform::SkyParkourMenu::GetSingleton();
+        if (menu) menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
 
         if (RuntimeVariables::ParkourInProgress) {
-            const auto &ctrl = GET_PLAYER->GetCharController();
+            const auto ctrl = GET_PLAYER->GetCharController();
 
             /* TDM swim pitch angle thing */
             if (Compatibility::TrueDirectionalMovement::found) {
@@ -277,16 +276,12 @@ namespace Hooks {
         OG::_End(a_this);
     }
     void CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
-        if (ModSettings::Parkour_Enabled) {
-            Parkouring::UpdateParkourPoint();
-        }
-
         namespace rt = RuntimeVariables;
         if (rt::ParkourInProgress || rt::SlideOngoing) {
             /* Clamp Player looking angle to prevent weird visuals */
-            
+
             const auto clamp = rt::ParkourInProgress ? Vertical_Clamp_Angle_Parkour : Vertical_Clamp_Angle_Slide;
-            const auto &player = GET_PLAYER;
+            const auto player = GET_PLAYER;
 
             /* Vert */
             auto &vertAngle = player->data.angle.x;

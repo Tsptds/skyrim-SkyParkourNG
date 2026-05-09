@@ -22,7 +22,7 @@ namespace CrouchSliding {
     }
 
     bool TrySprintSlide(bool isHoldingKey) {
-        const auto &pl = GET_PLAYER;
+        const auto pl = GET_PLAYER;
         bool out_isRoll{false};
 
         if (IsSlideActiveFor(pl, out_isRoll, isHoldingKey)) {
@@ -30,8 +30,8 @@ namespace CrouchSliding {
             bool res = pl->NotifyAnimationGraph(SPPF_NOTIFY_SLIDE);
             if (res) {
                 RuntimeVariables::SlideOngoing = true;
-                const auto &ctrlMap = RE::ControlMap::GetSingleton();
-                ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, false, true);
+                const auto ctrlMap = RE::ControlMap::GetSingleton();
+                if (ctrlMap) ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, false, true);
             }
             return res;
         }
@@ -58,10 +58,10 @@ namespace CrouchSliding {
         if (ParkourUtility::IsAttacking(actor)) return false;
         if (ParkourUtility::IsCrouchSliding(actor)) return false;
 
-        const auto &state = actor->AsActorState();
-        if (state->IsSwimming()) return false;
+        const auto state = actor->AsActorState();
+        if (state && state->IsSwimming()) return false;
 
-        const auto &ctrl = actor->GetCharController();
+        const auto ctrl = actor->GetCharController();
 
         bool sneaking = state->actorState1.sneaking;
         bool sprinting = state->IsSprinting();
@@ -75,11 +75,11 @@ namespace CrouchSliding {
                 constexpr float dist = 100.f;
                 RE::NiPoint3 startPos{actor->GetPosition()};
 
-                const auto &ray = HavokUtil::RayCast(startPos, downDir, dist, COL_LAYER_EXTEND::kCrouchSlideDistCheck, actor);
+                const auto ray = HavokUtil::RayCast(startPos, downDir, dist, COL_LAYER_EXTEND::kCrouchSlideDistCheck, actor);
 
                 /* DEBUG LINES */
                 if (ModSettings::_Debug_Enabled) {
-                    const auto &TH = API_Handles::TrueHUD::Get();
+                    const auto TH = API_Handles::TrueHUD::Get();
                     if (TH) {
                         TH->DrawArrow(startPos, startPos + downDir * ray.distance, 10.f, 2.f, ray.didHit ? COLOR_HEX_G : COLOR_HEX_R, 1.f);
                     }
@@ -142,8 +142,8 @@ namespace CrouchSliding {
 
             if (!isRoll) {
                 if (actor->IsPlayerRef()) {
-                    const auto &AS = actor->AsActorState();
-                    if (AS->IsSneaking()) {
+                    const auto AS = actor->AsActorState();
+                    if (AS && AS->IsSneaking()) {
                         GET_PLAYER->GetPlayerRuntimeData().playerFlags.isSprinting = false;
                         AS->actorState1.sprinting = false;
                         actor->NotifyAnimationGraph("SprintStop");
@@ -171,17 +171,18 @@ namespace CrouchSliding {
         }
 
         if (actor->IsPlayerRef()) {
-            const auto &ctrlMap = RE::ControlMap::GetSingleton();
-            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop,
-                                    true);  // Player tab menu & equip. Gets stuck if player uses TFC.
+            const auto ctrlMap = RE::ControlMap::GetSingleton();
+            if (ctrlMap)
+                ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop,
+                                        true);  // Player tab menu & equip. Gets stuck if player uses TFC.
         }
     }
 
     bool TryKnockCollidedActor(RE::Actor *pl) {
-        const auto &bumped = pl->GetCharController()->bumpedCharCollisionObject;
+        const auto bumped = pl->GetCharController()->bumpedCharCollisionObject;
         if (!bumped) return false;
 
-        const auto &ref = RE::TESHavokUtilities::FindCollidableRef(bumped.get()->collidable);
+        const auto ref = RE::TESHavokUtilities::FindCollidableRef(bumped.get()->collidable);
         if (!ref) return false;
 
         if (!ref->IsActor()) return false;

@@ -18,4 +18,7 @@ namespace RuntimeVariables {
 
     inline bool SlideOngoing{false};
 
+    inline bool _DidWarnMissingFPP{false};
+    inline bool _DidWarnMissingTPP{false};
+
 }  // namespace RuntimeVariables

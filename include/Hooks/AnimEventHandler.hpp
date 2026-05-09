@@ -75,7 +75,7 @@ namespace Hooks {
         if (!a_event) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         if (!ModSettings::Parkour_Enabled && !ModSettings::Crouch_Slide_Enabled) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
-        const auto &actor = a_this->graphs[a_this->GetRuntimeData().activeGraph]->holder;
+        const auto actor = a_this->graphs[a_this->GetRuntimeData().activeGraph]->holder;
 
         if (!actor) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         if (!actor->IsPlayerRef()) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
@@ -97,8 +97,8 @@ namespace Hooks {
                 /* Fix swimstart not triggerring if entered water through crouch slide */
                 auto res = OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
-                const auto &ctrl = actor->GetCharController();
-                if (ctrl->context.currentState == RE::hkpCharacterStateTypes::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+                const auto ctrl = actor->GetCharController();
+                if (ctrl->context.currentState == RE::hkpCharacterStateType::kSwimming) actor->NotifyAnimationGraph("SwimStart");
 
                 return res;
             }
@@ -119,9 +119,6 @@ namespace Hooks {
                 /* Reduce fall damage by decreasing fall start height */
                 auto &fst = actor->GetCharController()->fallStartHeight;
                 if (fst - actor->GetPositionZ() > 200) fst -= 100;
-            }
-            else if (a_event->tag == SPPF_FAILSAFE_EVENT) {
-                RuntimeMethods::ResetSlide();
             }
 
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
@@ -157,9 +154,6 @@ namespace Hooks {
                 const bool isLowEffort = a_event->payload == SPPF_LOWEFFORTPAYLOAD;
                 const bool isSwimming = actor->AsActorState()->IsSwimming();
                 Parkouring::PostParkourStaminaDamage(actor, isLowEffort, isSwimming);
-            }
-            else if (a_event->tag == SPPF_FAILSAFE_EVENT) {
-                RuntimeMethods::ResetParkour();
             }
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
@@ -205,10 +199,8 @@ namespace Hooks {
     bool NotifyGraphHandler::Callback::Notify_PlayerCharacter(RE::IAnimationGraphManagerHolder *a_this,
                                                               const RE::BSFixedString &a_eventName) {
         if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
-            /* If stop event is sent forcibly, flow to correct graph state. */
-            const_cast<RE::BSFixedString &>(a_eventName) = SPPF_INTERRUPT;
-
-            return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+            // Pass the interrupt event instead of modifying the parameter directly
+            return OG::_Notify_PlayerCharacter(a_this, SPPF_INTERRUPT);
         }
 
         if (a_eventName == "Ragdoll") {

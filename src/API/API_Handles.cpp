@@ -8,7 +8,7 @@ namespace API_Handles {
             return;
         }
 
-        const auto &res = TRUEHUD_API::RequestPluginAPI();
+        const auto res = TRUEHUD_API::RequestPluginAPI();
         if (res) {
             LOG("TrueHUD Found: Visual Debugging Available");
             APIHandle = static_cast<decltype(TrueHUD::APIHandle)>(res);
@@ -23,7 +23,7 @@ namespace API_Handles {
             return;
         }
 
-        const auto &res = TDM_API::RequestPluginAPI();
+        const auto res = TDM_API::RequestPluginAPI();
         if (res) {
             LOG("TDM API Found");
             APIHandle = static_cast<decltype(TDM::APIHandle)>(res);

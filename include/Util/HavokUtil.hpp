@@ -1,9 +1,10 @@
 #pragma once
 #include "_References/RuntimeVariables.h"
 #include "_References/ModSettings.h"
+#include "Parkouring.h"
 
 namespace HavokUtil {
-    inline static float *g_gameTimeMult = (float *) RELOCATION_ID(508682, 380437).address();  // SGTM static pointer, dereference and use
+    // inline static float *g_gameTimeMult = (float *) RELOCATION_ID(508682, 380437).address();  // SGTM static pointer, dereference and use
 
     inline RayCastResult RayCast(RE::NiPoint3 rayStart, RE::NiPoint3 rayDir, float maxDist, COL_LAYER_EXTEND layerMask,
                                  RE::Actor *actor = GET_PLAYER) {
@@ -20,7 +21,7 @@ namespace HavokUtil {
 
         RE::bhkPickData pickData;
         RE::hkpAllRayHitTempCollector collector;
-        const auto &havokWorldScale = RE::bhkWorld::GetWorldScale();
+        const auto havokWorldScale = RE::bhkWorld::GetWorldScale();
 
         // Set ray start and end points (scaled to Havok world)
         pickData.rayInput.from = rayStart * havokWorldScale;
@@ -47,7 +48,10 @@ namespace HavokUtil {
             result.layer = pickData.rayOutput.rootCollidable->GetCollisionLayer();
             result.hitObjectRef = RE::TESHavokUtilities::FindCollidableRef(*pickData.rayOutput.rootCollidable);
 
-            result.hits = pickData.allRayHitTempCollector->hits;
+            // Deep copy hits because the collector's internal buffer is local to this function
+            for (int i = 0; i < collector.hits.size(); ++i) {
+                result.hits.push_back(collector.hits[i]);
+            }
         }
 
         return result;
@@ -64,7 +68,7 @@ namespace HavokUtil {
     }
 
     inline RE::hkbCharacter *GetHavokCharacter(RE::Actor *actor) {
-        const auto &activeGraph = GetActiveAnimGraph(actor);
+        const auto activeGraph = GetActiveAnimGraph(actor);
         if (!activeGraph) return nullptr;
 
         return &activeGraph->characterInstance;
@@ -79,18 +83,36 @@ namespace HavokUtil {
         if (is_FPP) {
             actor->GetGraphVariableBool(SPPF_FPP_INSTALLED, behaviorInstalled);
             if (behaviorInstalled) return true;
+            if (RuntimeVariables::_DidWarnMissingFPP) return false;
+            RuntimeVariables::_DidWarnMissingFPP = true;
 
             RE::DebugMessageBox(
-                "SkyParkour Warning\n\n1st Person Behavior is not generated properly\nAnimations will not play\n\nThis is caused by user "
-                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug");
+                "SkyParkour Behavior Missing\n\n1st Person Patch isn't generated properly, animations won't play\n\nThis is caused by user "
+                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug\n\nCheck "
+                "SkyParkourNG.log file for more details.");
+
+            ERROR(
+                "1st person behavior missing: The 0_master.hkx file is not properly patched to include proper SkyParkour transitions.\n"
+                "Ensure Nemesis/Pandora generates the patches animationdatasinglefile.txt and animationsetdatasinglefile.txt under meshes, "
+                "and 0_master.hkx under meshes/actors/character/_1stperson/behaviors\n"
+                "Ensure these files are not overwritten by other mods");
         }
         else {
             actor->GetGraphVariableBool(SPPF_TPP_INSTALLED, behaviorInstalled);
             if (behaviorInstalled) return true;
+            if (RuntimeVariables::_DidWarnMissingTPP) return false;
 
+            RuntimeVariables::_DidWarnMissingTPP = true;
             RE::DebugMessageBox(
-                "SkyParkour Warning\n\n3rd Person Behavior is not generated properly\nAnimations will not play\n\nThis is caused by user "
-                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug");
+                "SkyParkour Behavior Missing\n\n3rd Person Patch isn't generated properly, animations won't play\n\nThis is caused by user "
+                "error. Your behavior output isn't generated or not overwriting everything else, don't report this as a bug\n\nCheck "
+                "SkyParkourNG.log file for more details.");
+
+            ERROR(
+                "3rd person behavior missing: The 0_master.hkx file is not properly patched to include proper SkyParkour transitions.\n"
+                "Ensure Nemesis/Pandora generates the patches animationdatasinglefile.txt and animationsetdatasinglefile.txt under meshes, "
+                "and 0_master.hkx under meshes/actors/character/behaviors\n"
+                "Ensure these files are not overwritten by other mods");
         }
         return false;
     }
@@ -101,16 +123,22 @@ namespace HavokUtil {
                 const_cast<RE::BSFixedString &>(channelName) = name;
                 value = std::bit_cast<uint32_t>(ModSettings::Playback_Speed);
                 ChannelOwner = owner;
+                LOG("Havok channel {} bound to {}, PrevRefCount: {}", name, owner->GetName(), this->_refCount);
             }
             void ResetImpl() override {
-                value = std::bit_cast<uint32_t>(ModSettings::Playback_Speed);
+                // value = std::bit_cast<uint32_t>(ModSettings::Playback_Speed);
+
+                correctionInitialized = false;
+                correctionDone = false;
+                missingGap = 0.0f;
+                totalMissing = ZERO_VECTOR;
             }
 
             void PollChannelUpdateImpl([[maybe_unused]] bool a_arg1) override {
                 if (RuntimeVariables::ParkourInProgress) {
                     if (correctionDone) return;
 
-                    const auto &cl = ChannelOwner->GetCharController();
+                    const auto cl = ChannelOwner->GetCharController();
                     RE::hkVector4 curPos;
                     cl->GetPositionImpl(curPos, true);
 
@@ -123,16 +151,17 @@ namespace HavokUtil {
 
                         missingGap = totalMissing.Length3();
                         correctionInitialized = true;
+                        reset = false;
                     }
 
                     if (missingGap > 0.1f) {
                         // Assuming Havok tick rate is 30 at all times, even if it isn't. Final movement won't change.
                         RE::hkVector4 nudge = totalMissing * 0.033333f;
-
-                        // Scale to GTM as well
-                        if (g_gameTimeMult) {
-                            auto SGTM = *g_gameTimeMult;
-                            nudge = nudge * (SGTM <= 0 ? 1 : SGTM);
+                        auto timer = RE::BSTimer::GetSingleton();
+                        // Scale to timer as well
+                        if (timer) {
+                            auto gtm = timer->QGlobalTimeMultiplier();
+                            nudge = nudge * (gtm <= 0 ? 1 : gtm);
                         }
 
                         // Set new pos as current pos + the missing bit.
@@ -146,10 +175,13 @@ namespace HavokUtil {
                     }
                 }
                 else {
-                    correctionInitialized = false;
-                    correctionDone = false;
-                    missingGap = 0.0f;
-                    totalMissing = ZERO_VECTOR;
+                    if (!reset) {
+                        ResetImpl();
+                        reset = true;
+                    }
+                }
+                if (ModSettings::Parkour_Enabled) {
+                    Parkouring::UpdateParkourPoint();
                 }
             }
 
@@ -159,6 +191,7 @@ namespace HavokUtil {
             bool correctionDone{false};
             float missingGap{};
             RE::hkVector4 totalMissing{};
+            bool reset{true};
     };
 
     static inline void CreateBoundGraphChannels(RE::Actor *act, RE::BSAnimationGraphManagerPtr mgr = nullptr) {
@@ -174,7 +207,7 @@ namespace HavokUtil {
             WARN("Attempted bind channel on {} with no graph manager, skipped", act->GetName());
             return;
         }
-        const auto &boundChannels = mgr->boundChannels;
+        const auto boundChannels = mgr->boundChannels;
 
         RE::BSFixedString name{SPPF_SPEEDMULT};
 
@@ -193,7 +226,6 @@ namespace HavokUtil {
             RE::BSTSmartPointer<RE::BSAnimationGraphChannel> ptr(channel);
 
             mgr->boundChannels.push_back(ptr);
-            LOG("Havok channel {} bound to {}", name, act->GetName());
             return;
         }
         LOG("{} already has channel {} bound", act->GetName(), name);
@@ -211,7 +243,7 @@ namespace HavokUtil {
             WARN("Attempted setting bound value on {} with no graph manager, skipped", act->GetName());
             return false;
         }
-        const auto &boundChannels = mgr->boundChannels;
+        const auto boundChannels = mgr->boundChannels;
 
         RE::BSFixedString name{SPPF_SPEEDMULT};
 

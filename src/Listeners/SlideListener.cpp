@@ -37,10 +37,11 @@ RE::BSEventNotifyControl Buttons::SlideListener::ProcessEvent(RE::InputEvent *co
     if (!a_event) return RE::BSEventNotifyControl::kContinue;
 
     for (auto event = *a_event; event; event = event->next) {
-        if (const auto &buttonEvent = event->AsButtonEvent()) {
-            const auto &userEventName = event->QUserEvent();
+        if (const auto buttonEvent = event->AsButtonEvent()) {
+            const auto userEventName = event->QUserEvent();
 
-            const auto &UE = RE::UserEvents::GetSingleton();
+            const auto UE = RE::UserEvents::GetSingleton();
+            if (!UE) continue;
 
             if (userEventName == UE->sneak) {
                 Buttons::SlideListener::CrouchSlide(buttonEvent);

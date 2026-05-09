@@ -86,10 +86,9 @@ void Install_Hooks_And_Listeners() {
 }
 void ShowSkyParkourMenu() {
     using menu = Scaleform::SkyParkourMenu;
-    const auto &ui = RE::UI::GetSingleton();
+    const auto ui = RE::UI::GetSingleton();
     if (ui) {
-        const auto &sppf = ui->GetMenu<menu>(menu::MENU_NAME);
-        sppf->Show();
+        ui->GetMenu<menu>(menu::MENU_NAME)->Show();
     }
 }
 void MessageEvent(SKSE::MessagingInterface::Message *message) {
@@ -119,7 +118,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RuntimeMethods::ResetAll();
     }
     else if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-        const auto &player = GET_PLAYER;
+        const auto player = GET_PLAYER;
         int32_t out;
         if (player->GetGraphVariableInt(SPPF_Ledge, out) && out != std::to_underlying(ParkourType::NoLedge)) {
             WARN("Fix: Save with ongoing parkour");

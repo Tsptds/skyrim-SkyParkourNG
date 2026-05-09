@@ -28,7 +28,7 @@ namespace IniSettings {
     }
 
     std::unique_ptr<CSimpleIniA> GetIniHandle() {
-        const auto &path = IniSettings::INIPath.c_str();
+        const auto path = IniSettings::INIPath.c_str();
 
         auto ini = std::make_unique<CSimpleIniA>();
         ini->SetUnicode();

@@ -3,7 +3,7 @@
 namespace Localized_ini {
 
     std::unique_ptr<CSimpleIniA> GetIniHandle() {
-        const auto &path = INIPath.c_str();
+        const auto path = INIPath.c_str();
 
         auto ini = std::make_unique<CSimpleIniA>();
         ini->SetUnicode();

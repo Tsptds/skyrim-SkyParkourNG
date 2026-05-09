@@ -95,15 +95,15 @@ namespace Hooks {
     void InputHandler::Callback::ProcessButton_Jump(RE::JumpHandler *a_this, RE::ButtonEvent *a_event, RE::PlayerControlsData *a_data) {
         if (ModSettings::Parkour_Enabled && !ParkourUtility::IsSitting(GET_PLAYER)) {
             if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
-                const auto &btn = a_event->AsButtonEvent();
+                const auto btn = a_event->AsButtonEvent();
                 if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
                     if (btn->IsDown()) {
                         return;
                     }
                     else if (btn->IsUp()) {
-                        const float &held = btn->HeldDuration();
-                        const auto &dev = btn->GetDevice();
-                        const auto &id = btn->GetIDCode();
+                        const float held = btn->HeldDuration();
+                        const auto dev = btn->GetDevice();
+                        const auto id = btn->GetIDCode();
 
                         // create a delayed Down
                         RE::ButtonEvent *downEvt =
@@ -114,11 +114,11 @@ namespace Hooks {
                         if (downEvt || upEvt) {
                             if (downEvt) {
                                 OG::_ProcessButtonJump(a_this, downEvt, a_data);
-                                delete downEvt;
+                                RE::free(downEvt);
                             }
                             if (upEvt) {
                                 OG::_ProcessButtonJump(a_this, upEvt, a_data);
-                                delete upEvt;
+                                RE::free(upEvt);
                             }
 
                             return;  // don’t let the engine see the original Up
@@ -138,7 +138,7 @@ namespace Hooks {
 
         if (ModSettings::Crouch_Slide_Enabled) {
             if (RuntimeVariables::SlideOngoing) return false;
-            const auto &pl = GET_PLAYER;
+            const auto pl = GET_PLAYER;
             if (pl->AsActorState()->IsSprinting()) return false;
             if (pl->IsInMidair()) return false;
         }

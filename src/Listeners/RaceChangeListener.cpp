@@ -32,12 +32,12 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     if (!actorRef) return RE::BSEventNotifyControl::kContinue;
 
     if (!actorRef->IsPlayerRef()) return RE::BSEventNotifyControl::kContinue;
-    const auto &pl = GET_PLAYER;
+    const auto pl = GET_PLAYER;
 
     /* On race switch graph vars reset, fix it */
     pl->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
 
-    const auto &playerPreTransformData = pl->GetPlayerRuntimeData().preTransformationData;
+    const auto playerPreTransformData = pl->GetPlayerRuntimeData().preTransformationData;
     if (playerPreTransformData) {  // Entered beast form
 
         Parkouring::SetParkourOnOff(false);

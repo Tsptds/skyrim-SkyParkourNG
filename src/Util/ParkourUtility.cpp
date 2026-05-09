@@ -46,7 +46,7 @@ bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_heig
 
     /* DEBUG LINES */
     if (ModSettings::_Debug_Enabled) {
-        const auto &TH = API_Handles::TrueHUD::Get();
+        const auto TH = API_Handles::TrueHUD::Get();
         if (TH) {
             TH->DrawArrow(backStart, backStart + upDir * headRoomRay_BackOffset.distance, 10.f, 0.f,
                           headRoomRay_BackOffset.didHit ? COLOR_HEX_R : COLOR_HEX_G, 1.f);
@@ -63,14 +63,14 @@ bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_heig
 }
 
 bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
-    const auto &st = actor->AsActorState();
+    const auto st = actor->AsActorState();
 
     if (!ModSettings::Smart_Climb) return true;  // Feature disabled, always allow
     if (!actor->IsMoving()) return true;         // Not inputting move, allow
     if (st->IsSwimming()) return true;           // Swimming, allow
 
     /* 3.5.0 Smart Climb Rework */
-    const auto &relativeVel = GetRelativeVelocityToMT(actor);
+    const auto relativeVel = GetRelativeVelocityToMT(actor);
     if (relativeVel > 0.2f) return false;
 
     return true;
@@ -187,7 +187,7 @@ RE::NiPoint3 ParkourUtility::GetActorDirFlat(RE::Actor *actor) {
 
     // return actorDirFlat;
 
-    const auto &ctrl = actor->GetCharController();
+    const auto ctrl = actor->GetCharController();
     return VEC4_TO_VEC3(ctrl->forwardVec * -1);  // * -1 cause it returns the inverse vector pointing backwards?
 }
 
@@ -201,7 +201,7 @@ bool ParkourUtility::IsSitting(RE::Actor *actor) {
 
 bool ParkourUtility::IsCrosshairRefActivator() {
     //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
-    const auto &ref = RE::CrosshairPickData::GetSingleton()->target.get();
+    const auto ref = RE::CrosshairPickData::GetSingleton()->target.get();
     if (ref) {
         /* Something activatable in crosshair */
         if (ref->GetFormFlags() & RE::TESObjectREFR::RecordFlags::kHarvested) {
@@ -237,7 +237,7 @@ bool ParkourUtility::IsOnMount() {
 }
 
 bool ParkourUtility::IsGamePaused() {
-    const auto &ui = RE::UI::GetSingleton();
+    const auto ui = RE::UI::GetSingleton();
     return ui && ui->GameIsPaused();
 }
 
@@ -259,7 +259,7 @@ float ParkourUtility::CalculateStaminaReqFromEquipLoad(RE::Actor *actor) {
 }
 
 bool ParkourUtility::ActorHasEnoughStamina(RE::Actor *actor) {
-    const auto &currentStamina = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
+    const auto currentStamina = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
     if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateStaminaReqFromEquipLoad(actor)) {
         return true;
@@ -301,7 +301,7 @@ bool ParkourUtility::CheckActionRequiresLowEffort(ParkourType ledge) {
 }
 
 bool ParkourUtility::PlayerIsSwimming() {
-    const auto &player = GET_PLAYER;
+    const auto player = GET_PLAYER;
     return player->AsActorState()->IsSwimming();
 
     // IDK why swim at surface works this way, but it does.

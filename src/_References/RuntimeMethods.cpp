@@ -4,6 +4,7 @@
 #include "_References/ModSettings.h"
 #include "_References/IniSettings.h"
 #include "_References/Compatibility.h"
+#include "API/API_Handles.h"
 
 namespace RuntimeMethods {
     const RE::TESFile *GetPlugin(RE::TESDataHandler *const &dh, std::string_view esp_name) {
@@ -28,25 +29,26 @@ namespace RuntimeMethods {
         RuntimeVariables::selectedLedgeType = ParkourType::NoLedge;
         RuntimeVariables::IsParkourActive = true;
 
-        const auto &player = GET_PLAYER;
-        if (player) {
-            player->SetGraphVariableInt(SPPF_Ledge, -1);
-            player->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
+        if (Compatibility::TrueDirectionalMovement::found) {
+            API_Handles::TDM::LockYaw(false);
         }
     }
 
     void ResetSlide() {
         RuntimeVariables::SlideOngoing = false;
+        if (Compatibility::TrueDirectionalMovement::found) {
+            API_Handles::TDM::LockYaw(false);
+        }
     }
 
     bool IsESPLoaded() {
-        const auto &dh = RE::TESDataHandler::GetSingleton();
+        const auto dh = RE::TESDataHandler::GetSingleton();
         return dh && (dh->GetSingleton()->LookupLoadedLightModByName(IniSettings::ESP_NAME) ||
                       dh->GetSingleton()->LookupLoadedModByName(IniSettings::ESP_NAME));
     }
 
     bool ReadPluginConfigFromINI() {
-        const auto &ini = IniSettings::GetIniHandle();
+        const auto ini = IniSettings::GetIniHandle();
         if (!ini) {
             ERROR("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
             return false;
@@ -63,12 +65,12 @@ namespace RuntimeMethods {
     }
 
     void SetupDLLCompatibility() {
-        const auto &TDM = GetModuleHandleA(Compatibility::TrueDirectionalMovement::dll_name);
+        const auto TDM = GetModuleHandleA(Compatibility::TrueDirectionalMovement::dll_name);
         if (TDM) {
             Compatibility::TrueDirectionalMovement::found = true;
             LOG("Patch: True Directional Movement |360|Swim Pitch|Yaw Lock|");
         }
-        const auto &CS = GetModuleHandleA(Compatibility::ClassicSprintingRedone::dll_name);
+        const auto CS = GetModuleHandleA(Compatibility::ClassicSprintingRedone::dll_name);
         if (CS) {
             Compatibility::ClassicSprintingRedone::found = true;
             LOG("Patch: Classic Sprinting Redone |No Sprint State Conservation|");
@@ -76,8 +78,8 @@ namespace RuntimeMethods {
     }
 
     void SetupESPCompatibility() {
-        const auto &dh = RE::TESDataHandler::GetSingleton();
-        const auto &JA = GetPlugin(dh, Compatibility::JumpingAttack::esp_name);
+        const auto dh = RE::TESDataHandler::GetSingleton();
+        const auto JA = GetPlugin(dh, Compatibility::JumpingAttack::esp_name);
         if (JA) {
             Compatibility::JumpingAttack::found = true;
             LOG("Patch: Jumping Attack |Weapon State Fix|");

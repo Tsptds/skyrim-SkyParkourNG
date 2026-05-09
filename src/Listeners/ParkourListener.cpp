@@ -36,15 +36,15 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
     if (!a_event) return RE::BSEventNotifyControl::kContinue;
 
     for (auto event = *a_event; event; event = event->next) {
-        if (const auto &buttonEvent = event->AsButtonEvent()) {
-            const auto &userEventName = event->QUserEvent();
-            const auto &UE = RE::UserEvents::GetSingleton();
+        if (const auto buttonEvent = event->AsButtonEvent()) {
+            const auto userEventName = event->QUserEvent();
+            const auto UE = RE::UserEvents::GetSingleton();
             // LOG("{}", userEventName.c_str());
 
             if (ModSettings::Use_Preset_Parkour_Key) {
                 //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
                 //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
-
+                if (!UE) continue;
                 RE::BSFixedString expectedEvent;
 
                 switch (ModSettings::Preset_Parkour_Key) {
@@ -90,7 +90,7 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
             }
 
             [&] -> void {
-                const auto &pl = GET_PLAYER;
+                const auto pl = GET_PLAYER;
                 using opt = AUTO_PARKOUR_OPTIONS;
                 namespace pu = ParkourUtility;
 

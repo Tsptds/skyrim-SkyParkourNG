@@ -7,30 +7,29 @@
 
 namespace Menus {
     // List of disqualifying menu names
-    const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
-                                              RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
-                                              RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
-                                              RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
-                                              RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
-                                              RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
-                                              RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
-                                              RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
-                                              RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
-                                              RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
-                                              RE::Console::MENU_NAME,          RE::TweenMenu::MENU_NAME,
-                                              RE::MainMenu::MENU_NAME};
+    // const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
+    //                                           RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
+    //                                           RE::CreationClubMenu::MENU_NAME, RE::DialogueMenu::MENU_NAME,
+    //                                           RE::FavoritesMenu::MENU_NAME,    RE::GiftMenu::MENU_NAME,
+    //                                           RE::InventoryMenu::MENU_NAME,    RE::JournalMenu::MENU_NAME,
+    //                                           RE::LevelUpMenu::MENU_NAME,      RE::LockpickingMenu::MENU_NAME,
+    //                                           RE::MagicMenu::MENU_NAME,        RE::MapMenu::MENU_NAME,
+    //                                           RE::MessageBoxMenu::MENU_NAME,   RE::MistMenu::MENU_NAME,
+    //                                           RE::RaceSexMenu::MENU_NAME,      RE::SleepWaitMenu::MENU_NAME,
+    //                                           RE::StatsMenu::MENU_NAME,        RE::TrainingMenu::MENU_NAME,
+    //                                           RE::Console::MENU_NAME,          RE::CursorMenu::MENU_NAME,
+    //                                           RE::MainMenu::MENU_NAME};
 
     bool CheckMenuOpen() {
         auto ui = RE::UI::GetSingleton();
-        // Check if any of the excluded menus are open
-        for (const std::string_view menuName: Menus::excludedMenus) {
-            if (ui->IsMenuOpen(menuName)) {
-                return true;
-            }
-        }
+        if (!ui) return false;
+
+        if (ui->GameIsPaused()) return true;
+        if (ui->IsApplicationMenuOpen()) return true;
+        if (ui->IsItemMenuOpen()) return true;
+
         return false;
     }
-
 }  // namespace Menus
 
 bool MenuListener::Register() {
@@ -51,6 +50,7 @@ bool MenuListener::Unregister() {
 }
 
 RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent *ev, RE::BSTEventSource<RE::MenuOpenCloseEvent> *) {
+    if (!ev) return RE::BSEventNotifyControl::kContinue;
     if (ev->opening) {
         if (Menus::CheckMenuOpen()) {
             RuntimeVariables::IsMenuOpen = true;

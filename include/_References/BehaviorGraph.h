@@ -51,7 +51,6 @@ namespace BehaviorGraph {
     // Graph Variables to Check if Behavior Patches are Installed
     constexpr const char *SPPF_TPP_INSTALLED = "SkyParkourTPPInstalled";
     constexpr const char *SPPF_FPP_INSTALLED = "SkyParkourFPPInstalled";
-    constexpr const char *SPPF_FAILSAFE_EVENT = "SkyParkour_Exiting";
     /*----------------------------------------------------------------*/
 
 }  // namespace BehaviorGraph

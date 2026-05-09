@@ -38,7 +38,7 @@ namespace Scaleform {
             }
 
             void ShowDebugOverlay(bool show) {
-                if (_view) return;
+                if (!_view) return;
                 RE::GFxValue arg;
                 arg.SetBoolean(show);
                 _view->Invoke("_root.ShowDebugOverlay", nullptr, &arg, 1);
