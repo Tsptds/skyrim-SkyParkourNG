@@ -30,14 +30,14 @@ namespace RuntimeMethods {
         RuntimeVariables::IsParkourActive = true;
 
         if (Compatibility::TrueDirectionalMovement::found) {
-            API_Handles::TDM::LockYaw(false);
+            API_Handles::TDM::ObtainYawControl(false);
         }
     }
 
     void ResetSlide() {
         RuntimeVariables::SlideOngoing = false;
         if (Compatibility::TrueDirectionalMovement::found) {
-            API_Handles::TDM::LockYaw(false);
+            API_Handles::TDM::ObtainYawControl(false);
         }
     }
 

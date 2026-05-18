@@ -527,7 +527,7 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
         }
 
         if (Compatibility::TrueDirectionalMovement::found) {
-            API_Handles::TDM::LockYaw(false);
+            API_Handles::TDM::ObtainYawControl(false);
         }
 
         /* Prevent actor flinging away if char ctrl state is kInAir by clamping velocity */
@@ -557,7 +557,7 @@ void Parkouring::OnStartStop(bool isStop, RE::Actor *actor) {
         ctrl->flags.set(charFlag);
 
         if (Compatibility::TrueDirectionalMovement::found) {
-            API_Handles::TDM::LockYaw(true);
+            API_Handles::TDM::ObtainYawControl(true);
         }
     }
 

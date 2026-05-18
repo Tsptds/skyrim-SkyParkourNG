@@ -3,6 +3,7 @@
 #include "Listeners/MenuListener.h"
 #include "_References/Compatibility.h"
 #include "_References/IniSettings.h"
+#include "_References/CustomBlockingVars.h"
 #include "Papyrus/PapyrusInterface.h"
 #include "PCH.h"
 #include "Hooks/InputHandler.hpp"
@@ -101,7 +102,8 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         }
 
         SkyParkour_Papyrus::Internal::Read_All_MCM_From_INI_and_Cache_Settings();
-        API_Handles::RequestAllHandles();
+        if (!API_Handles::RequestAllHandles()) WARN("Some API handles not registered");
+        if (!CustomBlockingVars::ReadAndCacheVars()) WARN("No custom rule file found, skipping");
     }
     else if (message->type == SKSE::MessagingInterface::kDataLoaded) {
         if (!RuntimeMethods::IsESPLoaded()) {

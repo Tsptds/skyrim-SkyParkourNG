@@ -8,6 +8,7 @@
 
 #include "API/API_Handles.h"
 #include "_References/Compatibility.h"
+#include "_References/CustomBlockingVars.h"
 
 namespace CrouchSliding {
 
@@ -57,6 +58,7 @@ namespace CrouchSliding {
         if (ParkourUtility::IsInDrawSheath(actor)) return false;
         if (ParkourUtility::IsAttacking(actor)) return false;
         if (ParkourUtility::IsCrouchSliding(actor)) return false;
+        if (ParkourUtility::HasCustomBlock(actor, true)) return false;
 
         const auto state = actor->AsActorState();
         if (state && state->IsSwimming()) return false;
@@ -137,7 +139,7 @@ namespace CrouchSliding {
             actor->NotifyAnimationGraph(SPPF_SLIDE_STOP);
 
             if (Compatibility::TrueDirectionalMovement::found) {
-                API_Handles::TDM::LockYaw(false);
+                API_Handles::TDM::ObtainYawControl(false);
             }
 
             if (!isRoll) {
@@ -166,7 +168,7 @@ namespace CrouchSliding {
             }
 
             if (Compatibility::TrueDirectionalMovement::found) {
-                API_Handles::TDM::LockYaw(true);
+                API_Handles::TDM::ObtainYawControl(true);
             }
         }
 

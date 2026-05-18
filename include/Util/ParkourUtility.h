@@ -38,4 +38,6 @@ namespace ParkourUtility {
     bool IsCrouchSliding(RE::Actor *actor);
     float GetCharForwardVelocity(RE::Actor *act);
     float GetRelativeVelocityToMT(RE::Actor *actor); // 0 - 1
+    bool HasCustomBlock(RE::Actor* act, bool isSlideList);
+    bool CamLedgeAngleValid();
 }  // namespace ParkourUtility

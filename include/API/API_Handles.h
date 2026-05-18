@@ -7,8 +7,8 @@ namespace API_Handles {
     class TrueHUD {
         public:
             // Request the API handle before accessing the handle with Get
-            inline static TRUEHUD_API::IVTrueHUD4 *Get() { return APIHandle; }; 
-            static void RequestTrueHUDAPI();
+            inline static TRUEHUD_API::IVTrueHUD4 *Get() { return APIHandle; };
+            static bool RequestTrueHUDAPI();
 
         private:
             inline static TRUEHUD_API::IVTrueHUD4 *APIHandle;
@@ -18,8 +18,8 @@ namespace API_Handles {
             // Request the API handle before accessing the handle with Get
             inline static TDM_API::IVTDM3 *Get() { return APIHandle; };
             static bool IsLockedOn();
-            static void RequestTDMAPI();
-            static void LockYaw(bool);
+            static bool RequestTDMAPI();
+            static void ObtainYawControl(bool);
             static void LockDirectional(bool);
 
         private:
@@ -27,9 +27,12 @@ namespace API_Handles {
             inline static TDM_API::IVTDM3 *APIHandle;
     };
 
-    inline void RequestAllHandles() {
-        TrueHUD::RequestTrueHUDAPI();
-        TDM::RequestTDMAPI();
+    inline bool RequestAllHandles() {
+        bool res{true};
+        res &= TrueHUD::RequestTrueHUDAPI();
+        res &= TDM::RequestTDMAPI();
+
+        return res;
     }
 }  // namespace API_Handles
 

@@ -118,4 +118,3 @@ namespace SkyParkour {
 
 #define PARKOUR_PRESET_KEYS SkyParkour::ParkourKeyOptions
 #define AUTO_PARKOUR_OPTIONS SkyParkour::AutoParkourOptions
-#define LOG_PLAYER_CONTROLLER_FLAGS SkyParkour::LogCharacterFlags()

@@ -6,6 +6,8 @@
 #include "_References/HardcodedVariables.h"
 #include "API/API_Handles.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
+#include "_References/CustomBlockingVars.h"
+#include "_References/Compatibility.h"
 
 bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     if (actor->IsPlayerRef()) {
@@ -23,7 +25,9 @@ bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     if (IsInDrawSheath(actor)) return false;
     if (IsAttacking(actor)) return false;
     if (IsCrouchSliding(actor)) return false;
+    if (HasCustomBlock(actor, false)) return false;
 
+    if (!CamLedgeAngleValid()) return false;  // No TDM only
     /* TODO: Find a better way for this */
     // /* Invalid if activate key selected & crosshair prompt available */
     // if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kActivate) {
@@ -347,4 +351,41 @@ float ParkourUtility::GetRelativeVelocityToMT(RE::Actor *actor) {
     const float &mt_speed = actor->AsActorState()->DoGetMovementSpeed();
 
     return vel / (mt_speed <= 0 ? 1 : mt_speed);
+}
+
+bool ParkourUtility::HasCustomBlock(RE::Actor *act, bool isSlideList) {
+    if (!act) return false;
+    namespace vars = CustomBlockingVars;
+
+    for (auto &&i: isSlideList ? vars::SlideList : vars::ParkourList) {
+        bool out{false};
+        act->GetGraphVariableBool(i, out);
+
+        if (out) return true;
+    }
+    return false;
+}
+
+bool ParkourUtility::CamLedgeAngleValid() {
+    if (Compatibility::TrueDirectionalMovement::found) return true;
+
+    auto cam = RE::PlayerCamera::GetSingleton();
+
+    if (!cam || !cam->IsInThirdPerson()) return true;
+
+    auto tpp = static_cast<RE::ThirdPersonState *>(cam->currentState.get());
+    if (!tpp) return true;
+
+    auto camRot = tpp->targetYaw;
+
+    auto pl = GET_PLAYER;
+    if (!pl) return true;
+
+    auto plRot = pl->data.angle.z;
+
+    constexpr float th{0.4f};
+    float diff = camRot - plRot;
+    if (diff > th || diff < -th) return false;
+
+    return true;
 }
