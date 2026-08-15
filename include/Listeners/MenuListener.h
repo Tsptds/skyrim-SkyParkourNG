@@ -2,7 +2,8 @@
 
 struct MenuListener : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
     public:
-        static MenuListener* GetSingleton() {
+        static MenuListener *GetSingleton()
+        {
             static MenuListener instance;
             return &instance;
         }
@@ -12,8 +13,8 @@ struct MenuListener : public RE::BSTEventSink<RE::MenuOpenCloseEvent> {
 
     private:
         // called on every open/close
-        virtual RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* ev,
-                                                      RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
+        virtual RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent *ev,
+                                                      RE::BSTEventSource<RE::MenuOpenCloseEvent> *) override;
 
         MenuListener() = default;
         ~MenuListener() = default;

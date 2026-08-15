@@ -6,44 +6,48 @@
 #include "_References/RuntimeVariables.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 
-void Buttons::ParkourListener::Parkour(RE::ButtonEvent *buttonEvent) {
+void Buttons::ParkourListener::Parkour(RE::ButtonEvent *buttonEvent)
+{
     // Delay Threshold Passed
     if (buttonEvent->IsDown() || buttonEvent->IsHeld()) {
-        if (ModSettings::Parkour_Delay <= buttonEvent->heldDownSecs) {
+        if (ModSettings::Parkour_Delay <= buttonEvent->HeldDuration()) {
             Parkouring::TryActivateParkour();
         }
     }
 }
 
-void Buttons::ParkourListener::Register() {
+void Buttons::ParkourListener::Register()
+{
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->AddEventSink(Buttons::ParkourListener::GetSingleton());
         Buttons::ParkourListener::GetSingleton()->SinkRegistered = true;
-        //LOG("Buttons - Listening");
+        //INFO("Buttons - Listening");
     }
 }
-void Buttons::ParkourListener::Unregister() {
+void Buttons::ParkourListener::Unregister()
+{
     auto inputManager = RE::BSInputDeviceManager::GetSingleton();
     if (inputManager) {
         inputManager->RemoveEventSink(Buttons::ParkourListener::GetSingleton());
         Buttons::ParkourListener::GetSingleton()->SinkRegistered = false;
-        //LOG("Buttons - Not Listening");
+        //INFO("Buttons - Not Listening");
     }
 }
 
-RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *const *a_event, RE::BSTEventSource<RE::InputEvent *> *) {
+RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *const *a_event, RE::BSTEventSource<RE::InputEvent *> *)
+{
     if (!a_event) return RE::BSEventNotifyControl::kContinue;
 
     for (auto event = *a_event; event; event = event->next) {
         if (const auto buttonEvent = event->AsButtonEvent()) {
             const auto userEventName = event->QUserEvent();
             const auto UE = RE::UserEvents::GetSingleton();
-            // LOG("{}", userEventName.c_str());
+            // INFO("{}", userEventName.c_str());
 
             if (ModSettings::Use_Preset_Parkour_Key) {
-                //LOG("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
-                //LOG("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
+                //INFO("PresetParkourKey {}\n ButtonEvent ID {}", ModSettings::PresetParkourKey, buttonId);
+                //INFO("JumpMap {}\n SprintMap {}\nActivateMap {}", jumpMapping,sprintMapping,activateMapping);
                 if (!UE) continue;
                 RE::BSFixedString expectedEvent;
 
@@ -70,14 +74,14 @@ RE::BSEventNotifyControl Buttons::ParkourListener::ProcessEvent(RE::InputEvent *
             }
             else {
                 auto dxScanCode = buttonEvent->GetIDCode();  // DX Scan Code
-                // LOG("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
+                // INFO("DX code : {}, Input Type: {}", dxScanCode, buttonEvent->GetDevice());
 
                 // Convert Xinput codes to creation kit versions
                 if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kGamepad) {
                     dxScanCode = SKSE::InputMap::GamepadMaskToKeycode(dxScanCode);
                 }
                 else if (buttonEvent->GetDevice() == RE::INPUT_DEVICE::kMouse) {
-                    dxScanCode = Buttons::xinputToCKMap[dxScanCode];
+                    dxScanCode = Buttons::MapToCKIfPossible(dxScanCode);
                 }
 
                 if (dxScanCode == ModSettings::Custom_Parkour_Key) {

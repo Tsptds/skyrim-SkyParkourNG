@@ -2,40 +2,20 @@
 
 #include "_References/BehaviorGraph.h"
 #include "_References/ExclusionLists.h"
+#include "_References/HavokRayShapeCast.h"
 #include "_References/Fmt.h"
 
 /* Macro func */
 #define PRINT_LAYER(x) (RE::CollisionLayerToString(x))
 
-namespace SkyParkour {
-
-    static RE::hkVector4 zeroVector{0, 0, 0, 0};
-
-    struct RayCastResult {
-            float distance = -1.0f;
-            COL_LAYER layer = COL_LAYER::kUnidentified;
-            hkVector4 normalOut = hkVector4(0, 0, 0, 0);
-            bool didHit = false;
-
-            // Do a null check before using this
-            TESObjectREFR *hitObjectRef = nullptr;
-            hkInplaceArray<hkpWorldRayCastOutput, 8> hits;
-
-            RE::FormType GetHitObjectFormType_Safe() const {
-                if (!hitObjectRef) return RE::FormType::None;
-                return hitObjectRef->GetObjectReference()->GetFormType();
-            }
-
-            RayCastResult() = default;
-
-            RayCastResult(float d, COL_LAYER l, const hkVector4 &n, bool h, TESObjectREFR *r, hkInplaceArray<hkpWorldRayCastOutput, 8> arr)
-                : distance(d), layer(l), normalOut(n), didHit(h), hitObjectRef(r), hits(arr) {}
-    };
+namespace SkyParkour
+{
 
     const enum ParkourKeyOptions { kJump = 0, kSprint, kActivate };
     const enum AutoParkourOptions { kDisabled = 0, kNonCombatOnly, kAlways };
 
-    static void LogCharacterFlags() {
+    static void LogCharacterFlags()
+    {
         if (auto *controller = PlayerCharacter::GetSingleton()->GetCharController()) {
             auto flags = controller->flags;
 
@@ -87,34 +67,37 @@ namespace SkyParkour {
         }
     }
 
-    static RE::NiPoint3 Vec4_To_Vec3(RE::hkVector4 vec) {
+    static RE::NiPoint3 Vec4_To_Vec3(RE::hkVector4 vec)
+    {
         return NiPoint3(vec.quad.m128_f32[0], vec.quad.m128_f32[1], vec.quad.m128_f32[2]);
     }
 
-    static hkVector4 Vec3_To_Vec4(NiPoint3 vec) {
+    static hkVector4 Vec3_To_Vec4(NiPoint3 vec)
+    {
         return hkVector4(vec.x, vec.y, vec.z, 0);
     }
 }  // namespace SkyParkour
 
 /* Log macros */
-#define LOG(x, ...) logger::info(x __VA_OPT__(, ) __VA_ARGS__)
-#define WARN(x, ...) logger::warn(x __VA_OPT__(, ) __VA_ARGS__)
-#define ERROR(x, ...) logger::error(x __VA_OPT__(, ) __VA_ARGS__)
-#define CRITICAL(x, ...) logger::critical(x __VA_OPT__(, ) __VA_ARGS__)
+using TRACE = SKSE::log::trace;
+using INFO = SKSE::log::info;
+using WARN = SKSE::log::warn;
+using ERROR = SKSE::log::error;
+using CRITICAL = SKSE::log::critical;
 
 /* Task Queue Macro */
 #define _TASK_Q SKSE::GetTaskInterface()->AddTask
 
 /* Generic Stuff */
 #define GET_PLAYER RE::PlayerCharacter::GetSingleton()
-#define ZERO_VECTOR SkyParkour::zeroVector
 
-#define VEC3_TO_VEC4 SkyParkour::Vec3_To_Vec4
-#define VEC4_TO_VEC3 SkyParkour::Vec4_To_Vec3
-#define nipoint_to_hkvector(a) VEC3_TO_VEC4(a / 69.99125f)
-#define hkvector_to_nipoint(a) VEC4_TO_VEC3(a * 69.99125f)
+#define VEC3_TO_VEC4 SkyParkour::Vec3_To_Vec4               // Only assign the properties
+#define VEC4_TO_VEC3 SkyParkour::Vec4_To_Vec3               // Only assign the properties
+#define nipoint_to_hkvector(a) VEC3_TO_VEC4(a / 69.99125f)  // Scale from ni to havok
+#define hkvector_to_nipoint(a) VEC4_TO_VEC3(a * 69.99125f)  // Scale from havok to ni
 
 #define RayCastResult SkyParkour::RayCastResult
+#define ShapeCastResult SkyParkour::ShapeCastResult
 
 #define PARKOUR_PRESET_KEYS SkyParkour::ParkourKeyOptions
 #define AUTO_PARKOUR_OPTIONS SkyParkour::AutoParkourOptions

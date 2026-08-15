@@ -14,11 +14,13 @@
 #include "API/API_Handles.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 
-bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm) {
+bool RegisterPapyrusFunctions(RE::BSScript::IVirtualMachine *vm)
+{
     SkyParkour_Papyrus::Internal::RegisterPapyrusFuncsToVM(vm);
     return true;
 }
-void HandleMissingESPWarning() {
+void HandleMissingESPWarning()
+{
     ERROR("ESP NOT FOUND: |{}|", IniSettings::ESP_NAME);
 
     std::string err;
@@ -30,7 +32,7 @@ void HandleMissingESPWarning() {
 
         if (BEES) {
             Compatibility::BackportedESLSupport = true;
-            LOG("BEES found on a pre-extended ESL Skyrim version");
+            INFO("BEES found on a pre-extended ESL Skyrim version");
 
             err = "SkyParkour Warning\n\n" + IniSettings::ESP_NAME + " isn't loaded by Skyrim." +
                   "\n\n'Backported Extended ESL Support' is installed on your pre 1.6.1130 Skyrim version, so it's not the problem." +
@@ -56,43 +58,46 @@ void HandleMissingESPWarning() {
     ERROR("----SkyParkour Failed To Load Due To Missing ESP----");
     SKSE::stl::report_and_error(err);
 }
-void Install_Hooks_And_Listeners() {
+void Install_Hooks_And_Listeners()
+{
     // RaceChangeListener::Register(); // Not needed, post graph create includes this
     //ButtonEventListener::Register(); // Do it when player loads, unregister inside Menu Listener
     MenuListener::Register();
 
     if (Hooks::InputHandler::InstallInputHooks()) {
-        LOG("Installed Hooks: |Input|");
+        INFO("Installed Hooks: |Input|");
     }
 
     if (Hooks::AnimationEventHook::InstallAnimEventHook()) {
-        LOG("Installed Hooks: |AnimEvent|");
+        INFO("Installed Hooks: |AnimEvent|");
     }
 
     if (Hooks::NotifyGraphHandler::InstallGraphNotifyHook()) {
-        LOG("Installed Hooks: |NotifyGraph|");
+        INFO("Installed Hooks: |NotifyGraph|");
     }
 
     if (Hooks::CameraHandler::InstallCamStateHooks()) {
-        LOG("Installed Hooks: |Camera|");
+        INFO("Installed Hooks: |Camera|");
     }
 
     if (Hooks::GraphManagerHandler::InstallGraphManagerHooks()) {
-        LOG("Installed Hooks: |GraphManager|");
+        INFO("Installed Hooks: |GraphManager|");
     }
 
     // if (Hooks::HavokHandler::InstallHooks()) {
-    //     LOG("Installed Hooks: |Havok|");
+    //     INFO("Installed Hooks: |Havok|");
     // }
 }
-void ShowSkyParkourMenu() {
+void ShowSkyParkourMenu()
+{
     using menu = Scaleform::SkyParkourMenu;
     const auto ui = RE::UI::GetSingleton();
     if (ui) {
         ui->GetMenu<menu>(menu::MENU_NAME)->Show();
     }
 }
-void MessageEvent(SKSE::MessagingInterface::Message *message) {
+void MessageEvent(SKSE::MessagingInterface::Message *message)
+{
     if (message->type == SKSE::MessagingInterface::kPostPostLoad) {
         RuntimeMethods::SetupDLLCompatibility();
 
@@ -114,7 +119,7 @@ void MessageEvent(SKSE::MessagingInterface::Message *message) {
         RuntimeMethods::SetupESPCompatibility();
         Install_Hooks_And_Listeners();
 
-        LOG("|>_SkyParkour Loaded_<|");
+        INFO("|>_SkyParkour Loaded_<|");
     }
     else if (message->type == SKSE::MessagingInterface::kPreLoadGame) {
         RuntimeMethods::ResetAll();
@@ -144,8 +149,10 @@ using namespace SKSE::stl;
 
 #include "Plugin.h"
 
-namespace plugin {
-    std::optional<std::filesystem::path> getLogDirectory() {
+namespace plugin
+{
+    std::optional<std::filesystem::path> getLogDirectory()
+    {
         using namespace std::filesystem;
         PWSTR buf;
         SHGetKnownFolderPath(FOLDERID_Documents, KF_FLAG_DEFAULT, nullptr, &buf);
@@ -173,7 +180,8 @@ namespace plugin {
         return directory.append("SKSE"sv).make_preferred();
     }
 
-    static void InitializeLogging() {
+    static void InitializeLogging()
+    {
         auto path = getLogDirectory();
         if (!path) {
             report_and_fail("Can't find SKSE log directory");
@@ -201,11 +209,12 @@ namespace plugin {
     }
 }  // namespace plugin
 
-extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse) {
+extern "C" DLLEXPORT bool SKSEPlugin_Load(const LoadInterface *skse)
+{
     plugin::InitializeLogging();
 
     Init(skse, false);
-    LOG("'{} {}' by {} / Skyrim '{}'", Plugin::Name, Plugin::VersionString, Plugin::Author, REL::Module::get().version().string());
+    INFO("'{} {}' by {} / Skyrim '{}'", Plugin::Name, Plugin::VersionString, Plugin::Author, REL::Module::get().version().string());
 
     SKSE::GetPapyrusInterface()->Register(RegisterPapyrusFunctions);
     SKSE::GetMessagingInterface()->RegisterListener(MessageEvent);

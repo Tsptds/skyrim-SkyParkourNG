@@ -9,8 +9,10 @@
 #include "_References/CustomBlockingVars.h"
 #include "_References/Compatibility.h"
 
-bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
-    if (actor->IsPlayerRef()) {
+bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor)
+{
+    if (actor->IsPlayerRef())
+    {
         if (RuntimeVariables::IsMenuOpen) return false;
         if (RuntimeVariables::selectedLedgeType == ParkourType::NoLedge) return false;
         if (IsChargenHandsBound(static_cast<RE::PlayerCharacter *>(actor))) return false;
@@ -18,6 +20,7 @@ bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     }
 
     if (IsKnockedOut(actor)) return false;
+    if (actor->IsDead()) return false;
     if (actor->IsAnimationDriven()) return false;
     if (actor->IsStaggering()) return false;
     if (IsInSyncedAnimation(actor)) return false;
@@ -39,39 +42,20 @@ bool ParkourUtility::IsParkourActiveFor(RE::Actor *actor) {
     return true;
 }
 
-bool ParkourUtility::ClimbExtraChecks(RE::NiPoint3 start, const float check_height, RE::NiPoint3 fwdDir) {
-    constexpr RE::NiPoint3 upDir{0, 0, 1};
-
-    const float back_length = 40.f * RuntimeVariables::PlayerScale;
-    const auto backStart = start - fwdDir * 20.f;
-
-    RayCastResult headRoomRay_BackOffset = HavokUtil::RayCast(backStart, upDir, check_height, COL_LAYER_EXTEND::kClimbObstruction);
-    RayCastResult headRoomRay_bwd = HavokUtil::RayCast(backStart, -fwdDir, back_length, COL_LAYER_EXTEND::kClimbObstruction);
-
-    /* DEBUG LINES */
-    if (ModSettings::_Debug_Enabled) {
-        const auto TH = API_Handles::TrueHUD::Get();
-        if (TH) {
-            TH->DrawArrow(backStart, backStart + upDir * headRoomRay_BackOffset.distance, 10.f, 0.f,
-                          headRoomRay_BackOffset.didHit ? COLOR_HEX_R : COLOR_HEX_G, 1.f);
-            TH->DrawArrow(backStart, backStart - fwdDir * headRoomRay_bwd.distance, 10.f, 0.f,
-                          headRoomRay_bwd.didHit ? COLOR_HEX_R : COLOR_HEX_G, 1.f);
-        }
-    }
-    /*********************************/
-
-    if (headRoomRay_BackOffset.didHit || headRoomRay_bwd.didHit) {
-        return false;
-    }
-    return true;
-}
-
-bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
+bool ParkourUtility::SmartClimbCheck(RE::Actor *actor)
+{
     const auto st = actor->AsActorState();
 
     if (!ModSettings::Smart_Climb) return true;  // Feature disabled, always allow
     if (!actor->IsMoving()) return true;         // Not inputting move, allow
     if (st->IsSwimming()) return true;           // Swimming, allow
+
+    /* 3.6.0 Check if face level obstruction is present. If there is, allow. If not, check relative velocity */
+    const RE::NiPoint3 start = actor->GetPosition() + RE::NiPoint3(0, 0, RuntimeVariables::PlayerScale * 120.f);
+
+    RayCastResult cast = HavokUtil::RayCast(start, GetActorDirFlat(actor), 150.f, COL_LAYER_EXTEND::kClimbObstruction);
+    [[unlikely]] if (ModSettings::_Debug_Enabled) { cast.Debug_Visualize(COLOR_HEX_Y); }
+    if (cast.didHit) return true;
 
     /* 3.5.0 Smart Climb Rework */
     const auto relativeVel = GetRelativeVelocityToMT(actor);
@@ -80,7 +64,8 @@ bool ParkourUtility::SmartClimbCheck(RE::Actor *actor) {
     return true;
 }
 
-bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, const RE::NiPoint3 ledgePoint) {
+bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, const RE::NiPoint3 ledgePoint)
+{
     const auto st = actor->AsActorState();
     if (st->actorState1.movingBack) return false;
     /* 3.5.0 Get a multiplier from normalized fwd velocity. Use it to scale the min ledge height dynamically */
@@ -99,7 +84,7 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const float ledgePlayerD
     const auto calcedTH = baseHeight + distToAdd;
 
     // DEBUG_PRINT("Ledge Diff {} / Threshold {}", ledgePlayerDiff, calcedTH);
-    if (ledgePlayerDiff <= calcedTH) return false;
+    if (ledgePlayerDiff < calcedTH * RuntimeVariables::PlayerScale) return false;
 
     const bool closeEnough = [&] {
         auto dist3 = ledgePoint - actor->GetPosition();
@@ -114,7 +99,8 @@ bool ParkourUtility::StepsExtraChecks(RE::Actor *actor, const float ledgePlayerD
     return true;
 }
 
-bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
+bool ParkourUtility::VaultExtraChecks(RE::Actor *actor)
+{
     if (actor->IsInMidair()) return false;
     if (actor->AsActorState()->actorState1.movingBack) return false;
 
@@ -125,7 +111,8 @@ bool ParkourUtility::VaultExtraChecks(RE::Actor *actor) {
 }
 
 bool ParkourUtility::GrabExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, bool &out_grabHighVariant,
-                                     const RE::NiPoint3 ledgePoint) {
+                                     const RE::NiPoint3 ledgePoint)
+{
     if (actor->AsActorState()->actorState1.movingBack) return false;
 
     // Avoid grabbing ground
@@ -145,18 +132,21 @@ bool ParkourUtility::GrabExtraChecks(RE::Actor *actor, const float ledgePlayerDi
     if (!closeEnough) return false;
 
     // Check Start lower point is player feet level + lowest parkour height, which is positive
-    if (ledgePlayerDiff > HardCodedVariables::grabMaxHeight * RuntimeVariables::PlayerScale) {
+    if (ledgePlayerDiff > HardCodedVariables::grabMaxHeight)
+    {
         return false;
     }
 
-    if (ledgePlayerDiff > HardCodedVariables::grabHighVariantThreshold * RuntimeVariables::PlayerScale) {
+    if (ledgePlayerDiff > HardCodedVariables::grabHighVariantThreshold)
+    {
         out_grabHighVariant = true;
     }
 
     return true;
 }
 
-void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
+void ParkourUtility::StopInteractions(RE::Actor &a_actor)
+{
     a_actor.StopCurrentDialogue();
     a_actor.InterruptCast(false);
     a_actor.StopInteractingQuick(true);
@@ -175,7 +165,8 @@ void ParkourUtility::StopInteractions(RE::Actor &a_actor) {
     a_actor.StopMoving(0.0f);
 }
 
-RE::NiPoint3 ParkourUtility::GetActorDirFlat(RE::Actor *actor) {
+RE::NiPoint3 ParkourUtility::GetActorDirFlat(RE::Actor *actor)
+{
     // Calculate player forward direction (normalized)
     // const float actorYaw = actor->data.angle.z;  // Player's yaw
 
@@ -195,21 +186,29 @@ RE::NiPoint3 ParkourUtility::GetActorDirFlat(RE::Actor *actor) {
     return VEC4_TO_VEC3(ctrl->forwardVec * -1);  // * -1 cause it returns the inverse vector pointing backwards?
 }
 
-bool ParkourUtility::IsKnockedOut(RE::Actor *actor) {
-    return actor->AsActorState()->GetKnockState() != RE::KNOCK_STATE_ENUM::kNormal;
-}
+// float ParkourUtility::GetActorEyeHeight(RE::Actor *act)
+// {
+//     RE::NiPoint3 out_origin;
+//     RE::NiPoint3 out_dir;
+//     act->GetEyeVector(out_origin, out_dir, false);
 
-bool ParkourUtility::IsSitting(RE::Actor *actor) {
-    return actor->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal;
-}
+//     return out_origin.z - act->GetPosition().z;
+// }
 
-bool ParkourUtility::IsCrosshairRefActivator() {
+bool ParkourUtility::IsKnockedOut(RE::Actor *actor) { return actor->AsActorState()->GetKnockState() != RE::KNOCK_STATE_ENUM::kNormal; }
+
+bool ParkourUtility::IsSitting(RE::Actor *actor) { return actor->AsActorState()->GetSitSleepState() != RE::SIT_SLEEP_STATE::kNormal; }
+
+bool ParkourUtility::IsCrosshairRefActivator()
+{
     //auto ref = RE::CrosshairPickData::GetSingleton()->grabPickRef.get();
-    const auto ref = RE::CrosshairPickData::GetSingleton()->target.get();
-    if (ref) {
+    const auto ref = RE::CrosshairPickData::GetSingleton()->target->get().get();
+    if (ref)
+    {
         /* Something activatable in crosshair */
-        if (ref->GetFormFlags() & RE::TESObjectREFR::RecordFlags::kHarvested) {
-            //LOG("Harvested");
+        if (ref->GetFormFlags() & RE::TESObjectREFR::RecordFlags::kHarvested)
+        {
+            //INFO("Harvested");
             /* Activator is harvested, don't consider it valid */
             return false;
         }
@@ -219,16 +218,19 @@ bool ParkourUtility::IsCrosshairRefActivator() {
     return false;
 }
 
-bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player) {
+bool ParkourUtility::IsChargenHandsBound(RE::PlayerCharacter *player)
+{
     // Check if player has chargen flag hands bound
     const auto &gs = player->GetGameStatsData();
-    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kShowControlsDisabledMessage)) {
+    if (gs.byCharGenFlag.any(RE::PlayerCharacter::ByCharGenFlag::kShowControlsDisabledMessage))
+    {
         return true;
     }
     return false;
 }
 
-bool ParkourUtility::IsBeastForm(RE::PlayerCharacter *pl) {
+bool ParkourUtility::IsBeastForm(RE::PlayerCharacter *pl)
+{
     bool menuLock = RE::MenuControls::GetSingleton()->InBeastForm();
     if (menuLock) return true;
 
@@ -236,22 +238,24 @@ bool ParkourUtility::IsBeastForm(RE::PlayerCharacter *pl) {
     return runtime.preTransformationData;
 }
 
-bool ParkourUtility::IsOnMount() {
-    return GET_PLAYER->IsOnMount();
-}
+bool ParkourUtility::IsOnMount() { return GET_PLAYER->IsOnMount(); }
 
-bool ParkourUtility::IsGamePaused() {
+bool ParkourUtility::IsGamePaused()
+{
     const auto ui = RE::UI::GetSingleton();
     return ui && ui->GameIsPaused();
 }
 
-bool ParkourUtility::IsInSyncedAnimation(RE::Actor *actor) {
+bool ParkourUtility::IsInSyncedAnimation(RE::Actor *actor)
+{
     bool out;
     return actor->GetGraphVariableBool("bIsSynced", out) && out;
 }
 
-float ParkourUtility::CalculateStaminaReqFromEquipLoad(RE::Actor *actor) {
-    if (actor->IsPlayerRef()) {
+float ParkourUtility::CalculateStaminaReqFromEquipLoad(RE::Actor *actor)
+{
+    if (actor->IsPlayerRef())
+    {
         const RE::PlayerCharacter *pl = actor->As<RE::PlayerCharacter>();
         if (pl->IsGodMode()) return -1.f;
     }
@@ -262,28 +266,35 @@ float ParkourUtility::CalculateStaminaReqFromEquipLoad(RE::Actor *actor) {
     return ModSettings::Stamina_Damage + (equip * 0.2f);
 }
 
-bool ParkourUtility::ActorHasEnoughStamina(RE::Actor *actor) {
+bool ParkourUtility::ActorHasEnoughStamina(RE::Actor *actor)
+{
     const auto currentStamina = actor->AsActorValueOwner()->GetActorValue(RE::ActorValue::kStamina);
 
-    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateStaminaReqFromEquipLoad(actor)) {
+    if (!ModSettings::Must_Have_Stamina || currentStamina > CalculateStaminaReqFromEquipLoad(actor))
+    {
         return true;
     }
     return false;
 }
 
-bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount) {
-    if (actor && amount > 0) {
+bool ParkourUtility::DamageActorStamina(RE::Actor *actor, float amount)
+{
+    if (actor && amount > 0)
+    {
         actor->AsActorValueOwner()->DamageActorValue(RE::ActorValue::kStamina, amount);
         return true;
     }
     return false;
 }
 
-bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor) {
+bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor)
+{
     // If stamina options are on, check if player has enough stamina. If not, play failed anim. If stamina is on but
     // isn't required or player is swimming, just deal stamina damage. Only for high & higher climbing, would get annoying otherwise.
-    if (ModSettings::Enable_Stamina_Consumption && !actor->AsActorState()->IsSwimming()) {
-        if (ActorHasEnoughStamina(actor) == false) {
+    if (ModSettings::Enable_Stamina_Consumption && !actor->AsActorState()->IsSwimming())
+    {
+        if (ActorHasEnoughStamina(actor) == false)
+        {
             return true;
         }
     }
@@ -291,8 +302,10 @@ bool ParkourUtility::ShouldClimbActionFail(RE::Actor *actor) {
 }
 
 // Return true if action should consume half the stamina cost
-bool ParkourUtility::CheckActionRequiresLowEffort(ParkourType ledge) {
-    switch (ledge) {
+bool ParkourUtility::CheckActionRequiresLowEffort(ParkourType ledge)
+{
+    switch (ledge)
+    {
         case ParkourType::High:
         case ParkourType::Highest:
         case ParkourType::Failed:
@@ -304,7 +317,8 @@ bool ParkourUtility::CheckActionRequiresLowEffort(ParkourType ledge) {
     }
 }
 
-bool ParkourUtility::PlayerIsSwimming() {
+bool ParkourUtility::PlayerIsSwimming()
+{
     const auto player = GET_PLAYER;
     return player->AsActorState()->IsSwimming();
 
@@ -313,11 +327,10 @@ bool ParkourUtility::PlayerIsSwimming() {
     //        player->boolBits.any(RE::Actor::BOOL_BITS::kInWater) /*&& !player->GetCharController()->flags.any(RE::CHARACTER_FLAGS::kSwimAtWaterSurface))*/;
 }
 
-bool ParkourUtility::IsActorWeaponOut(RE::Actor *actor) {
-    return actor->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kDrawn;
-}
+bool ParkourUtility::IsActorWeaponOut(RE::Actor *actor) { return actor->AsActorState()->GetWeaponState() == RE::WEAPON_STATE::kDrawn; }
 
-bool ParkourUtility::IsInDrawSheath(RE::Actor *actor) {
+bool ParkourUtility::IsInDrawSheath(RE::Actor *actor)
+{
     bool equipping;
     bool unequipping;
 
@@ -329,16 +342,19 @@ bool ParkourUtility::IsInDrawSheath(RE::Actor *actor) {
     return equipping || unequipping;
 }
 
-bool ParkourUtility::IsAttacking(RE::Actor *actor) {
+bool ParkourUtility::IsAttacking(RE::Actor *actor)
+{
     return actor->AsActorState()->actorState1.meleeAttackState != RE::ATTACK_STATE_ENUM::kNone;
 }
 
-bool ParkourUtility::IsCrouchSliding(RE::Actor *actor) {
+bool ParkourUtility::IsCrouchSliding(RE::Actor *actor)
+{
     bool sliding;
     return actor->GetGraphVariableBool(SPPF_SLIDE_ONGOING, sliding) && sliding;
 }
 
-float ParkourUtility::GetCharForwardVelocity(RE::Actor *act) {
+float ParkourUtility::GetCharForwardVelocity(RE::Actor *act)
+{
     RE::NiPoint3 vel;
     act->GetLinearVelocity(vel);
     vel.z = 0.0f;
@@ -346,18 +362,21 @@ float ParkourUtility::GetCharForwardVelocity(RE::Actor *act) {
     return vel.Length();
 }
 
-float ParkourUtility::GetRelativeVelocityToMT(RE::Actor *actor) {
+float ParkourUtility::GetRelativeVelocityToMT(RE::Actor *actor)
+{
     const float &vel = GetCharForwardVelocity(actor);
     const float &mt_speed = actor->AsActorState()->DoGetMovementSpeed();
 
     return vel / (mt_speed <= 0 ? 1 : mt_speed);
 }
 
-bool ParkourUtility::HasCustomBlock(RE::Actor *act, bool isSlideList) {
+bool ParkourUtility::HasCustomBlock(RE::Actor *act, bool isSlideList)
+{
     if (!act) return false;
     namespace vars = CustomBlockingVars;
 
-    for (auto &&i: isSlideList ? vars::SlideList : vars::ParkourList) {
+    for (auto &&i: isSlideList ? vars::SlideList : vars::ParkourList)
+    {
         bool out{false};
         act->GetGraphVariableBool(i, out);
 
@@ -366,7 +385,8 @@ bool ParkourUtility::HasCustomBlock(RE::Actor *act, bool isSlideList) {
     return false;
 }
 
-bool ParkourUtility::CamLedgeAngleValid() {
+bool ParkourUtility::CamLedgeAngleValid()
+{
     if (Compatibility::TrueDirectionalMovement::found) return true;
 
     auto cam = RE::PlayerCamera::GetSingleton();

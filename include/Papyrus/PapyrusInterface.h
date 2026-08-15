@@ -1,6 +1,7 @@
 #pragma once
 
-namespace SkyParkour_Papyrus {
+namespace SkyParkour_Papyrus
+{
 
     class Internal {
         public:

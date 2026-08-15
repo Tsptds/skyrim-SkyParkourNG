@@ -1,6 +1,7 @@
 #pragma once
 
-namespace BehaviorGraph {
+namespace BehaviorGraph
+{
     /* --Parkour-- */
     // Anim Events
     constexpr const char *SPPF_NOTIFY = "SkyParkour";
@@ -18,9 +19,9 @@ namespace BehaviorGraph {
     constexpr const char *SPPF_ONGOING = "SkyParkourOngoing";
     constexpr const char *SPPF_SPEEDMULT = "SkyParkourSpeedMult";
     constexpr const char *SPPF_Lower_Body_Only = "SkyParkourLowerBody";
-    
+
     // Anim Event Payload
-    constexpr const char* SPPF_LOWEFFORTPAYLOAD = "LowEffort";
+    constexpr const char *SPPF_LOWEFFORTPAYLOAD = "LowEffort";
     /*----------------------------------------------------------------*/
 
     /* --Crouch Slide-- */
@@ -28,11 +29,11 @@ namespace BehaviorGraph {
     constexpr const char *SPPF_NOTIFY_SLIDE = "SkyParkour_Slide";
     constexpr const char *SPPF_SLIDE_START = "SkyParkour_SlideStart";
     constexpr const char *SPPF_SLIDE_STOP = "SkyParkour_SlideStop";
-    
+
     // Graph Variables
     constexpr const char *SPPF_SLIDE_ONGOING = "SkyParkourSliding";
     constexpr const char *SPPF_SLIDE_IS_ROLL = "SkyParkourIsLandingRoll";
-    
+
     // Anim Event Payload
     constexpr const char *SPPF_SLIDEPAYLOAD = "Slide";
     constexpr const char *SPPF_ROLLPAYLOAD = "LandRoll";

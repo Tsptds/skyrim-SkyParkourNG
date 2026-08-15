@@ -5,7 +5,8 @@
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 #include "Util/HookingUtil.hpp"
 
-namespace Hooks {
+namespace Hooks
+{
 
     class CameraHandler {
         public:
@@ -98,7 +99,8 @@ namespace Hooks {
 
 #pragma region  // Install All
 
-    bool CameraHandler::InstallCamStateHooks() {
+    bool CameraHandler::InstallCamStateHooks()
+    {
         bool res = true;
 
         // res &= TPP::Install::Begin();
@@ -118,7 +120,8 @@ namespace Hooks {
 
 #pragma region  // TPP Install
 
-    bool CameraHandler::TPP::Install::CanProcess() {
+    bool CameraHandler::TPP::Install::CanProcess()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[1]};
@@ -128,7 +131,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::TPP::Install::Begin() {
+    bool CameraHandler::TPP::Install::Begin()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
@@ -138,7 +142,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::TPP::Install::End() {
+    bool CameraHandler::TPP::Install::End()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
@@ -148,7 +153,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::TPP::Install::Update() {
+    bool CameraHandler::TPP::Install::Update()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_ThirdPersonState[0]};
@@ -163,7 +169,8 @@ namespace Hooks {
 
 #pragma region  // FPP Install
 
-    bool CameraHandler::FPP::Install::CanProcess() {
+    bool CameraHandler::FPP::Install::CanProcess()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[1]};
@@ -173,7 +180,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::FPP::Install::Begin() {
+    bool CameraHandler::FPP::Install::Begin()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
@@ -183,7 +191,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::FPP::Install::End() {
+    bool CameraHandler::FPP::Install::End()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
@@ -193,7 +202,8 @@ namespace Hooks {
 
         return res;
     }
-    bool CameraHandler::FPP::Install::Update() {
+    bool CameraHandler::FPP::Install::Update()
+    {
         /* VTABLE 0 ->TesCameraState /  1 ->PlayerInputHandler */
 
         REL::Relocation<uintptr_t> vtbl{RE::VTABLE_FirstPersonState[0]};
@@ -208,7 +218,8 @@ namespace Hooks {
 
 #pragma region  // TPP Callback
 
-    bool CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event) {
+    bool CameraHandler::TPP::Callback::CanProcess(RE::ThirdPersonState *a_this, RE::InputEvent *a_event)
+    {
         if (ModSettings::Parkour_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
@@ -217,10 +228,12 @@ namespace Hooks {
 
         return OG::_CanProcess(a_this, a_event);
     }
-    void CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this) {
+    void CameraHandler::TPP::Callback::Begin(RE::ThirdPersonState *a_this)
+    {
         OG::_Begin(a_this);
     }
-    void CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this) {
+    void CameraHandler::TPP::Callback::End(RE::ThirdPersonState *a_this)
+    {
         // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
         Parkouring::InvalidateVars();
         auto menu = Scaleform::SkyParkourMenu::GetSingleton();
@@ -228,7 +241,8 @@ namespace Hooks {
 
         OG::_End(a_this);
     }
-    void CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+    void CameraHandler::TPP::Callback::Update(RE::ThirdPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState)
+    {
         auto menu = Scaleform::SkyParkourMenu::GetSingleton();
         if (menu) menu->ScaleToThirdPersonZoom(a_this->currentZoomOffset);
 
@@ -257,7 +271,8 @@ namespace Hooks {
 
 #pragma region  // FPP Callback
 
-    bool CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event) {
+    bool CameraHandler::FPP::Callback::CanProcess(RE::FirstPersonState *a_this, RE::InputEvent *a_event)
+    {
         if (ModSettings::Parkour_Enabled) {
             if (RuntimeVariables::ParkourInProgress) {
                 return false;
@@ -266,16 +281,19 @@ namespace Hooks {
 
         return OG::_CanProcess(a_this, a_event);
     }
-    void CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this) {
+    void CameraHandler::FPP::Callback::Begin(RE::FirstPersonState *a_this)
+    {
         OG::_Begin(a_this);
     }
-    void CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this) {
+    void CameraHandler::FPP::Callback::End(RE::FirstPersonState *a_this)
+    {
         // On cam state exit, invalidate vars. FPP or TPP will pick up and update when re-entered.
         Parkouring::InvalidateVars();
 
         OG::_End(a_this);
     }
-    void CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState) {
+    void CameraHandler::FPP::Callback::Update(RE::FirstPersonState *a_this, RE::BSTSmartPointer<RE::TESCameraState> &a_nextState)
+    {
         namespace rt = RuntimeVariables;
         if (rt::ParkourInProgress || rt::SlideOngoing) {
             /* Clamp Player looking angle to prevent weird visuals */

@@ -2,15 +2,14 @@
 
 enum class ParkourType : int32_t;
 
-namespace Parkouring {
-
+namespace Parkouring
+{
     ParkourType GetLedgePoint(RayCastResult &out_LedgeRay);
     ParkourType ClimbCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minLedgeHeight, float maxLedgeHeight,
                            RayCastResult &out_LedgeRay);
-    ParkourType VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float vaultLength, float maxElevationIncrease,
-                           float minVaultHeight, float maxVaultHeight, RayCastResult &out_LedgeRay, bool &out_isForwardBlocked);
-    ParkourType ChooseClimbHeight(RE::Actor *player, const float playerHeight, RE::NiPoint3 &ledgePoint, const RE::NiPoint3 &playerPos,
-                                  RE::NiPoint3 actorDirFlat);
+    ParkourType VaultCheck(RE::NiPoint3 &ledgePoint, RE::NiPoint3 checkDir, float minVaultHeight, float maxVaultHeight,
+                           RayCastResult &out_LedgeRay);
+    ParkourType ChooseClimbHeight(RE::Actor *player, RE::NiPoint3 &ledgePoint, const RE::NiPoint3 &playerPos);
 
     void OnStartStop(bool isStop, RE::Actor *actor);  // Stop is true, start is false
     bool CalculateStartingPosition(RE::Actor *actor, ParkourType ledgeType, RE::NiPoint3 &out);

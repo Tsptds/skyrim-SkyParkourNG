@@ -1,6 +1,7 @@
 #pragma once
 
-namespace IniSettings {
+namespace IniSettings
+{
     inline std::string INIPath{"./Data/SKSE/Plugins/SkyParkourNG.ini"};
     inline std::string ESP_NAME{"SkyParkour.esp"};
 

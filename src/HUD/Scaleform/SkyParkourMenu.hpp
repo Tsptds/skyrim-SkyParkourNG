@@ -5,7 +5,8 @@
 
 #define DEBUG_PRINT(fmt_str, ...) Scaleform::SkyParkourMenu::GetSingleton()->DebugText(fmt::format(fmt_str, __VA_ARGS__))
 
-namespace Scaleform {
+namespace Scaleform
+{
     class SkyParkourMenu : public RE::IMenu {
         public:
             static constexpr std::string_view MENU_NAME = "SkyParkour";
@@ -14,38 +15,45 @@ namespace Scaleform {
             enum IndicatorType : uint8_t { kInvisible = 0, kClimb, kVault, kOutOfStamina, kStep };
 
             // Factory
-            static RE::stl::owner<RE::IMenu *> Creator() {
+            static RE::stl::owner<RE::IMenu *> Creator()
+            {
                 return new SkyParkourMenu();
             }
 
             // Register menu
-            static void Register() {
+            static void Register()
+            {
                 RE::UI::GetSingleton()->Register(MENU_NAME.data(), Creator);
-                LOG("Indicators: Menu Registered");
+                INFO("Indicators: Menu Registered");
             }
 
-            static auto GetSingleton() {
+            static auto GetSingleton()
+            {
                 using sppf = Scaleform::SkyParkourMenu;
                 return RE::UI::GetSingleton()->GetMenu<sppf>(MENU_NAME);
             }
 
             // Check if open
-            bool IsOpen() const {
+            bool IsOpen() const
+            {
                 return _bIsOpen;
             }
-            bool IsDebug() const {
+            bool IsDebug() const
+            {
                 return _bDebugOverlayEnabled;
             }
 
-            void ShowDebugOverlay(bool show) {
+            void ShowDebugOverlay(bool show)
+            {
                 if (!_view) return;
                 RE::GFxValue arg;
                 arg.SetBoolean(show);
                 _view->Invoke("_root.ShowDebugOverlay", nullptr, &arg, 1);
                 _bDebugOverlayEnabled = show;
-                // LOG("Debug overlay {}", show);
+                // INFO("Debug overlay {}", show);
             }
-            void DebugText(const std::string &text) {
+            void DebugText(const std::string &text)
+            {
                 if (!_view) return;
                 if (!ModSettings::_Debug_Enabled) return;
                 RE::GFxValue arg;
@@ -53,7 +61,8 @@ namespace Scaleform {
                 _view->Invoke("_root.Debug", nullptr, &arg, 1);
             }
 
-            void SetActiveIndicatorType(IndicatorType type) {
+            void SetActiveIndicatorType(IndicatorType type)
+            {
                 if (!_view) return;
                 if (_lastIndic == type) return;
 
@@ -67,7 +76,8 @@ namespace Scaleform {
                 _view->Invoke("_root.SetIndicatorType", nullptr, &arg, 1);
             }
 
-            void ScaleToThirdPersonZoom(float zoom) {
+            void ScaleToThirdPersonZoom(float zoom)
+            {
                 if (!_view) return;
                 if (_lastIndic == IndicatorType::kInvisible) return;
 
@@ -77,7 +87,8 @@ namespace Scaleform {
                 _view->Invoke("_root.ScaleIndicator", nullptr, &arg, 1);
             }
 
-            void ScaleToFirstPerson() {
+            void ScaleToFirstPerson()
+            {
                 if (!_view) return;
 
                 const float zoom = 1.0f;
@@ -86,7 +97,8 @@ namespace Scaleform {
                 _view->Invoke("_root.ScaleIndicator", nullptr, &arg, 1);
             }
 
-            void SetScreenPosition(bool instant = false) {
+            void SetScreenPosition(bool instant = false)
+            {
                 auto targetPos = WorldToScreen(RuntimeVariables::ledgePoint + RE::NiPoint3(0, 0, 8));
                 ClampToScreen(targetPos);
 
@@ -123,7 +135,8 @@ namespace Scaleform {
                 _view->Invoke("_root.SetScreenPosition", nullptr, args, 3);
             }
 
-            void SyncHudOpacity() {
+            void SyncHudOpacity()
+            {
                 if (!g_fHUDOpacity) return;
                 if (*g_fHUDOpacity == _HudOpacityCache) return;
 
@@ -135,32 +148,36 @@ namespace Scaleform {
                 _view->Invoke("_root.SetHudOpacity", nullptr, &arg, 1);
             }
             // Get GFx view
-            RE::GPtr<RE::GFxMovieView> GetView() const {
+            RE::GPtr<RE::GFxMovieView> GetView() const
+            {
                 return _view;
             }
 
             // Show the menu itself, keep this on at all times
-            void Show() {
+            void Show()
+            {
                 auto queue = RE::UIMessageQueue::GetSingleton();
                 if (queue) {
                     queue->AddMessage(MENU_NAME.data(), RE::UI_MESSAGE_TYPE::kShow, nullptr);
-                    LOG("Indicators: Notified <Show Menu>");
+                    INFO("Indicators: Notified <Show Menu>");
                 }
             }
 
             // Should never be called at all
-            void Hide() {
+            void Hide()
+            {
                 auto queue = RE::UIMessageQueue::GetSingleton();
                 if (queue) {
                     queue->AddMessage(MENU_NAME.data(), RE::UI_MESSAGE_TYPE::kHide, nullptr);
-                    LOG("Indicators: Notified <Hide Menu>");
+                    INFO("Indicators: Notified <Hide Menu>");
                 }
             }
 
         protected:
             using UIResult = RE::UI_MESSAGE_RESULTS;
-            SkyParkourMenu() {
-                LOG("Indicators: Creating Menu");
+            SkyParkourMenu()
+            {
+                INFO("Indicators: Creating Menu");
                 auto menu = static_cast<Super *>(this);
                 menu->depthPriority = SORT_PRIORITY;
                 auto scaleformManager = RE::BSScaleformManager::GetSingleton();
@@ -199,18 +216,20 @@ namespace Scaleform {
             ~SkyParkourMenu() = default;
 
             // PostCreate called by engine after menu is constructed
-            void PostCreate() override {
+            void PostCreate() override
+            {
                 if (!_view) return;
                 RE::GRectF rect = _view->GetVisibleFrameRect();
                 _screenRes.x = fabs(rect.left - rect.right);
                 _screenRes.y = fabs(rect.top - rect.bottom);
 
                 Super::PostCreate();
-                LOG("Indicators: Menu Created");
+                INFO("Indicators: Menu Created");
             }
 
             // Handle show/hide messages
-            UIResult ProcessMessage(RE::UIMessage &a_message) override {
+            UIResult ProcessMessage(RE::UIMessage &a_message) override
+            {
                 using Type = RE::UI_MESSAGE_TYPE;
 
                 switch (*a_message.type) {
@@ -218,7 +237,7 @@ namespace Scaleform {
                         if (_view) {
                             Scaleform::SkyParkourMenu::GetSingleton()->ShowDebugOverlay(ModSettings::_Debug_Enabled);
                             _bIsOpen = true;
-                            LOG("Indicators: Menu Shown");
+                            INFO("Indicators: Menu Shown");
                             return Super::ProcessMessage(a_message);
                         }
 
@@ -227,7 +246,7 @@ namespace Scaleform {
 
                     case Type::kHide:
                         /* Simply ignore hide requests, no reason to hide. Indicator States are synced to parkour states */
-                        // LOG("UI HIDDEN");
+                        // INFO("UI HIDDEN");
                         // _bIsOpen = false;
                         // return Super::ProcessMessage(a_message);
                         return RE::UI_MESSAGE_RESULTS::kIgnore;
@@ -238,7 +257,8 @@ namespace Scaleform {
             }
 
             // Advance the movie each frame
-            void AdvanceMovie(float interval, [[maybe_unused]] std::uint32_t currentTime) override {
+            void AdvanceMovie(float interval, [[maybe_unused]] std::uint32_t currentTime) override
+            {
                 if (!_view) return;
                 if (_lastIndic == IndicatorType::kInvisible) return;
 
@@ -253,7 +273,8 @@ namespace Scaleform {
                 _view->Advance(interval);
             }
 
-            RE::NiPoint2 WorldToScreen(const RE::NiPoint3 &a_worldPos) const {
+            RE::NiPoint2 WorldToScreen(const RE::NiPoint3 &a_worldPos) const
+            {
                 RE::NiPoint2 screenPos;
                 float depth;
 
@@ -268,7 +289,8 @@ namespace Scaleform {
                 return screenPos;
             }
 
-            void ClampToScreen(RE::NiPoint2 &a_point) {
+            void ClampToScreen(RE::NiPoint2 &a_point)
+            {
                 constexpr float maxOvershoot_Top = -5.f;
                 constexpr float maxOvershoot_Bot = -10.f;
 
@@ -318,7 +340,8 @@ namespace Scaleform {
 
             class Logger : public RE::GFxLog {
                 public:
-                    void LogMessageVarg(LogMessageType, const char *a_fmt, std::va_list a_argList) override {
+                    void LogMessageVarg(LogMessageType, const char *a_fmt, std::va_list a_argList) override
+                    {
                         std::string fmt(a_fmt ? a_fmt : "");
                         while (!fmt.empty() && fmt.back() == '\n') {
                             fmt.pop_back();
@@ -330,7 +353,7 @@ namespace Scaleform {
                         std::vsnprintf(buf.data(), buf.size(), fmt.c_str(), args);
                         va_end(args);
 
-                        LOG("{}: {}"sv, SkyParkourMenu::MENU_NAME, buf.data());
+                        INFO("{}: {}"sv, SkyParkourMenu::MENU_NAME, buf.data());
                     }
             };
     };

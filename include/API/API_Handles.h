@@ -2,7 +2,8 @@
 #include "API/TrueHUDAPI.h"
 #include "API/TrueDirectionalMovementAPI.h"
 
-namespace API_Handles {
+namespace API_Handles
+{
 
     class TrueHUD {
         public:
@@ -19,15 +20,21 @@ namespace API_Handles {
             inline static TDM_API::IVTDM3 *Get() { return APIHandle; };
             static bool IsLockedOn();
             static bool RequestTDMAPI();
-            static void ObtainYawControl(bool);
-            static void LockDirectional(bool);
+
+            static void ObtainYaw(bool);
+            static void ReleaseYaw();
+
+            static void SyncTppYaw();
+
+            // static void LockDirectional(bool);
 
         private:
             inline static TDM_API::PluginHandle pluginHandle;  // For this plugin not the API
             inline static TDM_API::IVTDM3 *APIHandle;
     };
 
-    inline bool RequestAllHandles() {
+    inline bool RequestAllHandles()
+    {
         bool res{true};
         res &= TrueHUD::RequestTrueHUDAPI();
         res &= TDM::RequestTDMAPI();

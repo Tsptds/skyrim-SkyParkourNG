@@ -7,27 +7,30 @@
 #include "Util/HavokUtil.hpp"
 #include "_References/RuntimeMethods.h"
 
-void RaceChangeListener::Register() {
+void RaceChangeListener::Register()
+{
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
 
     if (g_raceChangeSink) {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->AddEventSink(g_raceChangeSink);
 
-        //LOG(">> RaceChange - Listening");
+        //INFO(">> RaceChange - Listening");
     }
 }
-void RaceChangeListener::Unregister() {
+void RaceChangeListener::Unregister()
+{
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
 
     if (g_raceChangeSink) {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->RemoveEventSink(g_raceChangeSink);
 
-        //LOG("RaceChange - Not Listening");
+        //INFO("RaceChange - Not Listening");
     }
 }
 
 RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRaceCompleteEvent *ev,
-                                                          RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent> *) {
+                                                          RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent> *)
+{
     auto actorRef = ev->subject.get();
     if (!actorRef) return RE::BSEventNotifyControl::kContinue;
 
@@ -44,7 +47,7 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
         CrouchSliding::SetSlideOnOff(false);
     }
     else {  // Changed race but it's not a beast form, reset stuff
-        //LOG(">> Exiting Beast Form");
+        //INFO(">> Exiting Beast Form");
         RuntimeMethods::ResetAll();
         if (ModSettings::Parkour_Enabled) Parkouring::SetParkourOnOff(true);
         if (ModSettings::Crouch_Slide_Enabled) CrouchSliding::SetSlideOnOff(true);

@@ -1,7 +1,9 @@
 #include "_References/IniSettings.h"
 
-namespace IniSettings {
-    void CreateDefault(std::unique_ptr<CSimpleIniA> &ini) {
+namespace IniSettings
+{
+    void CreateDefault(std::unique_ptr<CSimpleIniA> &ini)
+    {
         // Set default values here
         ini->SetValue("ESP", "sEspName", IniSettings::ESP_NAME.c_str());
 
@@ -27,7 +29,8 @@ namespace IniSettings {
         ini->SetValue("Experimental", "bSlideTackle", "false");
     }
 
-    std::unique_ptr<CSimpleIniA> GetIniHandle() {
+    std::unique_ptr<CSimpleIniA> GetIniHandle()
+    {
         const auto path = IniSettings::INIPath.c_str();
 
         auto ini = std::make_unique<CSimpleIniA>();

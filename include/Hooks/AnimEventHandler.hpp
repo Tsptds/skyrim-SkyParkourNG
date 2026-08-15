@@ -12,7 +12,8 @@
 
 #include "HUD/Scaleform/SkyParkourMenu.hpp"
 
-namespace Hooks {
+namespace Hooks
+{
 
     class AnimationEventHook {
         public:
@@ -59,7 +60,8 @@ namespace Hooks {
     };
 
 #pragma region  // AnimEvent
-    bool AnimationEventHook::InstallAnimEventHook() {
+    bool AnimationEventHook::InstallAnimEventHook()
+    {
         // This is the anim event hook, global event sink for everyone. Event will go regardless. Don't return anything in this except the OG func.
         // Sink gets destroyed when graph deletes, so using this
         REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_BSAnimationGraphManager[0]};
@@ -71,7 +73,8 @@ namespace Hooks {
 
     RE::BSEventNotifyControl AnimationEventHook::Callback::ProcessEvent(RE::BSAnimationGraphManager *a_this,
                                                                         const RE::BSAnimationGraphEvent *a_event,
-                                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent> *a_eventSource) {
+                                                                        RE::BSTEventSource<RE::BSAnimationGraphEvent> *a_eventSource)
+    {
         if (!a_event) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         if (!ModSettings::Parkour_Enabled && !ModSettings::Crouch_Slide_Enabled) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
@@ -80,15 +83,18 @@ namespace Hooks {
         if (!actor) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         if (!actor->IsPlayerRef()) return OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
-        if (a_event->tag == "GetUpExit") {
+        if (a_event->tag == "GetUpExit")
+        {
             /* Reset vars on ragdoll exit */
             RuntimeMethods::ResetAll();
 
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
-        if (RuntimeVariables::SlideOngoing) {
-            if (a_event->tag == SPPF_SLIDE_STOP) {
+        if (RuntimeVariables::SlideOngoing)
+        {
+            if (a_event->tag == SPPF_SLIDE_STOP)
+            {
                 const bool isRoll = a_event->payload == SPPF_ROLLPAYLOAD;
 
                 constexpr bool is_stop = true;
@@ -98,21 +104,33 @@ namespace Hooks {
                 auto res = OG::_ProcessEvent(a_this, a_event, a_eventSource);
 
                 const auto ctrl = actor->GetCharController();
-                if (ctrl->context.currentState == RE::hkpCharacterStateType::kSwimming) actor->NotifyAnimationGraph("SwimStart");
+                if (ctrl->context.currentState == RE::hkpCharacterStateType::kSwimming)
+                {
+                    actor->NotifyAnimationGraph("SwimStart");
+                }
 
                 return res;
             }
 
-            else if (a_event->tag == SPPF_SLIDE_START) {
-                if (a_event->payload == SPPF_SLIDEPAYLOAD) {
+            else if (a_event->tag == SPPF_SLIDE_START)
+            {
+                if (a_event->payload == SPPF_SLIDEPAYLOAD)
+                {
                     constexpr bool is_start = false;
                     constexpr bool isRoll = false;
                     CrouchSliding::OnStartStop(is_start, actor, isRoll);
                 }
                 // else if (a_event->payload == "LandRoll") {}
             }
-            else if (a_event->tag == SPPF_STAMINA_HIT) {
-                constexpr bool isLowEffort = false;
+
+            else if (a_event->tag == SPPF_RECOVERY)
+            {
+                RuntimeVariables::RecoveryFramesActive = true;
+            }
+
+            else if (a_event->tag == SPPF_STAMINA_HIT)
+            {
+                bool isLowEffort = a_event->payload == SPPF_LOWEFFORTPAYLOAD;
                 constexpr bool isSwimming = false;
                 Parkouring::PostParkourStaminaDamage(actor, isLowEffort, isSwimming);
 
@@ -124,15 +142,18 @@ namespace Hooks {
             return OG::_ProcessEvent(a_this, a_event, a_eventSource);
         }
 
-        if (RuntimeVariables::ParkourInProgress) {
-            //LOG(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
+        if (RuntimeVariables::ParkourInProgress)
+        {
+            //INFO(">> AnimEvent: {} Payload: {}", a_event->tag.c_str(), a_event->payload.c_str());
 
-            if (a_event->tag == SPPF_START) {
+            if (a_event->tag == SPPF_START)
+            {
                 constexpr bool Start = false;
                 Parkouring::OnStartStop(Start, actor);
             }
-            else if (a_event->tag == SPPF_RECOVERY) {
-                if (actor->IsPlayerRef()) RuntimeVariables::RecoveryFramesActive = true;
+            else if (a_event->tag == SPPF_RECOVERY)
+            {
+                RuntimeVariables::RecoveryFramesActive = true;
 
                 const bool closeToGround = [actor] {
                     const RE::NiPoint3 start{actor->GetPosition()};
@@ -145,11 +166,13 @@ namespace Hooks {
 
                 if (!closeToGround) actor->NotifyAnimationGraph(SPPF_STOP);
             }
-            else if (a_event->tag == SPPF_STOP) {
+            else if (a_event->tag == SPPF_STOP)
+            {
                 constexpr bool Stop = true;
                 Parkouring::OnStartStop(Stop, actor);
             }
-            else if (a_event->tag == SPPF_STAMINA_HIT) {
+            else if (a_event->tag == SPPF_STAMINA_HIT)
+            {
                 /* Steps don't consume stamina anymore */
                 const bool isLowEffort = a_event->payload == SPPF_LOWEFFORTPAYLOAD;
                 const bool isSwimming = actor->AsActorState()->IsSwimming();
@@ -164,7 +187,8 @@ namespace Hooks {
 #pragma endregion
 
 #pragma region  // NotifyGraph
-    bool NotifyGraphHandler::InstallGraphNotifyHook() {
+    bool NotifyGraphHandler::InstallGraphNotifyHook()
+    {
         // TESObjectREFR
         //REL::Relocation<uintptr_t> vtblTES{RE::VTABLE_TESObjectREFR[3]};
         //_origTESObjectREFR = vtblTES.write_vfunc(0x1, OnTESObjectREFR);
@@ -181,45 +205,53 @@ namespace Hooks {
         return res;
     }
 
-    bool NotifyGraphHandler::Callback::Notify_TESObjectRefr(RE::IAnimationGraphManagerHolder *a_this,
-                                                            const RE::BSFixedString &a_eventName) {
+    bool NotifyGraphHandler::Callback::Notify_TESObjectRefr(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName)
+    {
         bool result = OG::_Notify_TESObjectRefr(a_this, a_eventName);
 
-        LOG(">> Object Anim Event: {}", a_eventName.c_str());
+        INFO(">> Object Anim Event: {}", a_eventName.c_str());
         return result;
     }
 
-    bool NotifyGraphHandler::Callback::Notify_Character(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName) {
+    bool NotifyGraphHandler::Callback::Notify_Character(RE::IAnimationGraphManagerHolder *a_this, const RE::BSFixedString &a_eventName)
+    {
         bool result = OG::_Notify_Character(a_this, a_eventName);
 
-        LOG(">> Char Anim Event: {}", a_eventName.c_str());
+        INFO(">> Char Anim Event: {}", a_eventName.c_str());
         return result;
     }
 
     bool NotifyGraphHandler::Callback::Notify_PlayerCharacter(RE::IAnimationGraphManagerHolder *a_this,
-                                                              const RE::BSFixedString &a_eventName) {
-        if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress) {
+                                                              const RE::BSFixedString &a_eventName)
+    {
+        if (a_eventName == SPPF_STOP && RuntimeVariables::ParkourInProgress)
+        {
             // Pass the interrupt event instead of modifying the parameter directly
             return OG::_Notify_PlayerCharacter(a_this, SPPF_INTERRUPT);
         }
 
-        if (a_eventName == "Ragdoll") {
+        if (a_eventName == "Ragdoll")
+        {
             /*Unlock controls on ragdoll*/
             bool didRagdoll = OG::_Notify_PlayerCharacter(a_this, a_eventName);
-            if (didRagdoll) {
+            if (didRagdoll)
+            {
                 constexpr bool Stop = true;
                 RE::Actor *actor = GET_PLAYER;
-                if (RuntimeVariables::ParkourInProgress) {
+                if (RuntimeVariables::ParkourInProgress)
+                {
                     Parkouring::OnStartStop(Stop, actor);
                 }
-                else if (RuntimeVariables::SlideOngoing) {
+                else if (RuntimeVariables::SlideOngoing)
+                {
                     CrouchSliding::OnStartStop(Stop, actor, false);
                 }
                 return didRagdoll;
             }
         }
 
-        if (a_eventName == SPPF_STOP) {
+        if (a_eventName == SPPF_STOP)
+        {
             constexpr bool Start = true;
             RE::Actor *actor = GET_PLAYER;
             Parkouring::OnStartStop(Start, actor);
@@ -227,10 +259,24 @@ namespace Hooks {
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
         }
 
-        if (a_eventName == SPPF_SLIDE_STOP) {
+        if (a_eventName == SPPF_SLIDE_STOP)
+        {
             RuntimeVariables::SlideOngoing = false;
-            GET_PLAYER->GetCharController()->flags.reset(RE::CHARACTER_FLAGS::kNoFriction);
+            // GET_PLAYER->GetCharController()->flags.reset(RE::CHARACTER_FLAGS::kNoFriction);
             return OG::_Notify_PlayerCharacter(a_this, a_eventName);
+        }
+
+        if (a_eventName == "SneakStart" && RuntimeVariables::SlideOngoing && RuntimeVariables::RecoveryFramesActive)
+        {
+            bool res = OG::_Notify_PlayerCharacter(a_this, a_eventName);
+
+            if (res)
+            {
+                RE::Actor *actor = GET_PLAYER;
+                actor->AsActorState()->actorState1.sneaking = true;
+                actor->SetGraphVariableInt("iIsInSneak", 1);
+            }
+            return res;
         }
 
         return OG::_Notify_PlayerCharacter(a_this, a_eventName);

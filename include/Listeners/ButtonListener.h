@@ -1,8 +1,9 @@
 #pragma once
 
-namespace Buttons {
+namespace Buttons
+{
 
-    inline std::unordered_map<uint32_t, uint32_t> xinputToCKMap = {
+    const inline std::unordered_map<uint32_t, uint32_t> xinputToCKMap = {
         // Mouse
         {2, 258},  // Mouse middle
         {3, 259},  // M4
@@ -33,10 +34,11 @@ namespace Buttons {
         //{0x8000, 279}   // Y
     };
 
-    inline uint32_t MapToCKIfPossible(uint32_t dxcode) {
+    inline uint32_t MapToCKIfPossible(uint32_t dxcode)
+    {
         auto it = xinputToCKMap.find(dxcode);
         if (it != xinputToCKMap.end()) {
-            //LOG("Alt. CK input found, mapping {}", it->second);
+            //INFO("Alt. CK input found, mapping {}", it->second);
             return it->second;
         }
         return dxcode;  // Return default value if key not found
@@ -44,7 +46,8 @@ namespace Buttons {
 
     class ParkourListener : public RE::BSTEventSink<RE::InputEvent *> {
         public:
-            static ParkourListener *GetSingleton() {
+            static ParkourListener *GetSingleton()
+            {
                 static ParkourListener singleton;
                 return &singleton;
             }
@@ -64,7 +67,8 @@ namespace Buttons {
 
     class SlideListener : public RE::BSTEventSink<RE::InputEvent *> {
         public:
-            static SlideListener *GetSingleton() {
+            static SlideListener *GetSingleton()
+            {
                 static SlideListener singleton;
                 return &singleton;
             }

@@ -1,6 +1,7 @@
 #pragma once
 
-namespace HardCodedVariables {
+namespace HardCodedVariables
+{
     // Lower - upper limits for ledge - vault - grab detection.
     constexpr float climbMaxHeight{250};
     constexpr float climbMinHeight{30};

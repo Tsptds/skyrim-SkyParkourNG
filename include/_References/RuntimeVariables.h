@@ -2,8 +2,8 @@
 
 enum class ParkourType : int32_t;
 
-namespace RuntimeVariables {
-
+namespace RuntimeVariables
+{
     inline bool IsParkourActive{true};
     inline float PlayerScale{1.f};
 

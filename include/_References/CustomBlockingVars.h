@@ -1,6 +1,7 @@
 #pragma once
 
-namespace CustomBlockingVars {
+namespace CustomBlockingVars
+{
     inline std::string FilePath{"./Data/SKSE/Plugins/SkyParkourNG_CustomVars.ini"};
     extern std::unique_ptr<CSimpleIniA> GetHandle();
     extern bool ReadAndCacheVars();

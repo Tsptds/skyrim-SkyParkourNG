@@ -9,10 +9,12 @@
 #include "CrouchSliding.h"
 #include "Util/HavokUtil.hpp"
 
-namespace SkyParkour_Papyrus {
+namespace SkyParkour_Papyrus
+{
     using namespace ModSettings;
 
-    void Internal::Read_All_MCM_From_INI_and_Cache_Settings() {
+    void Internal::Read_All_MCM_From_INI_and_Cache_Settings()
+    {
         auto ini = IniSettings::GetIniHandle();
 
         /* Parkour Settings */
@@ -41,7 +43,8 @@ namespace SkyParkour_Papyrus {
         ExpSlideTackle = ini->GetBoolValue("Experimental", "bSlideTackle", false);
         _Debug_Enabled = ini->GetBoolValue("Debug", "bDebugEnabled", false);
     }
-    void Internal::RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm) {
+    void Internal::RegisterPapyrusFuncsToVM(RE::BSScript::IVirtualMachine *vm)
+    {
         Getters::RegisterFuncs(vm);
         Setters::RegisterFuncs(vm);
     }

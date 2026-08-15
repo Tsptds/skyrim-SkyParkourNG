@@ -5,7 +5,8 @@
 #include "CrouchSliding.h"
 #include "Util/HavokUtil.hpp"
 
-namespace Menus {
+namespace Menus
+{
     // List of disqualifying menu names
     // const std::string_view excludedMenus[] = {RE::BarterMenu::MENU_NAME,       RE::ConsoleNativeUIMenu::MENU_NAME,
     //                                           RE::ContainerMenu::MENU_NAME,    RE::CraftingMenu::MENU_NAME,
@@ -20,7 +21,8 @@ namespace Menus {
     //                                           RE::Console::MENU_NAME,          RE::CursorMenu::MENU_NAME,
     //                                           RE::MainMenu::MENU_NAME};
 
-    bool CheckMenuOpen() {
+    bool CheckMenuOpen()
+    {
         auto ui = RE::UI::GetSingleton();
         if (!ui) return false;
 
@@ -28,37 +30,48 @@ namespace Menus {
         if (ui->IsApplicationMenuOpen()) return true;
         if (ui->IsItemMenuOpen()) return true;
 
+        auto cr = ui->GetMenu<RE::CursorMenu>(RE::CursorMenu::MENU_NAME);
+        if (cr) return true;
+
         return false;
     }
 }  // namespace Menus
 
-bool MenuListener::Register() {
+bool MenuListener::Register()
+{
     auto listener = MenuListener::GetSingleton();
-    if (listener) {
+    if (listener)
+    {
         RE::UI::GetSingleton()->AddEventSink<RE::MenuOpenCloseEvent>(listener);
         return true;
     }
     return false;
 }
-bool MenuListener::Unregister() {
+bool MenuListener::Unregister()
+{
     auto listener = MenuListener::GetSingleton();
-    if (listener) {
+    if (listener)
+    {
         RE::UI::GetSingleton()->RemoveEventSink<RE::MenuOpenCloseEvent>(listener);
         return true;
     }
     return false;
 }
 
-RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent *ev, RE::BSTEventSource<RE::MenuOpenCloseEvent> *) {
+RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent *ev, RE::BSTEventSource<RE::MenuOpenCloseEvent> *)
+{
     if (!ev) return RE::BSEventNotifyControl::kContinue;
-    if (ev->opening) {
-        if (Menus::CheckMenuOpen()) {
+    if (ev->opening)
+    {
+        if (Menus::CheckMenuOpen())
+        {
             RuntimeVariables::IsMenuOpen = true;
             Parkouring::InvalidateVars();
         }
 
-        if (!RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME) {
-            LOG("===Returning to Main Menu===");
+        if (!RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME)
+        {
+            INFO("===Returning to Main Menu===");
             Parkouring::SetParkourOnOff(false);
             CrouchSliding::SetSlideOnOff(false);
             RuntimeMethods::ResetAll();
@@ -66,13 +79,16 @@ RE::BSEventNotifyControl MenuListener::ProcessEvent(const RE::MenuOpenCloseEvent
             RuntimeVariables::IsInMainMenu = true;
         }
     }
-    else {  // if closing
+    else
+    {  // if closing
 
-        if (!Menus::CheckMenuOpen()) {
+        if (!Menus::CheckMenuOpen())
+        {
             RuntimeVariables::IsMenuOpen = false;
         }
 
-        if (RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME) {
+        if (RuntimeVariables::IsInMainMenu && ev->menuName == RE::MainMenu::MENU_NAME)
+        {
             RuntimeVariables::IsInMainMenu = false;
         }
     }

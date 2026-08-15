@@ -2,11 +2,12 @@
 #include "_References/ModSettings.h"
 #include "_References/RuntimeMethods.h"
 
-namespace SkyParkour_Papyrus {
-
+namespace SkyParkour_Papyrus
+{
     using namespace ModSettings;
 
-    void Getters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm) {
+    void Getters::RegisterFuncs(RE::BSScript::IVirtualMachine *vm)
+    {
         vm->RegisterFunction("GetEnableDebug", className, GetEnableDebug);
         vm->RegisterFunction("GetEnableMod", className, GetEnableMod);
         vm->RegisterFunction("GetShowIndicators", className, GetShowIndicators);
@@ -25,52 +26,68 @@ namespace SkyParkour_Papyrus {
         vm->RegisterFunction("GetSmartClimb", className, GetSmartClimb);
     }
 
-    bool Getters::GetEnableDebug(RE::StaticFunctionTag *) {
+    bool Getters::GetEnableDebug(RE::StaticFunctionTag *)
+    {
         return _Debug_Enabled;
     }
-    bool Getters::GetEnableMod(RE::StaticFunctionTag *) {
+    bool Getters::GetEnableMod(RE::StaticFunctionTag *)
+    {
         return Parkour_Enabled;
     }
-    bool Getters::GetShowIndicators(RE::StaticFunctionTag *) {
+    bool Getters::GetShowIndicators(RE::StaticFunctionTag *)
+    {
         return Use_Indicators;
     }
-    float Getters::GetPlaybackSpeed(RE::StaticFunctionTag *) {
+    float Getters::GetPlaybackSpeed(RE::StaticFunctionTag *)
+    {
         return Playback_Speed;
     }
-    bool Getters::GetEnableCrouchSlide(RE::StaticFunctionTag *) {
+    bool Getters::GetEnableCrouchSlide(RE::StaticFunctionTag *)
+    {
         return Crouch_Slide_Enabled;
     }
-    bool Getters::GetEnableStaminaSystem(RE::StaticFunctionTag *) {
+    bool Getters::GetEnableStaminaSystem(RE::StaticFunctionTag *)
+    {
         return Enable_Stamina_Consumption;
     }
-    bool Getters::GetMustHaveStamina(RE::StaticFunctionTag *) {
+    bool Getters::GetMustHaveStamina(RE::StaticFunctionTag *)
+    {
         return Must_Have_Stamina;
     }
-    float Getters::GetBaseStaminaDamage(RE::StaticFunctionTag *) {
+    float Getters::GetBaseStaminaDamage(RE::StaticFunctionTag *)
+    {
         return Stamina_Damage;
     }
-    bool Getters::GetUsePresetKey(RE::StaticFunctionTag *) {
+    bool Getters::GetUsePresetKey(RE::StaticFunctionTag *)
+    {
         return Use_Preset_Parkour_Key;
     }
-    int32_t Getters::GetCustomParkourKey(RE::StaticFunctionTag *) {
+    int32_t Getters::GetCustomParkourKey(RE::StaticFunctionTag *)
+    {
         return Custom_Parkour_Key;
     }
-    int32_t Getters::GetPresetParkourKey(RE::StaticFunctionTag *) {
+    int32_t Getters::GetPresetParkourKey(RE::StaticFunctionTag *)
+    {
         return Preset_Parkour_Key;
     }
-    float Getters::GetParkourDelay(RE::StaticFunctionTag *) {
+    float Getters::GetParkourDelay(RE::StaticFunctionTag *)
+    {
         return Parkour_Delay;
     }
-    int32_t Getters::GetAutoParkour(RE::StaticFunctionTag *) {
+    int32_t Getters::GetAutoParkour(RE::StaticFunctionTag *)
+    {
         return Auto_Parkour;
     }
-    bool Getters::GetSmartSteps(RE::StaticFunctionTag *) {
+    bool Getters::GetSmartSteps(RE::StaticFunctionTag *)
+    {
         return Smart_Steps;
     }
-    bool Getters::GetSmartVault(RE::StaticFunctionTag *) {
+    bool Getters::GetSmartVault(RE::StaticFunctionTag *)
+    {
         return Smart_Vault;
     }
-    bool Getters::GetSmartClimb(RE::StaticFunctionTag *) {
+    bool Getters::GetSmartClimb(RE::StaticFunctionTag *)
+    {
         return Smart_Climb;
     }
 }  // namespace SkyParkour_Papyrus

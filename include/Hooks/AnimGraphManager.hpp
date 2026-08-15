@@ -2,10 +2,12 @@
 #include "Util/HookingUtil.hpp"
 #include "_References/ModSettings.h"
 
-namespace Hooks {
+namespace Hooks
+{
     class GraphManagerHandler {
         public:
-            inline static bool InstallGraphManagerHooks() {
+            inline static bool InstallGraphManagerHooks()
+            {
                 bool res{true};
                 res &= Install::PostCreate();
 
@@ -31,7 +33,8 @@ namespace Hooks {
             };
     };
 
-    bool GraphManagerHandler::Install::PostCreate() {
+    bool GraphManagerHandler::Install::PostCreate()
+    {
         REL::Relocation<std::uintptr_t> vtbl{RE::VTABLE_PlayerCharacter[3]};
         const bool res = Hooking::InstallVFuncHook(vtbl, 0xB, OG::_PostCreate, &Callback::PostCreate);
         if (!res) CRITICAL("GraphManager Hook Not Installed");
@@ -39,11 +42,12 @@ namespace Hooks {
     }
 
     void GraphManagerHandler::Callback::PostCreate(RE::IAnimationGraphManagerHolder *a_this,
-                                                   RE::BSTSmartPointer<RE::BSAnimationGraphManager> &a_animGraphMgr) {
+                                                   RE::BSTSmartPointer<RE::BSAnimationGraphManager> &a_animGraphMgr)
+    {
         OG::_PostCreate(a_this, a_animGraphMgr);
 
         const auto actor = a_animGraphMgr->graphs[a_animGraphMgr->GetRuntimeData().activeGraph].get()->holder;
-        LOG("Post Load Graph: {}", actor->GetName());
+        INFO("Post Load Graph: {}", actor->GetName());
 
         if (actor->IsPlayerRef()) {
             HavokUtil::CreateBoundGraphChannels(actor, a_animGraphMgr);

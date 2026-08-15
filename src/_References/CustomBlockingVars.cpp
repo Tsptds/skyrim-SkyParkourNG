@@ -1,7 +1,9 @@
 #include "_References/CustomBlockingVars.h"
 
-namespace CustomBlockingVars {
-    std::unique_ptr<CSimpleIniA> GetHandle() {
+namespace CustomBlockingVars
+{
+    std::unique_ptr<CSimpleIniA> GetHandle()
+    {
         const auto path = FilePath.c_str();
 
         auto ini = std::make_unique<CSimpleIniA>();
@@ -15,7 +17,8 @@ namespace CustomBlockingVars {
         return ini;
     }
 
-    bool ReadAndCacheVars() {
+    bool ReadAndCacheVars()
+    {
         auto ini = CustomBlockingVars::GetHandle();
 
         if (ini) {

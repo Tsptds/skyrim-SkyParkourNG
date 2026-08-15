@@ -1,6 +1,7 @@
 #pragma once
 
-namespace Compatibility {
+namespace Compatibility
+{
     inline bool BackportedESLSupport{false};
     struct TrueDirectionalMovement {
             inline static bool found{false};

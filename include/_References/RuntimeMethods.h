@@ -1,6 +1,7 @@
 #pragma once
 
-namespace RuntimeMethods {
+namespace RuntimeMethods
+{
     extern const RE::TESFile *GetPlugin(RE::TESDataHandler *const &dh, std::string_view esp_name);
     extern void SetupDLLCompatibility();
     extern void SetupESPCompatibility();

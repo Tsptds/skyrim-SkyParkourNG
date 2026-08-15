@@ -1,7 +1,8 @@
 ﻿#pragma once
 #include "Util/HookingUtil.hpp"
 
-namespace Hooks {
+namespace Hooks
+{
     class HavokHandler {
         public:
             static inline bool InstallHooks();
@@ -68,7 +69,8 @@ namespace Hooks {
 using clipgenerator = Hooks::HavokHandler::hkbClipGenerator;
 using climbing = Hooks::HavokHandler::bhkCharacterStateClimbing;
 
-bool Hooks::HavokHandler::InstallHooks() {
+bool Hooks::HavokHandler::InstallHooks()
+{
     bool res = true;
 
     // res &= clipgenerator::InstallHook::Activate();
@@ -82,7 +84,8 @@ bool Hooks::HavokHandler::InstallHooks() {
 #pragma region  // hkbClipGenerator
 
 // Install
-bool clipgenerator::InstallHook::Activate() {
+bool clipgenerator::InstallHook::Activate()
+{
     REL::Relocation<uintptr_t> vtbl{RE::VTABLE_hkbClipGenerator[0]};
 
     const bool res = Hooking::InstallVFuncHook(vtbl, 0x4, OG::_Activate, &Callback::Activate);
@@ -91,7 +94,8 @@ bool clipgenerator::InstallHook::Activate() {
 }
 
 // Callback
-void clipgenerator::Callback::Activate(RE::hkbClipGenerator *a_this, const RE::hkbContext &a_context) {
+void clipgenerator::Callback::Activate(RE::hkbClipGenerator *a_this, const RE::hkbContext &a_context)
+{
     OG::_Activate(a_this, a_context);
 }
 
@@ -100,7 +104,8 @@ void clipgenerator::Callback::Activate(RE::hkbClipGenerator *a_this, const RE::h
 #pragma region  // bhkCharacterState
 
 // Install
-bool climbing::InstallHook::Update() {
+bool climbing::InstallHook::Update()
+{
     REL::Relocation<uintptr_t> vtbl{RE::VTABLE_bhkCharacterStateOnGround[0]};
 
     const bool res = Hooking::InstallVFuncHook(vtbl, 0x6, OG::_Update, &Callback::Update);
@@ -110,8 +115,9 @@ bool climbing::InstallHook::Update() {
 
 // Callback
 void climbing::Callback::Update(RE::bhkCharacterStateOnGround *a_this, RE::hkpCharacterContext &a_context,
-                                const RE::hkpCharacterInput &a_input, RE::hkpCharacterOutput &a_output) {
-    LOG("CHAR STATE UPDATE");
+                                const RE::hkpCharacterInput &a_input, RE::hkpCharacterOutput &a_output)
+{
+    INFO("CHAR STATE UPDATE");
     return OG::_Update(a_this, a_context, a_input, a_output);
 }
 

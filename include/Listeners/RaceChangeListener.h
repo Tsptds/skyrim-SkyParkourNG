@@ -2,7 +2,8 @@
 
 struct RaceChangeListener : RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
     public:
-        static RaceChangeListener* GetSingleton() {
+        static RaceChangeListener *GetSingleton()
+        {
             static RaceChangeListener singleton;
             return &singleton;
         }
@@ -11,8 +12,8 @@ struct RaceChangeListener : RE::BSTEventSink<RE::TESSwitchRaceCompleteEvent> {
         static void Unregister();
 
     private:
-        virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent* ev,
-                                                      RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent>*) override;
+        virtual RE::BSEventNotifyControl ProcessEvent(const RE::TESSwitchRaceCompleteEvent *ev,
+                                                      RE::BSTEventSource<RE::TESSwitchRaceCompleteEvent> *) override;
 
         RaceChangeListener() = default;
         ~RaceChangeListener() = default;

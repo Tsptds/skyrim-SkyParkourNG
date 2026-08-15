@@ -1,6 +1,7 @@
 #pragma once
 
-namespace SkyParkour {
+namespace SkyParkour
+{
     using namespace RE;
     using cl = COL_LAYER;
     using ft = FormType;

@@ -2,15 +2,16 @@
 
 enum class ParkourType : int32_t;
 
-namespace ParkourUtility {
+namespace ParkourUtility
+{
     bool IsParkourActiveFor(RE::Actor *actor);
-    bool ClimbExtraChecks(RE::NiPoint3 start, const float check_height, RE::NiPoint3 fwdDir);
     bool SmartClimbCheck(RE::Actor *);
     bool StepsExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, const RE::NiPoint3 ledgePoint);
     bool VaultExtraChecks(RE::Actor *actor);
     bool GrabExtraChecks(RE::Actor *actor, const float ledgePlayerDiff, bool &out_grabHighVariant, const RE::NiPoint3 ledgePoint);
     void StopInteractions(RE::Actor &actor);
     RE::NiPoint3 GetActorDirFlat(RE::Actor *actor);
+    // float GetActorEyeHeight(RE::Actor* actor); // Inconsistent FPP / TPP
 
     bool IsKnockedOut(RE::Actor *); // Ragdoll & Get Up Sequence
     bool IsPlayerAlreadyAnimationDriven(RE::Actor *);
