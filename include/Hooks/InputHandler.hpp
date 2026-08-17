@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
 #include "_References/Compatibility.h"
@@ -79,9 +79,11 @@ namespace Hooks
 #pragma region  // Callbacks
     bool InputHandler::Callback::CanProcess_Jump(RE::JumpHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Parkour_Enabled && RuntimeVariables::IsParkourActive) {
-            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump &&
-                ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge) {
+        if (ModSettings::Parkour_Enabled && RuntimeVariables::IsParkourActive)
+        {
+            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == SkyParkour::PresetKeys::kJump &&
+                ModSettings::Parkour_Delay == 0 && RuntimeVariables::selectedLedgeType != ParkourType::NoLedge)
+            {
                 //INFO("Prevented Jump");
 
                 return false;
@@ -96,14 +98,19 @@ namespace Hooks
 
     void InputHandler::Callback::ProcessButton_Jump(RE::JumpHandler *a_this, RE::ButtonEvent *a_event, RE::PlayerControlsData *a_data)
     {
-        if (ModSettings::Parkour_Enabled && !ParkourUtility::IsSitting(GET_PLAYER)) {
-            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == PARKOUR_PRESET_KEYS::kJump) {
+        if (ModSettings::Parkour_Enabled && !ParkourUtility::IsSitting(GET_PLAYER))
+        {
+            if (ModSettings::Use_Preset_Parkour_Key && ModSettings::Preset_Parkour_Key == SkyParkour::PresetKeys::kJump)
+            {
                 const auto btn = a_event->AsButtonEvent();
-                if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f) {
-                    if (btn->IsDown()) {
+                if (btn && btn->QUserEvent() == "Jump" && ModSettings::Parkour_Delay != 0.0f)
+                {
+                    if (btn->IsDown())
+                    {
                         return;
                     }
-                    else if (btn->IsUp()) {
+                    else if (btn->IsUp())
+                    {
                         const float held = btn->HeldDuration();
                         const auto dev = btn->GetDevice();
                         const auto id = btn->GetIDCode();
@@ -114,12 +121,15 @@ namespace Hooks
                         // for a tap, also create a delayed Up
                         RE::ButtonEvent *upEvt = downEvt ? RE::ButtonEvent::Create(dev, "Jump", id, 0, held) : nullptr;
 
-                        if (downEvt || upEvt) {
-                            if (downEvt) {
+                        if (downEvt || upEvt)
+                        {
+                            if (downEvt)
+                            {
                                 OG::_ProcessButtonJump(a_this, downEvt, a_data);
                                 RE::free(downEvt);
                             }
-                            if (upEvt) {
+                            if (upEvt)
+                            {
                                 OG::_ProcessButtonJump(a_this, upEvt, a_data);
                                 RE::free(upEvt);
                             }
@@ -136,11 +146,13 @@ namespace Hooks
 
     bool InputHandler::Callback::CanProcess_Sneak(RE::SneakHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Parkour_Enabled) {
+        if (ModSettings::Parkour_Enabled)
+        {
             if (RuntimeVariables::ParkourInProgress) return false;
         }
 
-        if (ModSettings::Crouch_Slide_Enabled) {
+        if (ModSettings::Crouch_Slide_Enabled)
+        {
             if (RuntimeVariables::SlideOngoing) return false;
             const auto pl = GET_PLAYER;
             if (pl->AsActorState()->IsSprinting()) return false;
@@ -152,25 +164,31 @@ namespace Hooks
 
     bool InputHandler::Callback::CanProcess_Movement(RE::MovementHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Parkour_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
+        if (ModSettings::Parkour_Enabled)
+        {
+            if (RuntimeVariables::ParkourInProgress)
+            {
                 /**/
                 /* Recovery Frame Early Exit Logic */
-                if (RuntimeVariables::RecoveryFramesActive) {
+                if (RuntimeVariables::RecoveryFramesActive)
+                {
                     bool res = OG::_CanProcessMovement(a_this, a_event);
-                    if (res) {
+                    if (res)
+                    {
                         GET_PLAYER->NotifyAnimationGraph(SPPF_INTERRUPT);
                     }
                     return res;
                 }
                 /**/
-                else {
+                else
+                {
                     return false;
                 }
             }
         }
 
-        if (ModSettings::Crouch_Slide_Enabled) {
+        if (ModSettings::Crouch_Slide_Enabled)
+        {
             if (RuntimeVariables::SlideOngoing) return false;
         }
 
@@ -179,7 +197,8 @@ namespace Hooks
 
     bool InputHandler::Callback::CanProcess_Activate(RE::ActivateHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Parkour_Enabled) {
+        if (ModSettings::Parkour_Enabled)
+        {
             if (RuntimeVariables::ParkourInProgress) return false;
             if (RuntimeVariables::SlideOngoing) return false;
         }
@@ -190,7 +209,8 @@ namespace Hooks
     bool InputHandler::Callback::CanProcess_POV(RE::TogglePOVHandler *a_this, RE::InputEvent *a_event)
     {
         /* This disables holding F and setting the zoom thing */
-        if (ModSettings::Parkour_Enabled) {
+        if (ModSettings::Parkour_Enabled)
+        {
             if (RuntimeVariables::ParkourInProgress) return false;
         }
 
@@ -200,7 +220,8 @@ namespace Hooks
     bool InputHandler::Callback::CanProcess_Weapon(RE::ReadyWeaponHandler *a_this, RE::InputEvent *a_event)
     {
         /* Stops Weapon Ready button process, mostly fixes weapon state getting stuck and redrawn */
-        if (ModSettings::Parkour_Enabled) {
+        if (ModSettings::Parkour_Enabled)
+        {
             if (RuntimeVariables::ParkourInProgress) return false;
             if (RuntimeVariables::SlideOngoing) return false;
         }
@@ -210,8 +231,10 @@ namespace Hooks
 
     bool InputHandler::Callback::CanProcess_Look(RE::LookHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Parkour_Enabled) {
-            if (RuntimeVariables::ParkourInProgress) {
+        if (ModSettings::Parkour_Enabled)
+        {
+            if (RuntimeVariables::ParkourInProgress)
+            {
                 auto cam = RE::PlayerCamera::GetSingleton()->currentState;
                 if (cam)
                     if (cam.get()->id == RE::CameraState::kThirdPerson) return false;
@@ -223,7 +246,8 @@ namespace Hooks
 
     bool InputHandler::Callback::CanProcess_Sprint(RE::SprintHandler *a_this, RE::InputEvent *a_event)
     {
-        if (ModSettings::Crouch_Slide_Enabled) {
+        if (ModSettings::Crouch_Slide_Enabled)
+        {
             if (RuntimeVariables::SlideOngoing) return false;
         }
 
@@ -246,7 +270,8 @@ namespace Hooks
         res &= Install::CanProcess_POV();
         res &= Install::CanProcess_Weapon();
 
-        if (!Compatibility::TrueDirectionalMovement::found) {
+        if (!Compatibility::TrueDirectionalMovement::found)
+        {
             res &= Install::CanProcess_Look(); /* Block rotate camera, used for compatibility */
         }
 

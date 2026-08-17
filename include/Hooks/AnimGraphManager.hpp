@@ -1,6 +1,6 @@
 #pragma once
 #include "Util/HookingUtil.hpp"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 
 namespace Hooks
 {

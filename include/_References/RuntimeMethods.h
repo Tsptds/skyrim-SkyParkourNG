@@ -8,8 +8,6 @@ namespace RuntimeMethods
     extern void ResetAll();
     extern void ResetParkour();
     extern void ResetSlide();
-    extern bool IsESPLoaded();
     extern std::unique_ptr<CSimpleIniA> GetIniHandle();
-    extern bool ReadPluginConfigFromINI();
     extern bool RequestTrueHUDAPI();
 }  // namespace RuntimeMethods

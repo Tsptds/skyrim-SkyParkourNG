@@ -1,5 +1,5 @@
 ﻿#pragma once
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeMethods.h"
 #include "_References/RuntimeVariables.h"
 

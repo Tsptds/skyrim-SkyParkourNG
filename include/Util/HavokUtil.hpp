@@ -1,11 +1,12 @@
 #pragma once
 #include "_References/RuntimeVariables.h"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "ParkourUtility.h"
 #include "_References/ParkourType.h"
 #include "Parkouring.h"
 #include "RE/B/bhkCapsuleShape.h"
 #include "_References/Compatibility.h"
+#include "CrouchSliding.h"
 
 namespace HavokUtil
 {
@@ -410,6 +411,11 @@ namespace HavokUtil
                     {
                         API_Handles::TDM::SyncTppYaw();
                     }
+                }
+
+                if (ModSettings::ExpSlideTackle)
+                {
+                    if (RuntimeVariables::SlideOngoing) CrouchSliding::TryKnockCollidedActor(ChannelOwner);
                 }
             }
 

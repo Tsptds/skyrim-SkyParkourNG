@@ -1,4 +1,5 @@
 #pragma once
+#include "API/SKSEMenuFramework.h"
 
 namespace ModSettings
 {
@@ -10,9 +11,9 @@ namespace ModSettings
 
     inline bool Use_Preset_Parkour_Key{true};
     inline uint32_t Custom_Parkour_Key{0};
-    inline int32_t Preset_Parkour_Key{PARKOUR_PRESET_KEYS::kJump};
+    inline int32_t Preset_Parkour_Key{SkyParkour::PresetKeys::kJump};
     inline float Parkour_Delay{0.0f};
-    inline int32_t Auto_Parkour{AUTO_PARKOUR_OPTIONS::kNonCombatOnly};
+    inline int32_t Auto_Parkour{SkyParkour::AutoParkourOptions::kNonCombatOnly};
 
     inline bool Enable_Stamina_Consumption{true};
     inline bool Must_Have_Stamina{true};
@@ -23,6 +24,9 @@ namespace ModSettings
     inline bool Smart_Climb{true};
 
     inline bool Crouch_Slide_Enabled{true};
-
+    inline bool Advanced_Slide_Sneak{true};
     inline bool ExpSlideTackle{false};
-}  // namespace ModSettings
+
+    inline bool Land_Rolling_Enabled{true};
+}
+

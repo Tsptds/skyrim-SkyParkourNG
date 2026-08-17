@@ -1,5 +1,5 @@
 #pragma once
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeVariables.h"
 #include "_References/Compatibility.h"
 #include "HUD/Scaleform/SkyParkourMenu.hpp"

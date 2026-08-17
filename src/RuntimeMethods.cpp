@@ -1,8 +1,7 @@
 #include "_References/RuntimeMethods.h"
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
-#include "_References/ModSettings.h"
-#include "_References/IniSettings.h"
+#include "ModSettings/SkyParkourINI.hpp"
 #include "_References/Compatibility.h"
 #include "API/API_Handles.h"
 
@@ -48,32 +47,6 @@ namespace RuntimeMethods
         {
             API_Handles::TDM::ReleaseYaw();
         }
-    }
-
-    bool IsESPLoaded()
-    {
-        const auto dh = RE::TESDataHandler::GetSingleton();
-        return GetPlugin(dh, IniSettings::ESP_NAME) ? true : false;
-    }
-
-    bool ReadPluginConfigFromINI()
-    {
-        const auto ini = IniSettings::GetIniHandle();
-        if (!ini)
-        {
-            ERROR("INI FILE DOES NOT EXIST AND FAILED TO CREATE");
-            return false;
-        }
-
-        const char *name = ini->GetValue("ESP", "sEspName");
-        if (!name)
-        {
-            ERROR("EspName not found, using default name");
-        }
-
-        INFO("ESP Name: '{}'", name);
-        IniSettings::ESP_NAME = name;
-        return true;
     }
 
     void SetupDLLCompatibility()

@@ -1,11 +1,10 @@
 ﻿#include "Util/ParkourUtility.h"
 #include "Util/HavokUtil.hpp"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeVariables.h"
 #include "_References/ParkourType.h"
 #include "_References/HardcodedVariables.h"
 #include "API/API_Handles.h"
-#include "HUD/Scaleform/SkyParkourMenu.hpp"
 #include "_References/CustomBlockingVars.h"
 #include "_References/Compatibility.h"
 

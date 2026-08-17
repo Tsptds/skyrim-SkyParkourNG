@@ -21,7 +21,7 @@ namespace API_Handles
             static bool IsLockedOn();
             static bool RequestTDMAPI();
 
-            static void ObtainYaw(bool);
+            static void ObtainYaw(bool canStillTurn);
             static void ReleaseYaw();
 
             static void SyncTppYaw();

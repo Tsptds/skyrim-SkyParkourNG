@@ -29,6 +29,8 @@ namespace BehaviorGraph
     constexpr const char *SPPF_NOTIFY_SLIDE = "SkyParkour_Slide";
     constexpr const char *SPPF_SLIDE_START = "SkyParkour_SlideStart";
     constexpr const char *SPPF_SLIDE_STOP = "SkyParkour_SlideStop";
+    constexpr const char *SPPF_SLIDE_SNEAK = "SkyParkour_SlideToSneak";
+    constexpr const char *SPPF_SLIDE_SNEAK_ADV = "SkyParkour_SlideToSneak_Adv";
 
     // Graph Variables
     constexpr const char *SPPF_SLIDE_ONGOING = "SkyParkourSliding";

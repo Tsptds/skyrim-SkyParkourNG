@@ -1,7 +1,7 @@
 #include "Listeners/RaceChangeListener.h"
 #include "Util/ParkourUtility.h"
 #include "Listeners/ButtonListener.h"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "Parkouring.h"
 #include "CrouchSliding.h"
 #include "Util/HavokUtil.hpp"

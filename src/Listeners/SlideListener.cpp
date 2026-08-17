@@ -1,7 +1,8 @@
 #include "Listeners/ButtonListener.h"
 #include "CrouchSliding.h"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeVariables.h"
+#include "_References/Compatibility.h"
 
 void Buttons::SlideListener::CrouchSlide(RE::ButtonEvent *buttonEvent)
 {
@@ -9,28 +10,44 @@ void Buttons::SlideListener::CrouchSlide(RE::ButtonEvent *buttonEvent)
     {
         CrouchSliding::TrySprintSlide(false);
     }
-    else if (buttonEvent->HeldDuration() > 0.2f)
+    /* Sneak on slide begin */
+    else if (!ModSettings::Advanced_Slide_Sneak && buttonEvent->IsHeld())
     {
-        if (RuntimeVariables::SlideOngoing)
+        CrouchSliding::TrySprintSlide(true);
+        RE::PlayerCharacter *act = GET_PLAYER;
+
+        if (act->NotifyAnimationGraph(SPPF_SLIDE_SNEAK))
+        {
+            bool isTDM = Compatibility::TrueDirectionalMovement::found;
+            if (!(isTDM && API_Handles::TDM::IsLockedOn()))
+            {
+                act->AsActorState()->actorState1.sneaking = true;
+                act->SetGraphVariableInt("iIsInSneak", 1);
+            }
+        }
+    }
+    /* Sneak Advanced */
+    else if (ModSettings::Advanced_Slide_Sneak && buttonEvent->HeldDuration() > 0.2f)
+    {
+        if (RuntimeVariables::SlideOngoing && RuntimeVariables::RecoveryFramesActive)
         {
             RE::PlayerCharacter *act = GET_PLAYER;
-            if (auto st = act->AsActorState(); !st->IsSneaking() && !act->IsInMidair())
+            if (!act->IsInMidair())
             {
                 bool isRoll;
                 if (act->GetGraphVariableBool(SPPF_SLIDE_IS_ROLL, isRoll) && !isRoll)
                 {
-                    if (act->NotifyAnimationGraph("SneakStart")) act->AsActorState()->actorState1.sneaking = true;
+                    if (act->NotifyAnimationGraph(SPPF_SLIDE_SNEAK_ADV))
+                    {
+                        act->AsActorState()->actorState1.sneaking = true;
+                        act->SetGraphVariableInt("iIsInSneak", 1);
+                    }
                 }
             }
         }
         else
         {
             CrouchSliding::TrySprintSlide(true);
-        }
-
-        if (ModSettings::ExpSlideTackle)
-        {
-            if (RuntimeVariables::SlideOngoing) CrouchSliding::TryKnockCollidedActor(GET_PLAYER);
         }
     }
 }

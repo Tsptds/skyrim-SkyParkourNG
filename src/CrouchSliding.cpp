@@ -1,6 +1,6 @@
 #include "CrouchSliding.h"
 #include "Listeners/ButtonListener.h"
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/RuntimeVariables.h"
 #include "_References/RuntimeMethods.h"
 #include "Util/ParkourUtility.h"
@@ -14,15 +14,14 @@ namespace CrouchSliding
 {
 
     // Seems to fail if the initiator is player
-    // int32_t StartCombat(RE::TESObjectREFR *a_initiator, RE::TESObjectREFR *a_target) {
-    void StartCombat(RE::TESObjectREFR *a_initiator, RE::TESObjectREFR *a_target)
-    {
-        using func_t = void (*)(RE::TaskQueueInterface *, RE::TESObjectREFR *, RE::TESObjectREFR *);
-        REL::Relocation<func_t> func{RELOCATION_ID(35984, 36959)};
+    // void StartCombat(RE::TESObjectREFR *a_initiator, RE::TESObjectREFR *a_target)
+    // {
+    //     using func_t = void (*)(RE::TaskQueueInterface *, RE::TESObjectREFR *, RE::TESObjectREFR *);
+    //     REL::Relocation<func_t> func{RELOCATION_ID(35984, 36959)};
 
-        const auto taskPool = RE::TaskQueueInterface::GetSingleton();
-        return func(taskPool, a_initiator, a_target);
-    }
+    //     const auto taskPool = RE::TaskQueueInterface::GetSingleton();
+    //     return func(taskPool, a_initiator, a_target);
+    // }
 
     bool TrySprintSlide(bool isHoldingKey)
     {
@@ -49,7 +48,6 @@ namespace CrouchSliding
     {
         if (actor->IsPlayerRef())
         {
-            if (!ModSettings::Crouch_Slide_Enabled) return false;
             if (RuntimeVariables::ParkourInProgress) return false;
             if (RuntimeVariables::IsMenuOpen) return false;
 
@@ -78,7 +76,7 @@ namespace CrouchSliding
         float fallTime = ctrl->fallTime;
         // float fellDist = ctrl->fallStartHeight - actor->GetPositionZ();
 
-        if (midair && fallTime >= 0.5f)
+        if (ModSettings::Land_Rolling_Enabled && midair && fallTime >= 0.5f)
         {
             const auto downRay = [actor] {
                 constexpr RE::NiPoint3 downDir{0, 0, -1};
@@ -109,6 +107,7 @@ namespace CrouchSliding
         }
         else
         {
+            if (!ModSettings::Crouch_Slide_Enabled) return false;
             if (isHoldingKey) return false;
             if (fallTime > 0.2f) return false;
             if (!sprinting) return false;
@@ -155,53 +154,47 @@ namespace CrouchSliding
                 API_Handles::TDM::ReleaseYaw();
             }
 
+            using JA = Compatibility::JumpingAttack;
+            if (JA::found)
+            {
+                if (ParkourUtility::IsActorWeaponOut(actor))
+                {
+                    actor->NotifyAnimationGraph(JA::event);
+                }
+            }
+
             if (!isRoll)
             {
-                if (actor->IsPlayerRef())
+                const auto AS = actor->AsActorState();
+                if (AS && AS->IsSneaking())
                 {
-                    const auto AS = actor->AsActorState();
-                    if (AS && AS->IsSneaking())
+                    if (actor->IsPlayerRef())
                     {
                         GET_PLAYER->GetPlayerRuntimeData().playerFlags.isSprinting = false;
-                        AS->actorState1.sprinting = false;
-                        actor->NotifyAnimationGraph("SprintStop");
                     }
-                    else
-                    {
-                        if (!Compatibility::ClassicSprintingRedone::found)
-                            GET_PLAYER->GetPlayerRuntimeData().playerFlags.isSprinting = true;
-                    }
+                    AS->actorState1.sprinting = false;
+                    actor->NotifyAnimationGraph("SprintStop");
+                }
+                else
+                {
+                    if (!Compatibility::ClassicSprintingRedone::found) GET_PLAYER->GetPlayerRuntimeData().playerFlags.isSprinting = true;
                 }
             }
         }
         else
         {
-            // actor->GetCharController()->flags.set(RE::CHARACTER_FLAGS::kNoFriction);
-            // if (!actor->IsInMidair())
-            // {
-            //     bool isTDM = Compatibility::TrueDirectionalMovement::found;
-            //     if (!(isTDM && API_Handles::TDM::IsLockedOn()))
-            //     {
-            //         actor->SetGraphVariableInt("iIsInSneak", true);
-            //         actor->AsActorState()->actorState1.sneaking = true;
-            //     }
-            // }
-
             if (Compatibility::TrueDirectionalMovement::found)
             {
                 API_Handles::TDM::ObtainYaw(true);
             }
         }
 
-        if (actor->IsPlayerRef())
+        const auto ctrlMap = RE::ControlMap::GetSingleton();
+        if (ctrlMap)
         {
-            const auto ctrlMap = RE::ControlMap::GetSingleton();
-            if (ctrlMap)
-            {
-                ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop, true);
-                ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop,
-                                        true);  // Player tab menu & equip. Gets stuck if player uses TFC.
-            }
+            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kJumping, isStop, true);
+            ctrlMap->ToggleControls(RE::ControlMap::UEFlag::kMainFour, isStop,
+                                    true);  // Player tab menu & equip. Gets stuck if player uses TFC.
         }
     }
 
@@ -215,13 +208,17 @@ namespace CrouchSliding
 
         if (!ref->IsActor()) return false;
         const auto act = ref->As<RE::Actor>();
-        pl->GetActorRuntimeData().currentProcess->KnockExplosion(act, pl->GetPosition(), 5.f);
-        RE::PlaySound("PHYBodyMediumDirtH");
 
-        // act->AsActorValueOwner()->DamageActorValue(RE::ActorValue::kHealth, 5.f);
-        act->DoDamage(5.f, pl, true);
-        StartCombat(act, pl);
+        if (!ParkourUtility::IsKnockedOut(act))
+        {
+            pl->GetActorRuntimeData().currentProcess->KnockExplosion(act, pl->GetPosition(), 5.f);
+            RE::PlaySound("PHYBodyMediumDirtH");
 
-        return true;
+            // act->AsActorValueOwner()->DamageActorValue(RE::ActorValue::kHealth, 5.f);
+            act->DoDamage(1.f, pl, true);
+            act->StartCombat(pl);
+            return true;
+        }
+        return false;
     }
 }  // namespace CrouchSliding

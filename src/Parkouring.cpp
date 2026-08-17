@@ -1,11 +1,10 @@
 ﻿#include "Parkouring.h"
 #include "Util/ParkourUtility.h"
-#include "Listeners/ButtonListener.h"
-#include "Listeners/MenuListener.h"
 #include "Util/ScaleUtility.h"
 #include "Util/HavokUtil.hpp"
+#include "Listeners/ButtonListener.h"
 
-#include "_References/ModSettings.h"
+#include "ModSettings/ModSettings.hpp"
 #include "_References/Compatibility.h"
 #include "_References/ParkourType.h"
 #include "_References/RuntimeVariables.h"
@@ -664,7 +663,7 @@ void Parkouring::UpdateParkourPoint()
     // RuntimeVariables::PlayerScale = ScaleUtility::GetScale(player);
 
     [&] -> void {
-        using opt = AUTO_PARKOUR_OPTIONS;
+        using opt = SkyParkour::AutoParkourOptions;
         namespace pu = ParkourUtility;
         if (ModSettings::Auto_Parkour == opt::kNonCombatOnly && !pu::IsActorWeaponOut(GET_PLAYER) ||
             ModSettings::Auto_Parkour == opt::kAlways)
