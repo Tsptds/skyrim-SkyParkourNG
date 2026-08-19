@@ -8,7 +8,7 @@ namespace MCM_Translation
     class TranslationKey {
         public:
             static constexpr const char *Key = KeyStr;
-            std::string CachedValue;
+            std::string CachedValue = KeyStr;
     };
 
     // Parkour
