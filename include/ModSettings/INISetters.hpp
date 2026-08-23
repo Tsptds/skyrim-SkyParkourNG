@@ -133,7 +133,7 @@ namespace INISetters
         save(ini);
 
         // Turn on if setting is on and is not beast form. Same logic on race change listener.
-        CrouchSliding::SetSlideOnOff(ms::Crouch_Slide_Enabled && !ParkourUtility::IsBeastForm());
+        CrouchSliding::SetSlideOnOff((ms::Crouch_Slide_Enabled || ms::Land_Rolling_Enabled) && !ParkourUtility::IsBeastForm());
     }
     void SetEnableAdvancedSlide(bool value)
     {
@@ -154,6 +154,9 @@ namespace INISetters
         auto ini = GetINI();
         ini->SetBoolValue(SectionMCM, "bEnableLandRolling", value);
         save(ini);
+
+        // Turn on if setting is on and is not beast form. Same logic on race change listener.
+        CrouchSliding::SetSlideOnOff((ms::Crouch_Slide_Enabled || ms::Land_Rolling_Enabled) && !ParkourUtility::IsBeastForm());
     }
 
     /* Debug */

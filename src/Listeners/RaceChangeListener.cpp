@@ -11,7 +11,8 @@ void RaceChangeListener::Register()
 {
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
 
-    if (g_raceChangeSink) {
+    if (g_raceChangeSink)
+    {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->AddEventSink(g_raceChangeSink);
 
         //INFO(">> RaceChange - Listening");
@@ -21,7 +22,8 @@ void RaceChangeListener::Unregister()
 {
     auto g_raceChangeSink = RaceChangeListener::GetSingleton();
 
-    if (g_raceChangeSink) {
+    if (g_raceChangeSink)
+    {
         RE::ScriptEventSourceHolder::GetSingleton()->GetEventSource<RE::TESSwitchRaceCompleteEvent>()->RemoveEventSink(g_raceChangeSink);
 
         //INFO("RaceChange - Not Listening");
@@ -41,16 +43,18 @@ RE::BSEventNotifyControl RaceChangeListener::ProcessEvent(const RE::TESSwitchRac
     pl->SetGraphVariableFloat(SPPF_SPEEDMULT, ModSettings::Playback_Speed);
 
     const auto playerPreTransformData = pl->GetPlayerRuntimeData().preTransformationData;
-    if (playerPreTransformData) {  // Entered beast form
+    if (playerPreTransformData)
+    {  // Entered beast form
 
         Parkouring::SetParkourOnOff(false);
         CrouchSliding::SetSlideOnOff(false);
     }
-    else {  // Changed race but it's not a beast form, reset stuff
+    else
+    {  // Changed race but it's not a beast form, reset stuff
         //INFO(">> Exiting Beast Form");
         RuntimeMethods::ResetAll();
         if (ModSettings::Parkour_Enabled) Parkouring::SetParkourOnOff(true);
-        if (ModSettings::Crouch_Slide_Enabled) CrouchSliding::SetSlideOnOff(true);
+        if (ModSettings::Crouch_Slide_Enabled || ModSettings::Land_Rolling_Enabled) CrouchSliding::SetSlideOnOff(true);
         RuntimeMethods::ResetAll();
         HavokUtil::CreateBoundGraphChannels(GET_PLAYER);
     }

@@ -49,10 +49,17 @@ namespace Hooks
         const auto actor = a_animGraphMgr->graphs[a_animGraphMgr->GetRuntimeData().activeGraph].get()->holder;
         INFO("Post Load Graph: {}", actor->GetName());
 
-        if (actor->IsPlayerRef()) {
+        if (actor->IsPlayerRef())
+        {
+            namespace ms = ModSettings;
             HavokUtil::CreateBoundGraphChannels(actor, a_animGraphMgr);
-            Parkouring::SetParkourOnOff(ModSettings::Parkour_Enabled);
-            CrouchSliding::SetSlideOnOff(ModSettings::Crouch_Slide_Enabled);
+
+            bool isBeastForm = ParkourUtility::IsBeastForm();
+            if (!isBeastForm)
+            {
+                Parkouring::SetParkourOnOff(ms::Parkour_Enabled);
+                CrouchSliding::SetSlideOnOff(ms::Crouch_Slide_Enabled || ms::Land_Rolling_Enabled);
+            }
         }
     }
 }  // namespace Hooks

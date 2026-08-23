@@ -407,9 +407,12 @@ namespace HavokUtil
 
                 if (Compatibility::TrueDirectionalMovement::found)
                 {
-                    if (RuntimeVariables::SlideOngoing)
+                    if (!API_Handles::TDM::IsLockedOn())
                     {
-                        API_Handles::TDM::SyncTppYaw();
+                        if (RuntimeVariables::SlideOngoing)
+                        {
+                            API_Handles::TDM::SyncTppYaw();
+                        }
                     }
                 }
 

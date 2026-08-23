@@ -43,8 +43,7 @@ namespace API_Handles
 
     bool TDM::IsLockedOn()
     {
-        auto tdm = Get();
-        return tdm && tdm->GetDirectionalMovementMode() == TDM_API::DirectionalMovementMode::kTargetLock;
+        return APIHandle && APIHandle->GetDirectionalMovementMode() == TDM_API::DirectionalMovementMode::kTargetLock;
     }
 
     void TDM::ReleaseYaw()
