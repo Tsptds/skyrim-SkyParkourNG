@@ -1,3 +1,18 @@
+# Project Licensing Terms
+
+This repository contains two distinct categories of work licensed under separate terms:
+
+### 1. Source Code
+The source code contained in this repository is licensed under the **GNU Affero General Public License v3.0 (AGPLv3)**. 
+- Per Section 7(e) of the AGPLv3, modified versions must decline the use of our trademarks, project name, and logos. See TRADEMARK.md for rebranding requirements.
+
+### 2. Game Assets & Documentation
+All non-code assets are **All Rights Reserved** 
+- Redistribution, re-uploading, or repackaging of these assets (modified or unmodified) on third-party platforms is strictly prohibited without explicit written permission.
+
+*Exceptions* Community translations, custom animations, and UI (.swf) files are excluded from this restriction and may be shared by the community.
+
+---
                     GNU AFFERO GENERAL PUBLIC LICENSE
                        Version 3, 19 November 2007
 
